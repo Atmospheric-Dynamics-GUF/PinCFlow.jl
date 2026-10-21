@@ -39,6 +39,8 @@ using ..Output
 using ..MSGWaM
 using ..PinCFlow
 
+using ..MSGWaM.Interpolation: get_half_levels, get_levels, interpolate
+
 """
 ```julia
 Dissipation
@@ -88,6 +90,7 @@ include("wkb_integration!.jl")
 include("backup_predictands.jl")
 include("turbulence_integration!.jl")
 include("reduce_exceptions.jl")
+include("update_vertical_grid!.jl")
 
 export integrate
 

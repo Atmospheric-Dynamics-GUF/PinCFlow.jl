@@ -44,15 +44,21 @@ function create_output(state::State, machine_start_time::DateTime)
             file,
             "z",
             datatype(Float32),
-            dataspace((x_size, y_size, z_size));
-            chunk = (cx, cy, cz),
+            dataspace(
+                (x_size, y_size, z_size, 0),
+                (x_size, y_size, z_size, -1),
+            );
+            chunk = (cx, cy, cz, ct),
         )
         create_dataset(
             file,
             "ztilde",
             datatype(Float32),
-            dataspace((x_size, y_size, z_size + 1));
-            chunk = (cx, cy, cz),
+            dataspace(
+                (x_size, y_size, z_size + 1, 0),
+                (x_size, y_size, z_size + 1, -1),
+            );
+            chunk = (cx, cy, cz, ct),
         )
         create_dataset(
             file,
@@ -68,43 +74,42 @@ function create_output(state::State, machine_start_time::DateTime)
                 file,
                 "rhobar",
                 datatype(Float32),
-                dataspace((x_size, y_size, z_size));
-                chunk = (cx, cy, cz),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
             )
             create_dataset(
                 file,
                 "thetabar",
                 datatype(Float32),
-                dataspace((x_size, y_size, z_size));
-                chunk = (cx, cy, cz),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
             )
             create_dataset(
                 file,
                 "n2",
                 datatype(Float32),
-                dataspace((x_size, y_size, z_size));
-                chunk = (cx, cy, cz),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
             )
-            if model === :Compressible
-                create_dataset(
-                    file,
-                    "p",
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
-                )
-            else
-                create_dataset(
-                    file,
-                    "p",
-                    datatype(Float32),
-                    dataspace((x_size, y_size, z_size));
-                    chunk = (cx, cy, cz),
-                )
-            end
+            create_dataset(
+                file,
+                "p",
+                datatype(Float32),
+                dataspace(
+                    (x_size, y_size, z_size, 0),
+                    (x_size, y_size, z_size, -1),
+                );
+                chunk = (cx, cy, cz, ct),
+            )
         end
 
         # Create datasets for the prognostic variables.
@@ -688,7 +693,7 @@ function create_output(state::State, machine_start_time::DateTime)
                 attributes(file["buoyancy_production"])["long_name"] = "buoyancy production"
             end
 
-            if wkb_mode !== :NoWKB && state.namelists.turbulence.gw_coupling 
+            if wkb_mode !== :NoWKB && state.namelists.turbulence.gw_coupling
                 if :gw_shear in output_variables
                     attributes(file["gw_shear"])["units"] = "s^-2"
                     attributes(file["gw_shear"])["label"] =

@@ -12,15 +12,17 @@ Read initial values for all prognostic variables from an HDF5 input file.
 function read_input! end
 
 @ivy function read_input!(state::State)
-    (; x_size, y_size) = state.namelists.domain
-    (; iin, input_file) = state.namelists.output
-    (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
-    (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; lref, tref, rhoref, uref, thetaref) = state.constants
+    (; namelists, constants, domain, grid, atmosphere) = state
+    (; x_size, y_size) = namelists.domain
+    (; iin, input_file) = namelists.output
+    (; model) = namelists.atmosphere
+    (; wkb_mode) = namelists.wkb
+    (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; lref, tref, rhoref, uref, thetaref) = constants
+    (; zc, zctilde, zcnew, zctildenew) = grid
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
     (; bins, nray, rays) = state.wkb
-    (; rhobar) = state.atmosphere
+    (; rhobar) = atmosphere
 
     # Determine dimensionality.
     dim = 1
@@ -46,6 +48,20 @@ function read_input! end
 
         # Read the time.
         time = file["t"][iin == -1 ? end : iin] / tref
+
+        # Update the grid.
+        compute_vertical_grid!(namelists, constants, domain, grid, time)
+        zc .= zcnew
+        zctilde .= zctildenew
+
+        # Update the background fields.
+        compute_background_fields!(
+            namelists,
+            constants,
+            domain,
+            grid,
+            atmosphere,
+        )
 
         # Read the density fluctuations.
         rhop[ii, jj, kk] =

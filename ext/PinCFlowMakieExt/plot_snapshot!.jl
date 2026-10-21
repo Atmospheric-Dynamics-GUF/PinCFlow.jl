@@ -106,7 +106,7 @@ function plot_snapshot! end
         if nx > 1 && ny > 1
             column += 2
             if plane_in_title
-                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits)
+                zk = round(sum(z[:, :, k, n]) / length(z[:, :, k, n]); digits)
                 title =
                     L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}"
             else
@@ -171,8 +171,8 @@ function plot_snapshot! end
                     x_tick_format,
                     y = zr[:, :, j, :],
                     y_label = L"z_r\ [\mathrm{%$space_unit}]",
-                    ymax = maximum(z),
-                    ymin = minimum(z),
+                    ymax = maximum(z[:, :, :, n]),
+                    ymin = minimum(z[:, :, :, n]),
                     y_tick_format = z_tick_format,
                 ),
             )
@@ -209,8 +209,8 @@ function plot_snapshot! end
                     x_tick_format = y_tick_format,
                     y = zr[:, i, :, :],
                     y_label = L"z_r\ [\mathrm{%$space_unit}]",
-                    ymax = maximum(z),
-                    ymin = minimum(z),
+                    ymax = maximum(z[:, :, :, n]),
+                    ymin = minimum(z[:, :, :, n]),
                     y_tick_format = z_tick_format,
                 ),
             )
@@ -223,7 +223,7 @@ function plot_snapshot! end
         if nx > 1 && ny > 1
             column += 2
             if plane_in_title
-                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits)
+                zk = round(sum(z[:, :, k, n]) / length(z[:, :, k, n]); digits)
                 title =
                     L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}"
             else
@@ -276,7 +276,7 @@ function plot_snapshot! end
                     x = x[:, j, :],
                     x_label = L"x\ [\mathrm{%$space_unit}]",
                     x_tick_format,
-                    y = z[:, j, :],
+                    y = z[:, j, :, n],
                     y_label = L"z\ [\mathrm{%$space_unit}]",
                     y_tick_format = z_tick_format,
                 ),
@@ -308,7 +308,7 @@ function plot_snapshot! end
                     x = y[i, :, :],
                     x_label = L"y\ [\mathrm{%$space_unit}]",
                     x_tick_format = y_tick_format,
-                    y = z[i, :, :],
+                    y = z[i, :, :, n],
                     y_label = L"z\ [\mathrm{%$space_unit}]",
                     y_tick_format = z_tick_format,
                 ),

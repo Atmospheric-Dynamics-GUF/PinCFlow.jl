@@ -262,6 +262,7 @@ export DomainNamelist,
     Predictands,
     Reconstructions,
     Fluxes,
+    Backups,
     WKBIntegrals,
     WKBTendencies,
     Rays,
@@ -273,10 +274,14 @@ export DomainNamelist,
     TracerFluxes,
     TracerWKBIntegrals,
     TracerWKBTendencies,
+    TracerBackups,
     TurbulencePredictands,
     TurbulenceReconstructions,
     TurbulenceFluxes,
     TurbulenceWKBIntegrals,
-    TurbulenceWKBTendencies
+    TurbulenceWKBTendencies,
+    TurbulenceBackups
+
+export compute_background_fields!, compute_vertical_grid!
 
 end

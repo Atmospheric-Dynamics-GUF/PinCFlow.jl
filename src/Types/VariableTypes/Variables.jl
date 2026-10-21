@@ -86,7 +86,7 @@ function Variables(
 )::Variables
     predictands = Predictands(namelists, constants, domain, atmosphere, grid)
     increments = Increments(namelists, domain)
-    backups = Backups(domain)
+    backups = Backups(predictands)
     auxiliaries = Auxiliaries(domain)
     reconstructions = Reconstructions(namelists, domain)
     fluxes = Fluxes(namelists, domain)

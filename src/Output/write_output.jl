@@ -10,7 +10,7 @@ write_output(
 
 Write the current simulation state to a previously created HDF5 output file and return the advanced output counter `iout`.
 
-The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `zc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should only be the case for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
+The output is written in parallel, using the chunking prepared by `create_output`. The fields `x` and `y` of `state.grid` are only written if `iout == 1` (which is only the case for the initial output). Because of the potentially changing orography (and the time dependence of `pbar` in compressible mode), the vertical grid (`zc` and `zctilde` in `state.grid`) and the atmospheric background fields are written for any `iout`. In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. Any other field is written for any `iout`, but only if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
 
 The list of available output variables (as specified in `state.namelists.output.output_variables`) is as follows.
 
@@ -73,7 +73,7 @@ The list of available output variables (as specified in `state.namelists.output.
   - `:buoyancy_production`: Turbulent kinetic energy production/destruction due to buoyancy.
 
   - `:gw_shear::A`: Shear of unresolved gravity waves.
-  
+
   - `:dtkedt::A`: Turbulence impact of unresolved gravity waves.
 
   - `:launch_mode_count`: Numbers of modes selected by the elastic-mode-selection algorithm.
@@ -166,32 +166,33 @@ function write_output end
         end
 
         # Write the vertical grid.
-        if iout == 1
-            file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
-            file["ztilde"][iid, jjd, kkrd] = zctilde[ii, jj, kkr] .* lref
-        end
+        HDF5.set_extent_dims(file["z"], (x_size, y_size, z_size, iout))
+        HDF5.set_extent_dims(file["ztilde"], (x_size, y_size, z_size + 1, iout))
+        file["z"][iid, jjd, kkd, iout] = zc[ii, jj, kk] .* lref
+        file["ztilde"][iid, jjd, kkrd, iout] = zctilde[ii, jj, kkr] .* lref
 
-        # Write the background density.
-        if model !== :Boussinesq && iout == 1
-            file["rhobar"][iid, jjd, kkd] = rhobar[ii, jj, kk] .* rhoref
-        end
+        # Write the atmospheric background fields.
+        if model !== :Boussinesq
 
-        # Write the background potential temperature.
-        if model !== :Boussinesq && iout == 1
-            file["thetabar"][iid, jjd, kkd] = thetabar[ii, jj, kk] .* thetaref
-        end
+            # Write the background density.
+            HDF5.set_extent_dims(file["rhobar"], (x_size, y_size, z_size, iout))
+            file["rhobar"][iid, jjd, kkd, iout] = rhobar[ii, jj, kk] .* rhoref
 
-        # Write the squared buoyancy frequency.
-        if model !== :Boussinesq && iout == 1
-            file["n2"][iid, jjd, kkd] = n2[ii, jj, kk] ./ tref .^ 2
-        end
+            # Write the background potential temperature.
+            HDF5.set_extent_dims(
+                file["thetabar"],
+                (x_size, y_size, z_size, iout),
+            )
+            file["thetabar"][iid, jjd, kkd, iout] =
+                thetabar[ii, jj, kk] .* thetaref
 
-        # Write the mass-weighted potential temperature.
-        if model === :Compressible
+            # Write the squared buoyancy frequency.
+            HDF5.set_extent_dims(file["n2"], (x_size, y_size, z_size, iout))
+            file["n2"][iid, jjd, kkd, iout] = n2[ii, jj, kk] ./ tref .^ 2
+
+            # Write the mass-weighted potential temperature.
             HDF5.set_extent_dims(file["p"], (x_size, y_size, z_size, iout))
             file["p"][iid, jjd, kkd, iout] = p[ii, jj, kk] .* rhoref .* thetaref
-        elseif model !== :Boussinesq && iout == 1
-            file["p"][iid, jjd, kkd] = pbar[ii, jj, kk] .* rhoref .* thetaref
         end
 
         # Write the density fluctuations.

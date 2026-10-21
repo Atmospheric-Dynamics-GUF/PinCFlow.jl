@@ -64,7 +64,7 @@ function wave_packet(;
 
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
-    grid = GridNamelist(; resolved_topography = (x, y) -> z0)
+    grid = GridNamelist(; resolved_topography = (x, y, t) -> z0)
 
     state = State(Namelists(; atmosphere, domain, grid))
     (; g) = state.constants

@@ -5,10 +5,11 @@ compute_vertical_grid!(
     constants::Constants,
     domain::Domain,
     grid::Grid,
-)
+    t::AbstractFloat,
+)::Integer
 ```
 
-Compute the resolved and unresolved topography, Jacobian, metric-tensor elements, physical layers, and minimum layer depth in `grid`.
+Compute the resolved and unresolved topography, Jacobian, metric-tensor elements, physical layers, and minimum layer depth in `grid` and return the number of changes in the resolved topography.
 
 The Jacobian reads
 
@@ -35,6 +36,8 @@ The vertical layer centers and edges of physical grid are given by
 \\end{align*}
 ```
 
+This function changes the fields `zcnew` and `zctildenew` of `grid` accordingly but does not change `zc` and `zctilde`.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -44,6 +47,8 @@ The vertical layer centers and edges of physical grid are given by
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
   - `grid`: Collection of parameters and fields that describe the grid.
+
+  - `t`: Time.
 
 # See also
 
@@ -58,12 +63,13 @@ function compute_vertical_grid! end
     constants::Constants,
     domain::Domain,
     grid::Grid,
-)
+    t::AbstractFloat,
+)::Integer
     (; nbz) = namelists.domain
     (; wave_modes, wkb_mode) = namelists.wkb
     (; resolved_topography, unresolved_topography) = namelists.grid
     (; nxx, nyy, nzz, i0, i1, j0, j1, ko, comm) = domain
-    (; lref) = constants
+    (; lref, tref) = constants
     (;
         lz,
         dx,
@@ -81,29 +87,40 @@ function compute_vertical_grid! end
         met13,
         met23,
         met33,
-        zc,
-        zctilde,
+        zcnew,
+        zctildenew,
         dzcmin,
     ) = grid
 
     # Compute the resolved topography.
+    changes = 0
     for j in j0:j1, i in i0:i1
-        hbdim = resolved_topography(x[i] * lref, y[j] * lref)
-        hb[i, j] = hbdim / lref
+        hbnew = resolved_topography(x[i] * lref, y[j] * lref, t * tref) / lref
+
+        if hbnew != hb[i, j]
+            hb[i, j] = hbnew
+            changes += 1
+        end
     end
-    set_zonal_boundaries_of_field!(hb, namelists, domain)
-    set_meridional_boundaries_of_field!(hb, namelists, domain)
+    changes = MPI.Allreduce(changes, +, comm)
 
     # Compute the unresolved topography.
     if wkb_mode !== :NoWKB
         for j in j0:j1, i in i0:i1, alpha in 1:wave_modes
             (khdim, lhdim, hwdim) =
-                unresolved_topography(alpha, x[i] * lref, y[j] * lref)
+                unresolved_topography(alpha, x[i] * lref, y[j] * lref, t * tref)
             kh[alpha, i, j] = khdim * lref
             lh[alpha, i, j] = lhdim * lref
             hw[alpha, i, j] = hwdim / lref
         end
     end
+
+    if changes == 0
+        return changes
+    end
+
+    set_zonal_boundaries_of_field!(hb, namelists, domain)
+    set_meridional_boundaries_of_field!(hb, namelists, domain)
 
     # Set the start index for the computation of the Jacobian and metric tensor.
     kmin = ko == 0 ? 2 : 1
@@ -166,14 +183,18 @@ function compute_vertical_grid! end
 
     # Compute the physical layers.
     for k in 1:nzz
-        zctilde[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
-        zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
+        zctildenew[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
+        zcnew[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
     end
 
     # Compute the minimum layer depth.
-    dzcmin[] =
-        mapreduce(-, min, zctilde[:, :, 2:nzz], zctilde[:, :, 1:(nzz - 1)])
+    dzcmin[] = mapreduce(
+        -,
+        min,
+        zcnewtilde[:, :, 2:nzz],
+        zcnewtilde[:, :, 1:(nzz - 1)],
+    )
     dzcmin[] = MPI.Allreduce(dzcmin[], min, comm)
 
-    return
+    return changes
 end

@@ -104,6 +104,12 @@ Vertical coordinates:
 
   - `zctilde::D`: Physical height at vertical cell edges.
 
+Updated vertical coordinates :
+
+  - `zcnew::D`: Updated physical height at cell centers.
+
+  - `zctildenew::D`: Updated physical height at vertical cell edges.
+
 Minimum layer depth:
 
   - `dzcmin::E`: Global minimum of the vertical differences in `zctilde`.
@@ -161,6 +167,10 @@ struct Grid{
     # Vertical coordinates.
     zc::D
     zctilde::D
+
+    # Updated vertical coordinates.
+    zcnew::D
+    zctildenew::D
 
     # Minimum layer depth.
     dzcmin::E
@@ -228,6 +238,13 @@ end
     end
     zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
 
+    # Prepare the Cartesian vertical grid.
+    (zc, zctilde, zcnew, zctildenew) = (zeros(nxx, nyy, nzz) for i in 1:4)
+    for k in 1:nzz
+        zcnew[:, :, k] .= zs[ko + k]
+        zctildenew[:, :, k] .= ztildes[ko + k]
+    end
+
     grid = Grid(
         lx,
         ly,
@@ -243,11 +260,20 @@ end
         (
             wkb_mode === :NoWKB ? zeros(0, 0, 0) : zeros(wave_modes, nxx, nyy) for i in 1:3
         )...,
-        (zeros(nxx, nyy, nzz) for i in 1:6)...,
-        Ref(0.0),
+        ones(nxx, nyy, nzz),
+        (zeros(nxx, nyy, nzz) for i in 1:2)...,
+        ones(nxx, nyy, nzz),
+        zc,
+        zctilde,
+        zcnew,
+        zctildenew,
+        Ref(dz),
     )
 
-    compute_vertical_grid!(namelists, constants, domain, grid)
+    compute_vertical_grid!(namelists, constants, domain, grid, 0.0)
+
+    grid.zc .= grid.zcnew
+    grid.zctilde .= grid.zctildenew
 
     return grid
 end

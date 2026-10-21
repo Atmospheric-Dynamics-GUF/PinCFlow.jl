@@ -60,11 +60,11 @@ function wkb_mountain_wave(;
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
-        resolved_topography = (x, y) ->
+        resolved_topography = (x, y, t) ->
             x^2 + y^2 <= (rl * l0)^2 ?
             h0 / 2 * (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) * rh /
             (rh + 1) : 0.0,
-        unresolved_topography = (alpha, x, y) ->
+        unresolved_topography = (alpha, x, y, t) ->
             x^2 + y^2 <= (rl * l0)^2 ?
             (
                 pi / l0,
