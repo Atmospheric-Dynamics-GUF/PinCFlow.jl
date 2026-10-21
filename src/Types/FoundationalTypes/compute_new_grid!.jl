@@ -191,8 +191,8 @@ function compute_new_grid! end
     dzcmin[] = mapreduce(
         -,
         min,
-        zcnewtilde[:, :, 2:nzz],
-        zcnewtilde[:, :, 1:(nzz - 1)],
+        zctildenew[:, :, 2:nzz],
+        zctildenew[:, :, 1:(nzz - 1)],
     )
     dzcmin[] = MPI.Allreduce(dzcmin[], min, comm)
 
