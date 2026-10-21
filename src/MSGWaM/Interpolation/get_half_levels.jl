@@ -41,6 +41,8 @@ In case an error is thrown, the parameter `wkb_cfl_number` of the discretization
   - `dkd`: Number of levels needed below.
 
   - `dku`: Number of levels needed above.
+
+  - `old_grid`: Switch for using the old grid (`state.grid.zctildeold`).
 """
 function get_half_levels end
 
@@ -53,10 +55,13 @@ function get_half_levels end
     dj::Bool = false,
     dkd::Integer = 0,
     dku::Integer = 0,
+    old_grid::Boold = false,
 )::NTuple{2, <:Integer}
+    (; grid) = state
     (; z_size) = state.namelists.domain
     (; nz, nzz, ko, k0, k1) = state.domain
-    (; zctilde) = state.grid
+
+    zctilde = old_grid ? grid.zctildeold : grid.zctilde
 
     ku = 1
     while (

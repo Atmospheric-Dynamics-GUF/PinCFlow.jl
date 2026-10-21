@@ -3,7 +3,7 @@
 update_grid!(state::State, time::AbstractFloat)
 ```
 
-Update the vertical grid by recomputing it, interpolating all predictands to the new grid, recomputing the atmospheric background fields, and shifting MS-GWaM's ray volumes such that they are assigned to the correct grid cells.
+Recompute the grid and the atmospheric background fields, interpolate all predictands to the new grid, and shift MS-GWaM's ray volumes such that they are assigned to the correct grid cells.
 
 # Arguments
 
@@ -16,17 +16,20 @@ function update_grid! end
 function update_grid!(state::State, time::AbstractFloat)
     (; namelists, constants, domain, grid, atmosphere) = state
     (; i0, i1, j0, j1, k0, k1) = domain
-    (; zc, zctilde, zcnew, zctildenew) = grid
+    (; zc, zctilde, zcold, zctildeold) = grid
     (; wkb_mode) = namelists.wkb
     (; backups, predictands) = state.variables
     (; tracerbackups, tracerpredictands) = state.tracer
     (; turbulencebackups, turbulencepredictands) = state.turbulence
 
+    zcold .= zc
+    zctildeold .= zctilde
+
     changes = compute_new_grid!(namelists, constants, domain, grid, time)
 
-    if changes == 0
-        return
-    end
+    changes == 0 && return
+
+    compute_background_fields!(namelists, constants, domain, grid, atmosphere)
 
     save_backups!(state)
 
@@ -39,33 +42,36 @@ function update_grid!(state::State, time::AbstractFloat)
 
             for k in k0:k1, j in j0:j1, i in i0:i1
                 if field === :u
-                    zlc = (zcnew[i, j, k] + zcnew[i + 1, j, k]) / 2
+                    zlc = (zc[i, j, k] + zc[i + 1, j, k]) / 2
 
-                    (kd, ku) = get_levels(i, j, zlc, state; di = true)
+                    (kd, ku) =
+                        get_levels(i, j, zlc, state; di = true, old_grid = true)
 
-                    zd = (zc[inew, j, kd] + zc[i + 1, j, kd]) / 2
-                    zu = (zc[i, j, ku] + zc[i + 1, j, ku]) / 2
+                    zd = (zcold[i, j, kd] + zcold[i + 1, j, kd]) / 2
+                    zu = (zcold[i, j, ku] + zcold[i + 1, j, ku]) / 2
                 elseif field === :v
-                    zlc = (zcnew[i, j, k] + zcnew[i, j + 1, k]) / 2
+                    zlc = (zc[i, j, k] + zc[i, j + 1, k]) / 2
 
-                    (kd, ku) = get_levels(i, j, zlc, state; dj = true)
+                    (kd, ku) =
+                        get_levels(i, j, zlc, state; dj = true, old_grid = true)
 
-                    zd = (zc[i, j, kd] + zc[i, j + 1, kd]) / 2
-                    zu = (zc[i, j, ku] + zc[i, j + 1, ku]) / 2
+                    zd = (zcold[i, j, kd] + zcold[i, j + 1, kd]) / 2
+                    zu = (zcold[i, j, ku] + zcold[i, j + 1, ku]) / 2
                 elseif field === :w
-                    zlc = zctildenew[i, j, k]
+                    zlc = zctilde[i, j, k]
 
-                    (kd, ku) = get_half_levels(i, j, zlc, state)
+                    (kd, ku) =
+                        get_half_levels(i, j, zlc, state; old_grid = true)
 
-                    zd = zctilde[i, j, kd]
-                    zu = zctilde[i, j, ku]
+                    zd = zctildeold[i, j, kd]
+                    zu = zctildeold[i, j, ku]
                 else
-                    zlc = zcnew[i, j, k]
+                    zlc = zc[i, j, k]
 
-                    (kd, ku) = get_levels(i, j, zlc, state)
+                    (kd, ku) = get_levels(i, j, zlc, state; old_grid = true)
 
-                    zd = zc[i, j, kd]
-                    zu = zc[i, j, ku]
+                    zd = zcold[i, j, kd]
+                    zu = zcold[i, j, ku]
                 end
 
                 phid = getfield(b, Symbol(field, :old))[i, j, kd]
@@ -78,11 +84,6 @@ function update_grid!(state::State, time::AbstractFloat)
     end
 
     set_boundaries!(state, BoundaryPredictands())
-
-    zc .= zcnew
-    zctilde .= zctildenew
-
-    compute_background_fields!(namelists, constants, domain, grid, atmosphere)
 
     synchronize_compressible_atmosphere!(state, state.variables.predictands)
 

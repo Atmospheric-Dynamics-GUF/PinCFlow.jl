@@ -36,8 +36,6 @@ The vertical layer centers and edges of physical grid are given by
 \\end{align*}
 ```
 
-This function changes the fields `zcnew` and `zctildenew` of `grid` accordingly but does not change `zc` and `zctilde`.
-
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -87,8 +85,8 @@ function compute_new_grid! end
         met13,
         met23,
         met33,
-        zcnew,
-        zctildenew,
+        zc,
+        zctilde,
         dzcmin,
     ) = grid
 
@@ -183,17 +181,13 @@ function compute_new_grid! end
 
     # Compute the physical layers.
     for k in 1:nzz
-        zctildenew[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
-        zcnew[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
+        zctilde[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
+        zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
     end
 
     # Compute the minimum layer depth.
-    dzcmin[] = mapreduce(
-        -,
-        min,
-        zctildenew[:, :, 2:nzz],
-        zctildenew[:, :, 1:(nzz - 1)],
-    )
+    dzcmin[] =
+        mapreduce(-, min, zctilde[:, :, 2:nzz], zctilde[:, :, 1:(nzz - 1)])
     dzcmin[] = MPI.Allreduce(dzcmin[], min, comm)
 
     return changes

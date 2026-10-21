@@ -19,7 +19,6 @@ function read_input! end
     (; wkb_mode) = namelists.wkb
     (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lref, tref, rhoref, uref, thetaref) = constants
-    (; zc, zctilde, zcnew, zctildenew) = grid
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
     (; bins, nray, rays) = state.wkb
     (; rhobar) = atmosphere
@@ -51,8 +50,6 @@ function read_input! end
 
         # Update the grid.
         compute_new_grid!(namelists, constants, domain, grid, time)
-        zc .= zcnew
-        zctilde .= zctildenew
 
         # Update the background fields.
         compute_background_fields!(
