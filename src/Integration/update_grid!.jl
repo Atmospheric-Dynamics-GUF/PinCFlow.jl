@@ -15,7 +15,7 @@ The transformed vertical wind (``\\hat{w}``) is converted into the Cartesian ver
 """
 function update_grid! end
 
-function update_grid!(state::State, time::AbstractFloat)
+@ivy function update_grid!(state::State, time::AbstractFloat)
     (; namelists, constants, domain, grid, atmosphere) = state
     (; i0, i1, j0, j1, k0, k1) = domain
     (; zc, zctilde, zcold, zctildeold, dzcmin, dzcminold) = grid
