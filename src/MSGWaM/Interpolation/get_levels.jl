@@ -85,7 +85,6 @@ function get_levels end
                 " < ",
                 1 + dkd,
                 " = 1 + dkd",
-                "\nPlease choose a smaller WKB-CFL number.",
             )
         end
     end
@@ -101,7 +100,6 @@ function get_levels end
                 " > ",
                 nzz - dku,
                 " = nzz - dku",
-                "\nPlease choose a smaller WKB-CFL number.",
             )
         end
     end
