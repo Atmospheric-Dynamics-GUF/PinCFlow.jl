@@ -24,6 +24,25 @@ function update_grid! end
     (; tracerbackups, tracerpredictands) = state.tracer
     (; turbulencebackups, turbulencepredictands) = state.turbulence
     (; u, v, w) = predictands
+    (; wold) = predictands
+
+    # Calculate the Cartesian vertical wind on the old grid.
+    dkd = dku = 2
+    for k in (k0 - dkd):(k1 + dku), j in j0:j1, i in i0:i1
+        wold[i, j, k] = compute_vertical_wind(i, j, k, state)
+    end
+    set_zonal_boundaries_of_field!(
+        wold,
+        namelists,
+        domain;
+        layers = (-1, -1, 2),
+    )
+    set_meridional_boundaries_of_field!(
+        wold,
+        namelists,
+        domain;
+        layers = (-1, -1, 2),
+    )
 
     zcold .= zc
     zctildeold .= zctilde
@@ -48,17 +67,7 @@ function update_grid! end
 
     # Convert the transformed vertical wind into the Cartesian vertical wind
     # for the interpolation.
-    dkd = dku = 2
-    for k in (k0 - dkd):(k1 + dku), j in j0:j1, i in i0:i1
-        w[i, j, k] = compute_vertical_wind(i, j, k, state)
-    end
-    set_zonal_boundaries_of_field!(w, namelists, domain; layers = (-1, -1, 2))
-    set_meridional_boundaries_of_field!(
-        w,
-        namelists,
-        domain;
-        layers = (-1, -1, 2),
-    )
+    w .= wold
 
     save_backups!(state)
 
