@@ -509,7 +509,7 @@ end
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar, horizontal_mean) = state.sponge
     (; w) = state.variables.predictands
-    (; x, y, zc, jac, met) = state.grid
+    (; x, y, zc, jac, met13, met23, met33) = state.grid
 
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
@@ -533,17 +533,17 @@ end
             relax_to_mean ? horizontal_mean[k - k0 + 1] :
             (
                 jac[i, j, k] * (
-                    met[i, j, k + 1, 1, 3] *
+                    met13[i, j, k + 1] *
                     relaxed_u(xdim, ydim, zcudim, tdim, dtdim) +
-                    met[i, j, k + 1, 2, 3] *
+                    met23[i, j, k + 1] *
                     relaxed_v(xdim, ydim, zcudim, tdim, dtdim) +
                     relaxed_w(xdim, ydim, zcudim, tdim, dtdim) /
                     jac[i, j, k + 1]
                 ) +
                 jac[i, j, k + 1] * (
-                    met[i, j, k, 1, 3] *
+                    met13[i, j, k] *
                     relaxed_u(xdim, ydim, zcddim, tdim, dtdim) +
-                    met[i, j, k, 2, 3] *
+                    met23[i, j, k] *
                     relaxed_v(xdim, ydim, zcddim, tdim, dtdim) +
                     relaxed_w(xdim, ydim, zcddim, tdim, dtdim) / jac[i, j, k]
                 )
