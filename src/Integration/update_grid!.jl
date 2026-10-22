@@ -16,7 +16,7 @@ function update_grid! end
 function update_grid!(state::State, time::AbstractFloat)
     (; namelists, constants, domain, grid, atmosphere) = state
     (; i0, i1, j0, j1, k0, k1) = domain
-    (; zc, zctilde, zcold, zctildeold) = grid
+    (; zc, zctilde, zcold, zctildeold, dzcmin, dzcminold) = grid
     (; wkb_mode) = namelists.wkb
     (; backups, predictands) = state.variables
     (; tracerbackups, tracerpredictands) = state.tracer
@@ -24,10 +24,22 @@ function update_grid!(state::State, time::AbstractFloat)
 
     zcold .= zc
     zctildeold .= zctilde
+    dzcminold[] = dzcmin[]
 
     changes = compute_new_grid!(namelists, constants, domain, grid, time)
 
     changes == 0 && return
+
+    if mapreduce(
+        (a, b, c, d) -> max(abs(a - c), abs(b - d)),
+        max,
+        zc,
+        zctilde,
+        zcold,
+        zctildeold,
+    ) > min(dzcmin[], dzcminold[])
+        error("Orography is changing too rapidly!")
+    end
 
     compute_background_fields!(namelists, constants, domain, grid, atmosphere)
 

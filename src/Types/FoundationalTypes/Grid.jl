@@ -114,6 +114,10 @@ Minimum layer depth:
 
   - `dzcmin::E`: Global minimum of the vertical differences in `zctilde`.
 
+Minimum-layer-depth backup:
+
+  - `dzcminold::E`: Backup reference for the global minimum of the vertical differences in `zctilde`.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -174,6 +178,9 @@ struct Grid{
 
     # Minimum layer depth.
     dzcmin::E
+
+    # Minimum-layer-depth backup.
+    dzcminold::E
 end
 
 @ivy function Grid(
@@ -268,6 +275,7 @@ end
         zcold,
         zctildeold,
         Ref(dz),
+        Ref(0.0),
     )
 
     compute_new_grid!(namelists, constants, domain, grid, 0.0)
