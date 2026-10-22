@@ -45,8 +45,8 @@ function TurbulenceConstants(constants::Constants)::TurbulenceConstants
     (; lref, tref) = constants
 
     lturb = 30.0
-    ld = sqrt(2) * lturb / lref
-    lv = lb = lt = lturb / lref / sqrt(2)
+    ld = lturb / lref
+    lv = lb = lt = lturb / lref
     tkemin = 5.E-5 * tref^2.0 / lref^2.0
 
     return TurbulenceConstants(lturb, ld, lv, lb, lt, tkemin)

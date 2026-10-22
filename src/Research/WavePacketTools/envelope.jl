@@ -1,9 +1,12 @@
 # src/Examples/WavePacketTools/envelope.jl
 
 function envelope(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
-    (; k, l, m, rx, ry, rz, x0, y0, z0, lz) = parameters
+    (; lx) = parameters
 
-    return (3 + cos(pi * (z - lz / 2) / lz)) / 4
+    return cos(2 * pi * x / lx) * 0.15 + (1 - 0.15)
+
+    # return (3 + cos(pi * (z - lz / 2) / lz)) / 4 * 
+    #     (3 + cos(pi * (x - lx) / lx)) / 4
 
     # r =
     #     sqrt(

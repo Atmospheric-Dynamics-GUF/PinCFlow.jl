@@ -1,40 +1,34 @@
 # src/Examples/boussinesq_periodic.jl
 
 function boussinesq_periodic(;
-    display_figure::Bool = true,
     npx::Integer = 1,
     npy::Integer = 1,
     npz::Integer = 1,
     output_file::AbstractString = "boussinesq_periodic.h5",
-    plot_file::AbstractString = "boussinesq_periodic.svg",
-    prepare_restart::Bool = false,
-    visualize::Bool = true,
-    x_size::Integer = 216,
-    y_size::Integer = 16,
-    z_size::Integer = 320,
+    x_size::Integer = 448,
+    y_size::Integer = 32,
+    z_size::Integer = 640,
+    lambdah::AbstractFloat = 300.0e3,
+    a0::AbstractFloat = 1.0,
 )
-    lx = 400.0e3
-    ly = 30.0e3
+    lx = 4000.0e3
+    ly = 300.0e3
     lz = 20.0e3
 
     parameters = (
         k = 0.0,
-        l = 2 * pi / 30.0e3,
+        l = 2 * pi / lambdah,
         m = 2 * pi / 1.0e3,
-        rx = 0.0,
-        ry = 0.0,
-        rz = 0.0,
-        x0 = 0.0,
-        y0 = 0.0,
-        z0 = 0.0,
-        a0 = 0.7,
+        a0 = a0,
+        lx = lx,
+        ly = ly,
         lz = lz,
     )
-    (; m) = parameters
+    (; k, l, m) = parameters
 
     model = :Boussinesq
     background = :StableStratification
-    coriolis_frequency = 2.0e-3
+    coriolis_frequency = 1.0e-4
     buoyancy_frequency = 2.0e-2
 
     domain = DomainNamelist(;
@@ -93,26 +87,15 @@ function boussinesq_periodic(;
         output_file,
         output_interval = 1.0,
         output_variables = [:u, :v, :w, :tke, :rhop, :tracerdiffusion],
-        prepare_restart,
         tmax = 1.0,
     )
 
-    function chi_largescale(x::Real, z::Real)
-        return 0.25 *
-               (1 + cos(2 * pi * (z - lz / 2) / lz)) *
-               (1 + cos(2 * pi * x / lx))
+    function chi_largescale(z::Real)
+        return (1 + cos(2 * pi * (z - lz / 2) / lz)) / 2
     end
 
-    function dchidx(x::Real, z::Real)
-        return -pi / (2 * lx) *
-               (1 + cos(2 * pi * (z - lz / 2) / lz)) *
-               sin(2 * pi * x / lx)
-    end
-
-    function dchidz(x::Real, z::Real)
-        return -pi / (2 * lz) *
-               sin(2 * pi * (z - lz / 2) / lz) *
-               (1 + cos(2 * pi * x / lx))
+    function dchidz(z::Real)
+        return -pi / (lz) * sin(2 * pi * (z - lz / 2) / lz)
     end
 
     function chihat(
@@ -122,10 +105,8 @@ function boussinesq_periodic(;
         y::Real,
         z::Real,
     )
-        return -1im / omega(state, parameters, x, y, z) * (
-            uhat(state, parameters, x, y, z) * dchidx(x, z) +
-            what(state, parameters, x, y, z) * dchidz(x, z)
-        )
+        return -1im / omega(state, parameters, x, y, z) *
+               (what(state, parameters, x, y, z) * dchidz(x, z))
     end
 
     tracer = TracerNamelist(;
@@ -165,21 +146,10 @@ function boussinesq_periodic(;
                     )
                 ),
             ) / 2,
+            momentum_coupling = false,
     )
 
     integrate(Namelists(; atmosphere, domain, output, tracer, turbulence))
-
-    if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        plot_output(
-            plot_file,
-            output_file,
-            (:u, 0.5, 0.5, 0.5, 2),
-            (:v, 0.5, 0.5, 0.5, 2),
-            (:w, 0.5, 0.5, 0.5, 2);
-            display_figure,
-            time_unit = :min,
-        )
-    end
 
     return
 end

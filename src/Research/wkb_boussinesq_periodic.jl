@@ -1,49 +1,37 @@
 # src/Examples/wkb_boussinesq_periodic.jl
 
 function wkb_boussinesq_periodic(;
-    display_figure::Bool = true,
-    npx::Integer = 1,
-    npy::Integer = 1,
-    npz::Integer = 1,
     output_file::AbstractString = "wkb_boussinesq_periodic.h5",
-    plot_file::AbstractString = "wkb_boussinesq_periodic.svg",
-    prepare_restart::Bool = false,
-    visualize::Bool = true,
-    x_size::Integer = 40,
+    x_size::Integer = 31,
     y_size::Integer = 1,
-    z_size::Integer = 20,
+    z_size::Integer = 31,
+    lambdah::AbstractFloat = 300.0e3,
+    a0::AbstractFloat = 1.0,
 )
-    lx = 400.0e3
-    ly = 30.0e3
+    lx = 4000.0e3
+    ly = 300.0e3
     lz = 20.0e3
 
     parameters = (
         k = 0.0,
-        l = 2 * pi / 30.0e3,
+        l = 2 * pi / lambdah,
         m = 2 * pi / 1.0e3,
-        rx = 0.0,
-        ry = 0.0,
-        rz = 0.0,
-        x0 = 0.0,
-        y0 = 0.0,
-        z0 = 0.0,
-        a0 = 0.7,
+        a0 = a0,
+        lx = lx,
+        ly = ly,
         lz = lz,
     )
     (; k, l, m) = parameters
 
     model = :Boussinesq
     background = :StableStratification
-    coriolis_frequency = 2.0e-3
+    coriolis_frequency = 1.0e-4
     buoyancy_frequency = 2.0e-2
 
     domain = DomainNamelist(;
         lx,
         ly,
         lz,
-        npx,
-        npy,
-        npz,
         x_size,
         y_size,
         z_size,
@@ -68,7 +56,8 @@ function wkb_boussinesq_periodic(;
             omega(state, parameters, x, y, z),
             wave_action_density(state, parameters, x, y, z),
         ),
-        turbulent_damping = true,
+        turbulent_damping = false,
+        use_saturation = false,
     )
 
     output = OutputNamelist(;
@@ -81,29 +70,19 @@ function wkb_boussinesq_periodic(;
             :u,
             :e,
             :dtkedt,
-            :uu,
-            :uv,
-            :uw,
-            :vv,
-            :vw,
-            :utheta,
-            :vtheta,
             :uchi0,
             :vchi0,
             :wchi0,
             :qchi,
             :tracerdiffusion,
         ],
-        prepare_restart,
         tmax = 1.0,
     )
 
-    discretization = DiscretizationNamelist(; dtmax = 5.0)
+    discretization = DiscretizationNamelist(; dtmax = 100.0)
 
     function chi_largescale(x::Real, z::Real)
-        return 0.25 *
-               (1 + cos(2 * pi * (z - lz / 2) / lz)) *
-               (1 + cos(2 * pi * x / lx))
+        return (1 + cos(2 * pi * (z - lz / 2) / lz)) / 2
     end
 
     tracer = TracerNamelist(;
@@ -113,7 +92,22 @@ function wkb_boussinesq_periodic(;
         turbulence_wave_impact = true,
     )
 
-    turbulence = TurbulenceNamelist(; gw_coupling = true)
+    lt = 30.0
+
+    turbulence = TurbulenceNamelist(;
+        gw_coupling = true,
+        initial_tke = (x, y, z) ->
+            max(
+                0,
+                lt * (
+                    lt * m^2 / 2 * (
+                        abs(uhat(state, parameters, x, y, z))^2 +
+                        abs(vhat(state, parameters, x, y, z))^2
+                    ) - lt * (n2(state, x, y, z))
+                ),
+            ) / 2,
+        momentum_coupling = false,
+    )
 
     integrate(
         Namelists(;
@@ -126,23 +120,6 @@ function wkb_boussinesq_periodic(;
             discretization,
         ),
     )
-
-    if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
-        plot_output(
-            "wkb_boussinesq_periodic-dchidt0.svg",
-            output_file,
-            (:dchidt0, 0.5, 0.5, 0.5, 61);
-            display_figure,
-            time_unit = :h,
-        )
-        plot_output(
-            "wkb_boussinesq_periodic-dchidtq.svg",
-            output_file,
-            (:dchidtq, 0.5, 0.5, 0.5, 61);
-            display_figure,
-            time_unit = :h,
-        )
-    end
 
     return
 end

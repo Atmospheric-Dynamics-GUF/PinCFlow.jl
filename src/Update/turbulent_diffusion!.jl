@@ -807,7 +807,7 @@ end
         thomas_algorithm!(state)
 
         tracerdiffusion[i0:i1, j0:j1, k0:k1] .-= fth
-        tracerdiffusion ./= dt
+        tracerdiffusion ./= -dt
 
         chi[i0:i1, j0:j1, k0:k1] .=
             fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])

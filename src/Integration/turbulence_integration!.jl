@@ -158,7 +158,7 @@ end
         tke[i, j, k] =
             1 /
             (
-                sqrt(2) * dt / (ld * sqrt(rho[i, j, k] + rhobar[i, j, k])) +
+                dt / (ld * sqrt(rho[i, j, k] + rhobar[i, j, k])) +
                 1 / sqrt(tke[i, j, k])
             )^2.0
     end
