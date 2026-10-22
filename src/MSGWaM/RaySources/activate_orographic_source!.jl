@@ -39,8 +39,8 @@ function activate_orographic_source! end
         dmr_factor,
         wkb_mode,
     ) = state.namelists.wkb
-    (; ko, i0, i1, j0, j1, k0) = state.domain
-    (; dx, dy, dz, x, y, zc, jac, hb) = state.grid
+    (; io, jo, ko, i0, i1, j0, j1, k0) = state.domain
+    (; dx, dy, dz, x, y, zc, zctilde, jac, hb) = state.grid
     (; rs, ixs, jys, kzs, iks, jls, kms, alphas) = state.wkb.surface_indices
     (; nray_wrk, n_sfc, nray, rays, increments, spectrum) = state.wkb
 
@@ -140,6 +140,22 @@ function activate_orographic_source! end
                             rays.z[local_count, i, j, k + 1] =
                                 zr + dzr / 2 -
                                 rays.dzray[local_count, i, j, k + 1] / 2
+                        end
+
+                        # Check if the old ray volume was assigned to the
+                        # correct grid cell.
+                        if rays.z[local_count, i, j, k + 1] >
+                           zctilde[i, j, k + 1]
+                            error(
+                                "Center ray is outside of the grid cell:\nzr = ",
+                                rays.z[local_count, i, j, k + 1],
+                                " > ",
+                                zctilde[i, j, k + 1],
+                                " = zctilde[i, j, k + 1]\n(io, jo, ko) = ",
+                                (io, jo, ko),
+                                "\n(r, i, j, k) = ",
+                                (local_count, i, j, k + 1),
+                            )
                         end
                     end
 
