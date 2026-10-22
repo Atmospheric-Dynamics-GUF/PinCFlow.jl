@@ -24,7 +24,7 @@ function update_grid! end
     (; tracerbackups, tracerpredictands) = state.tracer
     (; turbulencebackups, turbulencepredictands) = state.turbulence
     (; u, v, w) = predictands
-    (; wold) = predictands
+    (; wold) = backups
 
     # Calculate the Cartesian vertical wind on the old grid.
     dkd = dku = 2
