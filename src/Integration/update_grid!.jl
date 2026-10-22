@@ -5,6 +5,8 @@ update_grid!(state::State, time::AbstractFloat)
 
 Recompute the grid and the atmospheric background fields, interpolate all predictands to the new grid, and shift MS-GWaM's ray volumes such that they are assigned to the correct grid cells.
 
+The transformed vertical wind (``\\hat{w}``) is converted into the Cartesian vertical wind (``w``) before the interpolation, and the result is converted back before the boundary conditions are enforced. In this way, the basis-vector changes are accounted for.
+
 # Arguments
 
   - `state`: Model state.
@@ -21,6 +23,7 @@ function update_grid!(state::State, time::AbstractFloat)
     (; backups, predictands) = state.variables
     (; tracerbackups, tracerpredictands) = state.tracer
     (; turbulencebackups, turbulencepredictands) = state.turbulence
+    (; u, v, w) = predictands
 
     zcold .= zc
     zctildeold .= zctilde
@@ -43,8 +46,23 @@ function update_grid!(state::State, time::AbstractFloat)
 
     compute_background_fields!(namelists, constants, domain, grid, atmosphere)
 
+    # Convert the transformed vertical wind into the Cartesian vertical wind
+    # for the interpolation.
+    dkd = dku = 2
+    for k in (k0 - dkd):(k1 + dku), j in j0:j1, i in i0:i1
+        w[i, j, k] = compute_vertical_wind(i, j, k, state)
+    end
+    set_zonal_boundaries_of_field!(w, namelists, domain; layers = (-1, -1, 2))
+    set_meridional_boundaries_of_field!(
+        w,
+        namelists,
+        domain;
+        layers = (-1, -1, 2),
+    )
+
     save_backups!(state)
 
+    di = dj = old_grid = true
     for (b, p) in zip(
         (backups, tracerbackups, turbulencebackups),
         (predictands, tracerpredictands, turbulencepredictands),
@@ -56,16 +74,14 @@ function update_grid!(state::State, time::AbstractFloat)
                 if field === :u
                     zlc = (zc[i, j, k] + zc[i + 1, j, k]) / 2
 
-                    (kd, ku) =
-                        get_levels(i, j, zlc, state; di = true, old_grid = true)
+                    (kd, ku) = get_levels(i, j, zlc, state; di, old_grid)
 
                     zd = (zcold[i, j, kd] + zcold[i + 1, j, kd]) / 2
                     zu = (zcold[i, j, ku] + zcold[i + 1, j, ku]) / 2
                 elseif field === :v
                     zlc = (zc[i, j, k] + zc[i, j + 1, k]) / 2
 
-                    (kd, ku) =
-                        get_levels(i, j, zlc, state; dj = true, old_grid = true)
+                    (kd, ku) = get_levels(i, j, zlc, state; dj, old_grid)
 
                     zd = (zcold[i, j, kd] + zcold[i, j + 1, kd]) / 2
                     zu = (zcold[i, j, ku] + zcold[i, j + 1, ku]) / 2
@@ -73,14 +89,14 @@ function update_grid!(state::State, time::AbstractFloat)
                     zlc = zctilde[i, j, k]
 
                     (kd, ku) =
-                        get_half_levels(i, j, zlc, state; old_grid = true)
+                        get_half_levels(i, j, zlc, state; dkd, dku, old_grid)
 
                     zd = zctildeold[i, j, kd]
                     zu = zctildeold[i, j, ku]
                 else
                     zlc = zc[i, j, k]
 
-                    (kd, ku) = get_levels(i, j, zlc, state; old_grid = true)
+                    (kd, ku) = get_levels(i, j, zlc, state; old_grid)
 
                     zd = zcold[i, j, kd]
                     zu = zcold[i, j, ku]
@@ -93,6 +109,37 @@ function update_grid!(state::State, time::AbstractFloat)
                     interpolate((; phid, phiu, zd, zu, zlc))
             end
         end
+    end
+
+    # Convert the Cartesian vertical wind back into the transformed vertical
+    # wind.
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        uedger = u[i, j, k]
+        uuedger = u[i, j, k + 1]
+        uedgel = u[i - 1, j, k]
+        uuedgel = u[i - 1, j, k + 1]
+        vedgef = v[i, j, k]
+        vuedgef = v[i, j, k + 1]
+        vedgeb = v[i, j - 1, k]
+        vuedgeb = v[i, j - 1, k + 1]
+        wedgeu = w[i, j, k]
+
+        w[i, j, k] = transform(
+            i,
+            j,
+            k,
+            uedger,
+            uuedger,
+            uedgel,
+            uuedgel,
+            vedgef,
+            vuedgef,
+            vedgeb,
+            vuedgeb,
+            wedgeu,
+            Transformed(),
+            state,
+        )
     end
 
     set_boundaries!(state, BoundaryPredictands())
