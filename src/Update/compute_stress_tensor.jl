@@ -65,7 +65,7 @@ function compute_stress_tensor end
     (; grid) = state
     (; predictands) = state.variables
     (; u, v, w) = state.variables.predictands
-    (; dx, dy, dz, jac, met) = state.grid
+    (; dx, dy, dz, jac, met13, met23, met33) = state.grid
 
     jacedger = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
     jacedgel = 0.5 * (jac[i, j, k] + jac[i - 1, j, k])
@@ -110,7 +110,7 @@ function compute_stress_tensor end
     if mu == 1 && nu == 1
         stress_tensor =
             2.0 * (u[i, j, k] - u[i - 1, j, k]) / dx +
-            met[i, j, k, 1, 3] * (uu - ud) / dz -
+            met13[i, j, k] * (uu - ud) / dz -
             2.0 / 3.0 * (
                 (jacedger * u[i, j, k] - jacedgel * u[i - 1, j, k]) / dx +
                 (jacedgef * v[i, j, k] - jacedgeb * v[i, j - 1, k]) / dy +
@@ -119,21 +119,21 @@ function compute_stress_tensor end
     elseif (mu == 1 && nu == 2) || (mu == 2 && nu == 1)
         stress_tensor =
             0.5 * (uf - ub) / dy +
-            0.5 * met[i, j, k, 2, 3] * (uu - ud) / dz +
+            0.5 * met23[i, j, k] * (uu - ud) / dz +
             0.5 * (vr - vl) / dx +
-            0.5 * met[i, j, k, 1, 3] * (vu - vd) / dz
+            0.5 * met13[i, j, k] * (vu - vd) / dz
     elseif (mu == 1 && nu == 3) || (mu == 3 && nu == 1)
         stress_tensor =
             0.5 * (uu - ud) / dz / jac[i, j, k] +
             0.5 * (wr - wl) / dx +
-            met[i, j, k, 1, 3] * (
+            met13[i, j, k] * (
                 compute_vertical_wind(i, j, k, state) -
                 compute_vertical_wind(i, j, k - 1, state)
             ) / dz
     elseif mu == 2 && nu == 2
         stress_tensor =
             2.0 * (v[i, j, k] - v[i, j - 1, k]) / dy +
-            met[i, j, k, 2, 3] * (vu - vd) / dz -
+            met23[i, j, k] * (vu - vd) / dz -
             2.0 / 3.0 * (
                 (jacedger * u[i, j, k] - jacedgel * u[i - 1, j, k]) / dx +
                 (jacedgef * v[i, j, k] - jacedgeb * v[i, j - 1, k]) / dy +
@@ -143,7 +143,7 @@ function compute_stress_tensor end
         stress_tensor =
             0.5 * (vu - vd) / dz / jac[i, j, k] +
             0.5 * (wf - wb) / dy +
-            met[i, j, k, 2, 3] * (
+            met23[i, j, k] * (
                 compute_vertical_wind(i, j, k, state) -
                 compute_vertical_wind(i, j, k - 1, state)
             ) / dz

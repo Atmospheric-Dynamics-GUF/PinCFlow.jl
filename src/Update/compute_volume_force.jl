@@ -233,17 +233,15 @@ end
     variable::W,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; jac, met) = state.grid
+    (; jac, met13, met23, met33) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
 
     return (
-        jac[i, j, k + 1] * (
-            met[i, j, k, 1, 3] * dudt[i, j, k] +
-            met[i, j, k, 2, 3] * dvdt[i, j, k]
-        ) +
+        jac[i, j, k + 1] *
+        (met13[i, j, k] * dudt[i, j, k] + met23[i, j, k] * dvdt[i, j, k]) +
         jac[i, j, k] * (
-            met[i, j, k + 1, 1, 3] * dudt[i, j, k + 1] +
-            met[i, j, k + 1, 2, 3] * dvdt[i, j, k + 1]
+            met13[i, j, k + 1] * dudt[i, j, k + 1] +
+            met23[i, j, k + 1] * dvdt[i, j, k + 1]
         )
     ) / (jac[i, j, k] + jac[i, j, k + 1])
 end

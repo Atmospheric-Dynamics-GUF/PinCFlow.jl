@@ -559,7 +559,7 @@ end
 @ivy function turbulent_diffusion!(state::State, dt::AbstractFloat, variable::W)
     (; u, v, w) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met, dz) = state.grid
+    (; jac, met13, met23, met33, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)
@@ -602,16 +602,16 @@ end
         uu = 0.5 * (u[i - 1, j, k + 1] + u[i, j, k + 1])
         uc13 =
             (
-                jac[i, j, k] * met[i, j, k + 1, 1, 3] * uu +
-                jac[i, j, k + 1] * met[i, j, k, 1, 3] * ud
+                jac[i, j, k] * met13[i, j, k + 1] * uu +
+                jac[i, j, k + 1] * met13[i, j, k] * ud
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         vd = 0.5 * (v[i, j - 1, k] + v[i, j, k])
         vu = 0.5 * (v[i, j - 1, k + 1] + v[i, j, k + 1])
         vc23 =
             (
-                jac[i, j, k] * met[i, j, k + 1, 2, 3] * vu +
-                jac[i, j, k + 1] * met[i, j, k, 2, 3] * vd
+                jac[i, j, k] * met23[i, j, k + 1] * vu +
+                jac[i, j, k + 1] * met23[i, j, k] * vd
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         jacc =
