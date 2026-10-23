@@ -44,7 +44,7 @@ function activate_orographic_source! end
     (; rs, ixs, jys, kzs, iks, jls, kms, alphas) = state.wkb.surface_indices
     (; nray_wrk, n_sfc, nray, rays, increments, spectrum) = state.wkb
 
-    if ko != 0
+    if wkb_mode === :NoWKB || ko != 0
         return
     end
 
