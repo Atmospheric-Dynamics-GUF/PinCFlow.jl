@@ -6,10 +6,7 @@ TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 Tracer impact of unresolved gravity waves.
 
 ```julia
-TracerWKBTendencies(
-    namelists::Namelists,
-    domain::Domain,
-)::TracerWKBTendencies
+TracerWKBTendencies(namelists::Namelists, domain::Domain)::TracerWKBTendencies
 ```
 
 Construct a `TracerWKBTendencies` instance by dispatching to the appropriate method.
