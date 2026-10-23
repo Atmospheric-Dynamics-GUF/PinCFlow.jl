@@ -614,7 +614,7 @@ end
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; pi11, pi12, pi13) = state.variables.stresstensor
+    (; pi11, pi12, pi13) = state.variables.stress_tensor
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -921,7 +921,7 @@ end
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; pi12, pi22, pi23) = state.variables.stresstensor
+    (; pi12, pi22, pi23) = state.variables.stress_tensor
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1227,7 +1227,7 @@ end
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; pi13, pi23, pi33) = state.variables.stresstensor
+    (; pi13, pi23, pi33) = state.variables.stress_tensor
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 

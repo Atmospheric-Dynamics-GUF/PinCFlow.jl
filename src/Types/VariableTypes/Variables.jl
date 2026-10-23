@@ -38,7 +38,7 @@ Construct a `Variables` instance, with array dimensions and initial values set a
 
   - `fluxes::F`: Fluxes of the prognostic variables.
 
-  - `stresstensor::G`: Stress tensor elements.
+  - `stress_tensor::G`: Stress tensor elements.
 
 # Arguments
 
@@ -81,7 +81,7 @@ struct Variables{
     auxiliaries::D
     reconstructions::E
     fluxes::F
-    stresstensor::G
+    stress_tensor::G
 end
 
 function Variables(
@@ -97,7 +97,7 @@ function Variables(
     auxiliaries = Auxiliaries(domain)
     reconstructions = Reconstructions(namelists, domain)
     fluxes = Fluxes(namelists, domain)
-    stresstensor = StressTensor(domain)
+    stress_tensor = StressTensor(domain)
 
     return Variables(
         predictands,
@@ -106,6 +106,6 @@ function Variables(
         auxiliaries,
         reconstructions,
         fluxes,
-        stresstensor,
+        stress_tensor,
     )
 end

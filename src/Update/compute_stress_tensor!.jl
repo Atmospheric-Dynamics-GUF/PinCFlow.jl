@@ -27,7 +27,7 @@ where
 \\end{align*}
 ```
 
-``\\Pi^{1 1}``, ``\\Pi^{1 2}``, ``\\Pi^{1 3}``, ``\\Pi^{2 2}``, ``\\Pi^{2 3}``, and ``\\Pi^{3 3}`` are stored in `state.variables.stresstensor.pi11`, `state.variables.stresstensor.pi12`, `state.variables.stresstensor.pi13`, `state.variables.stresstensor.pi22`, `state.variables.stresstensor.pi23`, and `state.variables.stresstensor.pi33`, respectively.
+``\\Pi^{1 1}``, ``\\Pi^{1 2}``, ``\\Pi^{1 3}``, ``\\Pi^{2 2}``, ``\\Pi^{2 3}``, and ``\\Pi^{3 3}`` are stored in `state.variables.stress_tensor.pi11`, `state.variables.stress_tensor.pi12`, `state.variables.stress_tensor.pi13`, `state.variables.stress_tensor.pi22`, `state.variables.stress_tensor.pi23`, and `state.variables.stress_tensor.pi33`, respectively.
 
 # Arguments
 
@@ -41,7 +41,7 @@ function compute_stress_tensor! end
 
 @ivy function compute_stress_tensor!(state::State)
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; pi11, pi12, pi13, pi22, pi23, pi33) = state.variables.stresstensor
+    (; pi11, pi12, pi13, pi22, pi23, pi33) = state.variables.stress_tensor
     (; u, v, w) = state.variables.predictands
     (; dx, dy, dz, jac, met13, met23, met33) = state.grid
     (; re) = state.constants
