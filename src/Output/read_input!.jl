@@ -49,7 +49,7 @@ function read_input! end
         time = file["t"][iin == -1 ? end : iin] / tref
 
         # Update the grid.
-        compute_new_grid!(namelists, constants, domain, grid, time)
+        compute_grid!(namelists, constants, domain, grid, time)
 
         # Update the background fields.
         compute_background_fields!(

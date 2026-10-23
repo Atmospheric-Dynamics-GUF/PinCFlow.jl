@@ -1,6 +1,6 @@
 """
 ```julia
-compute_new_grid!(
+compute_grid!(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,
@@ -54,9 +54,9 @@ The vertical layer centers and edges of physical grid are given by
 
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 """
-function compute_new_grid! end
+function compute_grid! end
 
-@ivy function compute_new_grid!(
+@ivy function compute_grid!(
     namelists::Namelists,
     constants::Constants,
     domain::Domain,

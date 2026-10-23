@@ -282,6 +282,6 @@ export DomainNamelist,
     TurbulenceWKBTendencies,
     TurbulenceBackups
 
-export compute_background_fields!, compute_new_grid!
+export compute_background_fields!, compute_grid!
 
 end

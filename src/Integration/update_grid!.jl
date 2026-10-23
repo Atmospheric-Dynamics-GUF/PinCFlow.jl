@@ -36,7 +36,7 @@ function update_grid! end
     zctildeold .= zctilde
     dzcminold[] = dzcmin[]
 
-    changes = compute_new_grid!(namelists, constants, domain, grid, time)
+    changes = compute_grid!(namelists, constants, domain, grid, time)
 
     changes == 0 && return
 
