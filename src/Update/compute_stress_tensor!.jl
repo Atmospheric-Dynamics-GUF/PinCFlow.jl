@@ -50,7 +50,7 @@ function compute_stress_tensor! end
         return
     end
 
-    for k in (k0 - 2):(k1 + 1), j in (j0 - 2):(j1 + 1), i in (i0 - 2):(i1 + 1)
+    for k in (k0 - 2):(k1 + 2), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         jacedger = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
         jacedgel = 0.5 * (jac[i, j, k] + jac[i - 1, j, k])
         jacedgef = 0.5 * (jac[i, j, k] + jac[i, j + 1, k])
