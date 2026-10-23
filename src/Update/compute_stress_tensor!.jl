@@ -27,7 +27,7 @@ where
 \\end{align*}
 ```
 
-``\\Pi^{1 1}``, ``\\Pi^{1 2}``, ``\\Pi^{1 3}``, ``\\Pi^{2 2}``, ``\\Pi^{2 3}``, and ``\\Pi^{3 3}`` are stored in `state.variables.auxiliaries.stress_tensor_11`, `state.variables.auxiliaries.stress_tensor_12`, `state.variables.auxiliaries.stress_tensor_13`, `state.variables.auxiliaries.stress_tensor_22`, `state.variables.auxiliaries.stress_tensor_23`, and `state.variables.auxiliaries.stress_tensor_33`, respectively.
+``\\Pi^{1 1}``, ``\\Pi^{1 2}``, ``\\Pi^{1 3}``, ``\\Pi^{2 2}``, ``\\Pi^{2 3}``, and ``\\Pi^{3 3}`` are stored in `state.variables.stresstensor.pi11`, `state.variables.stresstensor.pi12`, `state.variables.stresstensor.pi13`, `state.variables.stresstensor.pi22`, `state.variables.stresstensor.pi23`, and `state.variables.stresstensor.pi33`, respectively.
 
 # Arguments
 
@@ -41,14 +41,7 @@ function compute_stress_tensor! end
 
 @ivy function compute_stress_tensor!(state::State)
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (;
-        stress_tensor_11,
-        stress_tensor_12,
-        stress_tensor_13,
-        stress_tensor_22,
-        stress_tensor_23,
-        stress_tensor_33,
-    ) = state.variables.auxiliaries
+    (; pi11, pi12, pi13, pi22, pi23, pi33) = state.variables.stresstensor
     (; u, v, w) = state.variables.predictands
     (; dx, dy, dz, jac, met) = state.grid
     (; re) = state.constants
@@ -98,7 +91,7 @@ function compute_stress_tensor! end
                 compute_vertical_wind(i, j - 1, k - 1, state)
             )
 
-        stress_tensor_11[i, j, k] =
+        pi11[i, j, k] =
             2.0 * (u[i, j, k] - u[i - 1, j, k]) / dx +
             met[i, j, k, 1, 3] * (uu - ud) / dz -
             2.0 / 3.0 * (
@@ -107,13 +100,13 @@ function compute_stress_tensor! end
                 (jacedgeu * w[i, j, k] - jacedged * w[i, j, k - 1]) / dz
             ) / jac[i, j, k]
 
-        stress_tensor_12[i, j, k] =
+        pi12[i, j, k] =
             0.5 * (uf - ub) / dy +
             0.5 * met[i, j, k, 2, 3] * (uu - ud) / dz +
             0.5 * (vr - vl) / dx +
             0.5 * met[i, j, k, 1, 3] * (vu - vd) / dz
 
-        stress_tensor_13[i, j, k] =
+        pi13[i, j, k] =
             0.5 * (uu - ud) / dz / jac[i, j, k] +
             0.5 * (wr - wl) / dx +
             met[i, j, k, 1, 3] * (
@@ -121,7 +114,7 @@ function compute_stress_tensor! end
                 compute_vertical_wind(i, j, k - 1, state)
             ) / dz
 
-        stress_tensor_22[i, j, k] =
+        pi22[i, j, k] =
             2.0 * (v[i, j, k] - v[i, j - 1, k]) / dy +
             met[i, j, k, 2, 3] * (vu - vd) / dz -
             2.0 / 3.0 * (
@@ -130,7 +123,7 @@ function compute_stress_tensor! end
                 (jacedgeu * w[i, j, k] - jacedged * w[i, j, k - 1]) / dz
             ) / jac[i, j, k]
 
-        stress_tensor_23[i, j, k] =
+        pi23[i, j, k] =
             0.5 * (vu - vd) / dz / jac[i, j, k] +
             0.5 * (wf - wb) / dy +
             met[i, j, k, 2, 3] * (
@@ -138,7 +131,7 @@ function compute_stress_tensor! end
                 compute_vertical_wind(i, j, k - 1, state)
             ) / dz
 
-        stress_tensor_33[i, j, k] =
+        pi33[i, j, k] =
             2.0 * (
                 compute_vertical_wind(i, j, k, state) -
                 compute_vertical_wind(i, j, k - 1, state)

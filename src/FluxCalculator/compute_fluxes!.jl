@@ -614,8 +614,7 @@ end
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; stress_tensor_11, stress_tensor_12, stress_tensor_13) =
-        state.variables.auxiliaries
+    (; pi11, pi12, pi13) = state.variables.stresstensor
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -710,8 +709,7 @@ end
         for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
             coef_v = 1 / re * rhobar[i + 1, j, k0]
 
-            frhou_visc =
-                coef_v * jac[i + 1, j, k] * stress_tensor_11[i + 1, j, k]
+            frhou_visc = coef_v * jac[i + 1, j, k] * pi11[i + 1, j, k]
 
             phiu[i, j, k, 1] -= frhou_visc
         end
@@ -735,10 +733,10 @@ end
                 coef_v *
                 0.25 *
                 (
-                    jac[i, j, k] * stress_tensor_12[i, j, k] +
-                    jac[i + 1, j, k] * stress_tensor_12[i + 1, j, k] +
-                    jac[i, j + 1, k] * stress_tensor_12[i, j + 1, k] +
-                    jac[i + 1, j + 1, k] * stress_tensor_12[i + 1, j + 1, k]
+                    jac[i, j, k] * pi12[i, j, k] +
+                    jac[i + 1, j, k] * pi12[i + 1, j, k] +
+                    jac[i, j + 1, k] * pi12[i, j + 1, k] +
+                    jac[i + 1, j + 1, k] * pi12[i + 1, j + 1, k]
                 )
 
             phiu[i, j, k, 2] -= grhou_visc
@@ -752,21 +750,21 @@ end
             coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
             stresstens13 =
-                met[i, j, k, 1, 3] * stress_tensor_11[i, j, k] +
-                met[i, j, k, 2, 3] * stress_tensor_12[i, j, k] +
-                stress_tensor_13[i, j, k] / jac[i, j, k]
+                met[i, j, k, 1, 3] * pi11[i, j, k] +
+                met[i, j, k, 2, 3] * pi12[i, j, k] +
+                pi13[i, j, k] / jac[i, j, k]
             stresstens13r =
-                met[i + 1, j, k, 1, 3] * stress_tensor_11[i + 1, j, k] +
-                met[i + 1, j, k, 2, 3] * stress_tensor_12[i + 1, j, k] +
-                stress_tensor_13[i + 1, j, k] / jac[i + 1, j, k]
+                met[i + 1, j, k, 1, 3] * pi11[i + 1, j, k] +
+                met[i + 1, j, k, 2, 3] * pi12[i + 1, j, k] +
+                pi13[i + 1, j, k] / jac[i + 1, j, k]
             stresstens13u =
-                met[i, j, k + 1, 1, 3] * stress_tensor_11[i, j, k + 1] +
-                met[i, j, k + 1, 2, 3] * stress_tensor_12[i, j, k + 1] +
-                stress_tensor_13[i, j, k + 1] / jac[i, j, k + 1]
+                met[i, j, k + 1, 1, 3] * pi11[i, j, k + 1] +
+                met[i, j, k + 1, 2, 3] * pi12[i, j, k + 1] +
+                pi13[i, j, k + 1] / jac[i, j, k + 1]
             stresstens13ru =
-                met[i + 1, j, k + 1, 1, 3] * stress_tensor_11[i + 1, j, k + 1] +
-                met[i + 1, j, k + 1, 2, 3] * stress_tensor_12[i + 1, j, k + 1] +
-                stress_tensor_13[i + 1, j, k + 1] / jac[i + 1, j, k + 1]
+                met[i + 1, j, k + 1, 1, 3] * pi11[i + 1, j, k + 1] +
+                met[i + 1, j, k + 1, 2, 3] * pi12[i + 1, j, k + 1] +
+                pi13[i + 1, j, k + 1] / jac[i + 1, j, k + 1]
             hrhou_visc =
                 coef_v *
                 0.5 *
@@ -790,7 +788,6 @@ end
     #-------------------------------------------------------------------
 
     if kinematic_diffusivity > 0.0
-
         mu_mom_diff = kinematic_diffusivity / uref / lref
 
         #-----------------------------------------
@@ -924,8 +921,7 @@ end
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; stress_tensor_12, stress_tensor_22, stress_tensor_23) =
-        state.variables.auxiliaries
+    (; pi12, pi22, pi23) = state.variables.stresstensor
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1032,10 +1028,10 @@ end
                 coef_v *
                 0.25 *
                 (
-                    jac[i, j, k] * stress_tensor_12[i, j, k] +
-                    jac[i + 1, j, k] * stress_tensor_12[i + 1, j, k] +
-                    jac[i, j + 1, k] * stress_tensor_12[i, j + 1, k] +
-                    jac[i + 1, j + 1, k] * stress_tensor_12[i + 1, j + 1, k]
+                    jac[i, j, k] * pi12[i, j, k] +
+                    jac[i + 1, j, k] * pi12[i + 1, j, k] +
+                    jac[i, j + 1, k] * pi12[i, j + 1, k] +
+                    jac[i + 1, j + 1, k] * pi12[i + 1, j + 1, k]
                 )
 
             phiv[i, j, k, 1] -= frhov_visc
@@ -1048,8 +1044,7 @@ end
         for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
             coef_v = 1 / re * rhobar[i, j + 1, k0]
 
-            grhov_visc =
-                coef_v * jac[i, j + 1, k] * stress_tensor_22[i, j + 1, k]
+            grhov_visc = coef_v * jac[i, j + 1, k] * pi22[i, j + 1, k]
 
             phiv[i, j, k, 2] -= grhov_visc
         end
@@ -1062,21 +1057,21 @@ end
             coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
 
             stresstens23 =
-                met[i, j, k, 1, 3] * stress_tensor_12[i, j, k] +
-                met[i, j, k, 2, 3] * stress_tensor_22[i, j, k] +
-                stress_tensor_23[i, j, k] / jac[i, j, k]
+                met[i, j, k, 1, 3] * pi12[i, j, k] +
+                met[i, j, k, 2, 3] * pi22[i, j, k] +
+                pi23[i, j, k] / jac[i, j, k]
             stresstens23f =
-                met[i, j + 1, k, 1, 3] * stress_tensor_12[i, j + 1, k] +
-                met[i, j + 1, k, 2, 3] * stress_tensor_22[i, j + 1, k] +
-                stress_tensor_23[i, j + 1, k] / jac[i, j + 1, k]
+                met[i, j + 1, k, 1, 3] * pi12[i, j + 1, k] +
+                met[i, j + 1, k, 2, 3] * pi22[i, j + 1, k] +
+                pi23[i, j + 1, k] / jac[i, j + 1, k]
             stresstens23u =
-                met[i, j, k + 1, 1, 3] * stress_tensor_12[i, j, k + 1] +
-                met[i, j, k + 1, 2, 3] * stress_tensor_22[i, j, k + 1] +
-                stress_tensor_23[i, j, k + 1] / jac[i, j, k + 1]
+                met[i, j, k + 1, 1, 3] * pi12[i, j, k + 1] +
+                met[i, j, k + 1, 2, 3] * pi22[i, j, k + 1] +
+                pi23[i, j, k + 1] / jac[i, j, k + 1]
             stresstens23fu =
-                met[i, j + 1, k + 1, 1, 3] * stress_tensor_12[i, j + 1, k + 1] +
-                met[i, j + 1, k + 1, 2, 3] * stress_tensor_22[i, j + 1, k + 1] +
-                stress_tensor_23[i, j + 1, k + 1] / jac[i, j + 1, k + 1]
+                met[i, j + 1, k + 1, 1, 3] * pi12[i, j + 1, k + 1] +
+                met[i, j + 1, k + 1, 2, 3] * pi22[i, j + 1, k + 1] +
+                pi23[i, j + 1, k + 1] / jac[i, j + 1, k + 1]
             hrhov_visc =
                 coef_v *
                 0.5 *
@@ -1100,7 +1095,6 @@ end
     #-------------------------------------------------------------------
 
     if kinematic_diffusivity > 0.0
-
         mu_mom_diff = kinematic_diffusivity / uref / lref
 
         #-----------------------------------------
@@ -1233,8 +1227,7 @@ end
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; stress_tensor_13, stress_tensor_23, stress_tensor_33) =
-        state.variables.auxiliaries
+    (; pi13, pi23, pi33) = state.variables.stresstensor
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1354,14 +1347,12 @@ end
                 (
                     jac[i, j, k] *
                     jac[i, j, k + 1] *
-                    (stress_tensor_13[i, j, k] + stress_tensor_13[i, j, k + 1]) /
+                    (pi13[i, j, k] + pi13[i, j, k + 1]) /
                     (jac[i, j, k] + jac[i, j, k + 1]) +
                     jac[i + 1, j, k] *
                     jac[i + 1, j, k + 1] *
-                    (
-                        stress_tensor_13[i + 1, j, k] +
-                        stress_tensor_13[i + 1, j, k + 1]
-                    ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+                    (pi13[i + 1, j, k] + pi13[i + 1, j, k + 1]) /
+                    (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
                 )
 
             phiw[i, j, k, 1] -= frhow_visc
@@ -1380,14 +1371,12 @@ end
                 (
                     jac[i, j, k] *
                     jac[i, j, k + 1] *
-                    (stress_tensor_13[i, j, k] + stress_tensor_13[i, j, k + 1]) /
+                    (pi13[i, j, k] + pi13[i, j, k + 1]) /
                     (jac[i, j, k] + jac[i, j, k + 1]) +
                     jac[i, j + 1, k] *
                     jac[i, j + 1, k + 1] *
-                    (
-                        stress_tensor_13[i, j + 1, k] +
-                        stress_tensor_13[i, j + 1, k + 1]
-                    ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+                    (pi13[i, j + 1, k] + pi13[i, j + 1, k + 1]) /
+                    (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
                 )
 
             phiw[i, j, k, 2] -= grhow_visc
@@ -1404,11 +1393,11 @@ end
                 coef_v * (
                     jac[i, j, k + 1] *
                     met[i, j, k + 1, 1, 3] *
-                    stress_tensor_13[i, j, k + 1] +
+                    pi13[i, j, k + 1] +
                     jac[i, j, k + 1] *
                     met[i, j, k + 1, 2, 3] *
-                    stress_tensor_23[i, j, k + 1] +
-                    stress_tensor_33[i, j, k + 1]
+                    pi23[i, j, k + 1] +
+                    pi33[i, j, k + 1]
                 )
 
             phiw[i, j, k, 3] -= hrhow_visc
@@ -1420,7 +1409,6 @@ end
     #-------------------------------------------------------------------
 
     if kinematic_diffusivity > 0.0
-
         mu_mom_diff = kinematic_diffusivity / uref / lref
 
         #-----------------------------------------
