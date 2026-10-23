@@ -7,6 +7,7 @@ Variables{
     D <: Auxiliaries,
     E <: Reconstructions,
     F <: Fluxes,
+    G <: StressTensor,
 }
 ```
 
@@ -37,6 +38,8 @@ Construct a `Variables` instance, with array dimensions and initial values set a
 
   - `fluxes::F`: Fluxes of the prognostic variables.
 
+  - `stress_tensor::G`: Stress tensor elements.
+
 # Arguments
 
   - `namelists`: Namelists with all model parameters.
@@ -60,6 +63,8 @@ Construct a `Variables` instance, with array dimensions and initial values set a
   - [`PinCFlow.Types.VariableTypes.Reconstructions`](@ref)
 
   - [`PinCFlow.Types.VariableTypes.Fluxes`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.StressTensor`](@ref)
 """
 struct Variables{
     A <: Predictands,
@@ -68,6 +73,7 @@ struct Variables{
     D <: Auxiliaries,
     E <: Reconstructions,
     F <: Fluxes,
+    G <: StressTensor,
 }
     predictands::A
     increments::B
@@ -75,6 +81,7 @@ struct Variables{
     auxiliaries::D
     reconstructions::E
     fluxes::F
+    stress_tensor::G
 end
 
 function Variables(
@@ -90,6 +97,7 @@ function Variables(
     auxiliaries = Auxiliaries(domain)
     reconstructions = Reconstructions(namelists, domain)
     fluxes = Fluxes(namelists, domain)
+    stress_tensor = StressTensor(domain)
 
     return Variables(
         predictands,
@@ -98,5 +106,6 @@ function Variables(
         auxiliaries,
         reconstructions,
         fluxes,
+        stress_tensor,
     )
 end
