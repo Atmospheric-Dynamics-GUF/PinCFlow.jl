@@ -12,6 +12,10 @@ The transformed vertical wind (``\\hat{w}``) is converted into the Cartesian ver
   - `state`: Model state.
 
   - `time`: Simulation time.
+
+# See also
+
+  - [`PinCFlow.Types.FoundationalTypes.compute_grid!`](@ref)
 """
 function update_grid! end
 
