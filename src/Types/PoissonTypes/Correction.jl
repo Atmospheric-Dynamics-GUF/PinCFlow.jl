@@ -29,5 +29,5 @@ end
 function Correction(domain::Domain)::Correction
     (; nxx, nyy, nzz) = domain
 
-    Correction([zeros(nxx, nyy, nzz) for i in 1:2]...)
+    Correction((zeros(nxx, nyy, nzz) for i in 1:2)...)
 end

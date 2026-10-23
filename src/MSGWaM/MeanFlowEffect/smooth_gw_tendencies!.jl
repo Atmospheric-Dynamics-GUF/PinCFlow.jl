@@ -154,6 +154,21 @@ smooth_gw_tendencies!(
 Apply a 1D Shapiro filter to smooth in ``\\hat{x}``.
 
 ```julia
+smooth_gw_tendencies!(
+    state::State,
+    turbulence_scheme::Val{:NoTurbulence},
+)::Nothing
+```
+
+Return for configurations without turbulence parameterization.
+
+```julia
+smooth_gw_tendencies!(state::State, turbulence_scheme::Val{:TKEScheme})::Nothing
+```
+
+Apply smoothing to turbulent kinetic energy tendencies.
+
+```julia
 smooth_gw_tendencies!(state::State, tracer_setup::Val{:TracerOn})::Nothing
 ```
 
@@ -188,6 +203,7 @@ function smooth_gw_tendencies!(state::State)::Nothing
     (; smooth_tendencies, filter_type) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
     (; tracer_setup) = state.namelists.tracer
+    (; turbulence_scheme, gw_coupling) = state.namelists.turbulence
 
     if !smooth_tendencies
         return nothing
@@ -212,6 +228,13 @@ function smooth_gw_tendencies!(state::State)::Nothing
     end
 
     @dispatch_tracer_setup smooth_gw_tendencies!(state, Val(tracer_setup))
+
+    if gw_coupling
+        @dispatch_turbulence_scheme smooth_gw_tendencies!(
+            state,
+            Val(turbulence_scheme),
+        )
+    end
 
     nothing
 end
@@ -496,5 +519,34 @@ function smooth_gw_tendencies!(
     state::State,
     tracer_setup::Val{:NoTracer},
 )::Nothing
+    nothing
+end
+
+function smooth_gw_tendencies!(
+    state::State,
+    turbulence_scheme::Val{:NoTurbulence},
+)::Nothing
+    nothing
+end
+
+function smooth_gw_tendencies!(
+    state::State,
+    turbulence_scheme::Val{:TKEScheme},
+)::Nothing
+    (; x_size, y_size) = state.namelists.domain
+    (; wkb_mode) = state.namelists.wkb
+    (; smooth_tendencies, filter_type) = state.namelists.wkb
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
+
+    @dispatch_filter_type if x_size == y_size == 1
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), Z())
+    elseif x_size == 1
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), YZ())
+    elseif y_size == 1
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XZ())
+    else
+        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XYZ())
+    end
+
     nothing
 end

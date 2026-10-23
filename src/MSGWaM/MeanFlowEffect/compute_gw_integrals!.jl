@@ -50,7 +50,9 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray-volume
 \\end{align*}
 ```
 
-Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` are computed (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref) for more details).
+Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` are computed with `compute_gw_tracer_integrals!`.
+
+In the case of turbulence parameterization, the gravity-wave shear ``\\mathcal{S}_\\mathrm{w}`` is calculated with `compute_gw_turbulence_integrals!`.
 
 ```julia
 compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})::Nothing
@@ -58,7 +60,7 @@ compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})::Nothing
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in single-column mode.
 
-This method computes ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle``, ``\\mathcal{E}``, ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` (see above for details).
+This method computes ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle``, ``\\mathcal{E}``, ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` and ``\\mathcal{S}_\\mathrm{w}`` (see above for details).
 
 ```julia
 compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})::Nothing
@@ -66,7 +68,7 @@ compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})::Nothing
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in steady-state mode.
 
-This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle`` and ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` (see above for details). In contrast to the multi-column and single-column modes, the steady-state mode uses the pseudo-momentum approximation
+This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` and ``\\mathcal{S}_\\mathrm{w}`` (see above for details). In contrast to the multi-column and single-column modes, the steady-state mode uses the pseudo-momentum approximation
 
 ```math
 \\begin{align*}
@@ -92,6 +94,8 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
   - [`PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_fields_zero!`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_integrals!`](@ref)
 """
 function compute_gw_integrals! end
 
@@ -121,6 +125,8 @@ end
     for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
+
+    set_turbulence_fields_zero!(state)
 
     set_tracer_fields_zero!(state)
 
@@ -290,6 +296,19 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
+                        compute_gw_turbulence_integrals!(
+                            state,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            iray,
+                            jray,
+                            kray,
+                        )
+
                         compute_gw_tracer_integrals!(
                             state,
                             fc,
@@ -334,6 +353,8 @@ end
     for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
+
+    set_turbulence_fields_zero!(state)
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -467,6 +488,19 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
+                        compute_gw_turbulence_integrals!(
+                            state,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            iray,
+                            jray,
+                            kray,
+                        )
+
                         compute_gw_tracer_integrals!(
                             state,
                             fc,
@@ -510,6 +544,8 @@ end
     for field in fieldnames(WKBIntegrals)
         getfield(integrals, field) .= 0.0
     end
+
+    set_turbulence_fields_zero!(state)
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -595,6 +631,19 @@ end
                         integrals.uw[iray, jray, kray] += wadr * kr * cgirz
 
                         integrals.vw[iray, jray, kray] += wadr * lr * cgirz
+
+                        compute_gw_turbulence_integrals!(
+                            state,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            iray,
+                            jray,
+                            kray,
+                        )
 
                         compute_gw_tracer_integrals!(
                             state,

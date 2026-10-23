@@ -87,7 +87,7 @@ function TracerWKBTendencies(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerWKBTendencies
-    TracerWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
+    TracerWKBTendencies((zeros(0, 0, 0) for i in 1:1)...)
 end
 
 function TracerWKBTendencies(
@@ -105,7 +105,7 @@ function TracerWKBTendencies(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBTendencies
-    TracerWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
+    TracerWKBTendencies((zeros(0, 0, 0) for i in 1:1)...)
 end
 
 function TracerWKBTendencies(
@@ -117,8 +117,8 @@ function TracerWKBTendencies(
     (; leading_order_impact) = namelists.tracer
 
     if leading_order_impact
-        TracerWKBTendencies([zeros(nxx, nyy, nzz) for i in 1:1]...)
+        TracerWKBTendencies((zeros(nxx, nyy, nzz) for i in 1:1)...)
     else
-        TracerWKBTendencies([zeros(0, 0, 0) for i in 1:1]...)
+        TracerWKBTendencies((zeros(0, 0, 0) for i in 1:1)...)
     end
 end

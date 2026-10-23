@@ -33,7 +33,37 @@ set_turbulence_vertical_boundaries!(
 )::Nothing
 ```
 
-Return for WKB-variables.
+Enforce vertical boundary conditions for turbulence WKB variables by dispatching to the appropriate method.
+
+```julia
+set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Val{:NoTurbulence},
+)::Nothing
+```
+
+Return for configurations without turbulence parameterization.
+
+```julia
+set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBIntegrals,
+    turbulence_scheme::Val{:TKEScheme},
+)::Nothing
+```
+
+Return for turbulence WKB integrals as these are not needed in halo/boundary cells (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)).
+
+```julia
+set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    turbulence_scheme::Val{:TKEScheme},
+)::Nothing
+```
+
+Enforce vertical boundary conditions for turbulence WKB tendencies.
 
 # Arguments
 
@@ -113,5 +143,54 @@ function set_turbulence_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
 )::Nothing
+    (; turbulence_scheme) = state.namelists.turbulence
+
+    @dispatch_turbulence_scheme set_turbulence_vertical_boundaries!(
+        state::State,
+        variables::AbstractBoundaryWKBVariables,
+        Val(turbulence_scheme),
+    )
+
+    nothing
+end
+
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Val{:NoTurbulence},
+)::Nothing
+    nothing
+end
+
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    turbulence_scheme::Val{:TKEScheme},
+)::Nothing
+    nothing
+end
+
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    turbulence_scheme::Val{:TKEScheme},
+)::Nothing
+    (; namelists, domain) = state
+    (; gw_coupling) = namelists.turbulence
+    (; turbulencewkbtendencies) = state.turbulence
+
+    if !gw_coupling
+        return nothing
+    end
+
+    for field in fieldnames(TurbulenceWKBTendencies)
+        set_vertical_boundaries_of_field!(
+            getfield(turbulencewkbtendencies, field),
+            namelists,
+            domain,
+            +,
+        )
+    end
+
     nothing
 end

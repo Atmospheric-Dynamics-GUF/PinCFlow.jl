@@ -70,7 +70,7 @@ function Reconstructions(
 
     Reconstructions(
         zeros(0, 0, 0, 0, 0),
-        [zeros(nxx, nyy, nzz, 3, 2) for i in 1:4]...,
+        (zeros(nxx, nyy, nzz, 3, 2) for i in 1:4)...,
     )
 end
 
@@ -80,5 +80,5 @@ function Reconstructions(
 )::Reconstructions
     (; nxx, nyy, nzz) = domain
 
-    Reconstructions([zeros(nxx, nyy, nzz, 3, 2) for i in 1:5]...)
+    Reconstructions((zeros(nxx, nyy, nzz, 3, 2) for i in 1:5)...)
 end

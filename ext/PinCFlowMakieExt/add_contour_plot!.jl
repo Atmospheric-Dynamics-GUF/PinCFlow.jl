@@ -43,6 +43,7 @@ function add_contour_plot! end
     ymax = maximum(y)
     ymin = minimum(y)
 
+    delete!.(contents(figure[row, columns]))
     axis = Axis(
         figure[row, columns[1]];
         backgroundcolor = background_color,

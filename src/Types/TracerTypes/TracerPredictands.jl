@@ -107,7 +107,7 @@ function TracerPredictands(
     variables::Variables,
 )::TracerPredictands
     TracerPredictands(
-        [zeros(0, 0, 0) for field in fieldnames(TracerPredictands)]...,
+        (zeros(0, 0, 0) for field in fieldnames(TracerPredictands))...,
     )
 end
 

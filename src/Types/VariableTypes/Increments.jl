@@ -74,7 +74,7 @@ function Increments(domain::Domain, model::Val{:Boussinesq})::Increments
 
     Increments(
         zeros(0, 0, 0),
-        [zeros(nxx, nyy, nzz) for i in 1:5]...,
+        (zeros(nxx, nyy, nzz) for i in 1:5)...,
         zeros(0, 0, 0),
     )
 end
@@ -85,11 +85,11 @@ function Increments(
 )::Increments
     (; nxx, nyy, nzz) = domain
 
-    Increments([zeros(nxx, nyy, nzz) for i in 1:6]..., zeros(0, 0, 0))
+    Increments((zeros(nxx, nyy, nzz) for i in 1:6)..., zeros(0, 0, 0))
 end
 
 function Increments(domain::Domain, model::Val{:Compressible})::Increments
     (; nxx, nyy, nzz) = domain
 
-    Increments([zeros(nxx, nyy, nzz) for i in 1:7]...)
+    Increments((zeros(nxx, nyy, nzz) for i in 1:7)...)
 end

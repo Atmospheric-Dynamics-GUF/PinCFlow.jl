@@ -53,7 +53,7 @@ function TracerIncrements(
     tracer_setup::Val{:NoTracer},
 )::TracerIncrements
     TracerIncrements(
-        [zeros(0, 0, 0) for field in fieldnames(TracerIncrements)]...,
+        (zeros(0, 0, 0) for field in fieldnames(TracerIncrements))...,
     )
 end
 
@@ -64,6 +64,6 @@ function TracerIncrements(
     (; nxx, nyy, nzz) = domain
 
     TracerIncrements(
-        [zeros(nxx, nyy, nzz) for field in fieldnames(TracerIncrements)]...,
+        (zeros(nxx, nyy, nzz) for field in fieldnames(TracerIncrements))...,
     )
 end
