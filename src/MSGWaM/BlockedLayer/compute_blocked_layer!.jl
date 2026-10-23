@@ -82,5 +82,5 @@ function compute_blocked_layer! end
         ratio = 1
     end
 
-    return ratio
+    ratio
 end

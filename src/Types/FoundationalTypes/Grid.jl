@@ -313,7 +313,7 @@ end
     dzcmin = mapreduce(-, min, zctilde[:, :, 2:nzz], zctilde[:, :, 1:(nzz - 1)])
     dzcmin = MPI.Allreduce(dzcmin, min, comm)
 
-    return Grid(
+    Grid(
         lx,
         ly,
         lz,

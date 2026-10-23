@@ -1,11 +1,11 @@
 """
-```julia 
+```julia
 StressTensor{A <: AbstractArray{<:AbstractFloat, 3}}
 ```
 
 Container for the arrays to store the stress tensor elements.
 
-```julia 
+```julia
 StressTensor(domain::Domain)::StressTensor
 ```
 
@@ -16,13 +16,13 @@ Construct a `StressTensor` instance with zero-initialized arrays.
   - `pi11::A`: Stress tensor element ``\\Pi^{1 1}``.
 
   - `pi12::A`: Stress tensor element ``\\Pi^{1 2}``.
-  
+
   - `pi13::A`: Stress tensor element ``\\Pi^{1 3}``.
-  
-  - `pi22::A`: Stress tensor element ``\\Pi^{2 2}``. 
-  
-  - `pi23::A`: Stress tensor element ``\\Pi^{2 3}``. 
-  
+
+  - `pi22::A`: Stress tensor element ``\\Pi^{2 2}``.
+
+  - `pi23::A`: Stress tensor element ``\\Pi^{2 3}``.
+
   - `pi33::A`: Stress tensor element ``\\Pi^{3 3}``.
 
 # Arguments
@@ -41,5 +41,5 @@ end
 function StressTensor(domain::Domain)::StressTensor
     (; nxx, nyy, nzz) = domain
 
-    return StressTensor((zeros(nxx, nyy, nzz) for i in 1:6)...)
+    StressTensor((zeros(nxx, nyy, nzz) for i in 1:6)...)
 end
