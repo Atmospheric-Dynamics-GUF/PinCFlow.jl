@@ -17,7 +17,7 @@ function update_grid! end
 
 @ivy function update_grid!(state::State, time::AbstractFloat)
     (; namelists, constants, domain, grid, atmosphere) = state
-    (; i0, i1, j0, j1, k0, k1) = domain
+    (; i0, i1, j0, j1, k0, k1, nzz) = domain
     (; zc, zctilde, zcold, zctildeold, dzcmin, dzcminold) = grid
     (; wkb_mode) = namelists.wkb
     (; backups, predictands) = state.variables
