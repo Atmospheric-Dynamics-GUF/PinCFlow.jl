@@ -1,6 +1,6 @@
 """
 ```julia
-compute_gw_tendencies!(state::State)
+compute_gw_tendencies!(state::State)::Nothing
 ```
 
 Compute the gravity-wave impact on the momentum and mass-weighted potential temperature.
@@ -37,7 +37,7 @@ Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
 """
 function compute_gw_tendencies! end
 
-@ivy function compute_gw_tendencies!(state::State)
+@ivy function compute_gw_tendencies!(state::State)::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; impact_altitude) = state.namelists.wkb
@@ -161,5 +161,5 @@ function compute_gw_tendencies! end
         compute_gw_turbulence_tendencies!(state, i, j, k)
     end
 
-    return
+    nothing
 end

@@ -1,6 +1,6 @@
 """
 ```julia
-compute_stress_tensor!(state::State)
+compute_stress_tensor!(state::State)::Nothing
 ```
 
 Compute the Cartesian stress tensor elements.
@@ -39,7 +39,7 @@ where
 """
 function compute_stress_tensor! end
 
-@ivy function compute_stress_tensor!(state::State)
+@ivy function compute_stress_tensor!(state::State)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; pi11, pi12, pi13, pi22, pi23, pi33) = state.variables.stress_tensor
     (; u, v, w) = state.variables.predictands
@@ -47,7 +47,7 @@ function compute_stress_tensor! end
     (; re) = state.constants
 
     if 1 / re <= eps()
-        return
+        return nothing
     end
 
     for k in (k0 - 2):(k1 + 2), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
@@ -143,5 +143,5 @@ function compute_stress_tensor! end
             ) / jac[i, j, k]
     end
 
-    return
+    nothing
 end

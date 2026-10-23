@@ -34,5 +34,5 @@ function get_surfaces(
 )::NTuple{3, <:AbstractFloat}
     (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
     (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
-    return (dxr * dkr, dyr * dlr, dzr * dmr)
+    (dxr * dkr, dyr * dlr, dzr * dmr)
 end

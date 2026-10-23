@@ -58,5 +58,5 @@ function compute_intrinsic_frequency end
     n2r = interpolate_stratification(zr, state, N2())
     fc = coriolis_frequency * tref
 
-    return branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
+    branch * sqrt(n2r * khr^2 + fc^2 * mr^2) / sqrt(khr^2 + mr^2)
 end

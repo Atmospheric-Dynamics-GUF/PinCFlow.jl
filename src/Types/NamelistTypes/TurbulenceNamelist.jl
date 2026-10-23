@@ -52,7 +52,7 @@ function TurbulenceNamelist(;
     gw_coupling::Bool = false,
     initial_tke::Function = (x, y, z) -> 5e-5,
 )::TurbulenceNamelist
-    return TurbulenceNamelist(
+    TurbulenceNamelist(
         turbulence_scheme,
         momentum_coupling,
         entropy_coupling,
