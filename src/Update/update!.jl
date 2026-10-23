@@ -662,7 +662,7 @@ end
 )
     (; z_size, nbz) = state.namelists.domain
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = state.grid
+    (; jac, met13, met23, met33) = state.grid
     (; betar) = state.sponge
     (; g_ndim) = state.constants
     (; rhobar, n2) = state.atmosphere
@@ -737,9 +737,9 @@ end
                 factor *
                 0.5 *
                 (
-                    met[i, j, k, 1, 3] *
+                    met13[i, j, k] *
                     (u[i, j, k] / jpedger + u[i - 1, j, k] / jpedgel) +
-                    met[i, j, k, 2, 3] *
+                    met23[i, j, k] *
                     (v[i, j, k] / jpedgef + v[i, j - 1, k] / jpedgeb)
                 )
             )
@@ -1068,7 +1068,7 @@ end
     (; tref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
-    (; dx, dy, dz, jac, met) = grid
+    (; dx, dy, dz, jac, met13, met23, met33) = grid
     (; rhobar) = state.atmosphere
     (; dw) = state.variables.increments
     (; phiu, phiv, phiw) = state.variables.fluxes
@@ -1160,21 +1160,21 @@ end
         volforce =
             fc * (
                 jac[i, j, k + 1] *
-                met[i, j, k, 1, 3] *
+                met13[i, j, k] *
                 (rhoold[i, j, k] + rhobar[i, j, k]) *
                 vc +
                 jac[i, j, k] *
-                met[i, j, k + 1, 1, 3] *
+                met13[i, j, k + 1] *
                 (rhoold[i, j, k + 1] + rhobar[i, j, k + 1]) *
                 vu
             ) / (jac[i, j, k] + jac[i, j, k + 1]) -
             fc * (
                 jac[i, j, k + 1] *
-                met[i, j, k, 2, 3] *
+                met23[i, j, k] *
                 (rhoold[i, j, k] + rhobar[i, j, k]) *
                 uc +
                 jac[i, j, k] *
-                met[i, j, k + 1, 2, 3] *
+                met23[i, j, k + 1] *
                 (rhoold[i, j, k + 1] + rhobar[i, j, k + 1]) *
                 uu
             ) / (jac[i, j, k] + jac[i, j, k + 1])
@@ -1279,7 +1279,7 @@ end
     (; z_size) = state.namelists.domain
     (; g_ndim) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = state.grid
+    (; jac, met13, met23, met33) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
@@ -1355,9 +1355,9 @@ end
                 dt^2.0 *
                 (
                     jac[i, j, k + 1] *
-                    (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
+                    (met13[i, j, k] * uc + met23[i, j, k] * vc) +
                     jac[i, j, k] *
-                    (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)
+                    (met13[i, j, k + 1] * uu + met23[i, j, k + 1] * vu)
                 ) / (jac[i, j, k] + jac[i, j, k + 1])
             )
     end

@@ -43,7 +43,7 @@ function compute_stress_tensor! end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; pi11, pi12, pi13, pi22, pi23, pi33) = state.variables.stresstensor
     (; u, v, w) = state.variables.predictands
-    (; dx, dy, dz, jac, met) = state.grid
+    (; dx, dy, dz, jac, met13, met23, met33) = state.grid
     (; re) = state.constants
 
     if 1 / re <= eps()
@@ -93,7 +93,7 @@ function compute_stress_tensor! end
 
         pi11[i, j, k] =
             2.0 * (u[i, j, k] - u[i - 1, j, k]) / dx +
-            met[i, j, k, 1, 3] * (uu - ud) / dz -
+            met13[i, j, k] * (uu - ud) / dz -
             2.0 / 3.0 * (
                 (jacedger * u[i, j, k] - jacedgel * u[i - 1, j, k]) / dx +
                 (jacedgef * v[i, j, k] - jacedgeb * v[i, j - 1, k]) / dy +
@@ -102,21 +102,21 @@ function compute_stress_tensor! end
 
         pi12[i, j, k] =
             0.5 * (uf - ub) / dy +
-            0.5 * met[i, j, k, 2, 3] * (uu - ud) / dz +
+            0.5 * met23[i, j, k] * (uu - ud) / dz +
             0.5 * (vr - vl) / dx +
-            0.5 * met[i, j, k, 1, 3] * (vu - vd) / dz
+            0.5 * met13[i, j, k] * (vu - vd) / dz
 
         pi13[i, j, k] =
             0.5 * (uu - ud) / dz / jac[i, j, k] +
             0.5 * (wr - wl) / dx +
-            met[i, j, k, 1, 3] * (
+            met13[i, j, k] * (
                 compute_vertical_wind(i, j, k, state) -
                 compute_vertical_wind(i, j, k - 1, state)
             ) / dz
 
         pi22[i, j, k] =
             2.0 * (v[i, j, k] - v[i, j - 1, k]) / dy +
-            met[i, j, k, 2, 3] * (vu - vd) / dz -
+            met23[i, j, k] * (vu - vd) / dz -
             2.0 / 3.0 * (
                 (jacedger * u[i, j, k] - jacedgel * u[i - 1, j, k]) / dx +
                 (jacedgef * v[i, j, k] - jacedgeb * v[i, j - 1, k]) / dy +
@@ -126,7 +126,7 @@ function compute_stress_tensor! end
         pi23[i, j, k] =
             0.5 * (vu - vd) / dz / jac[i, j, k] +
             0.5 * (wf - wb) / dy +
-            met[i, j, k, 2, 3] * (
+            met23[i, j, k] * (
                 compute_vertical_wind(i, j, k, state) -
                 compute_vertical_wind(i, j, k - 1, state)
             ) / dz

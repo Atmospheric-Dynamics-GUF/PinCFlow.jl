@@ -262,7 +262,7 @@ end
 )
     (; z_size) = state.namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = state.grid
+    (; jac, met13, met23, met33) = state.grid
     (; n2) = state.atmosphere
     (; betar) = state.sponge
     (; corx, cory) = state.poisson.correction
@@ -300,13 +300,13 @@ end
             0.5 *
             (
                 jac[i, j, k + 1] * (
-                    met[i, j, k, 1, 3] * (corx[i, j, k] + corx[i - 1, j, k]) +
-                    met[i, j, k, 2, 3] * (cory[i, j, k] + cory[i, j - 1, k])
+                    met13[i, j, k] * (corx[i, j, k] + corx[i - 1, j, k]) +
+                    met23[i, j, k] * (cory[i, j, k] + cory[i, j - 1, k])
                 ) +
                 jac[i, j, k] * (
-                    met[i, j, k + 1, 1, 3] *
+                    met13[i, j, k + 1] *
                     (corx[i, j, k + 1] + corx[i - 1, j, k + 1]) +
-                    met[i, j, k + 1, 2, 3] *
+                    met23[i, j, k + 1] *
                     (cory[i, j, k + 1] + cory[i, j - 1, k + 1])
                 )
             ) / (jac[i, j, k] + jac[i, j, k + 1])
@@ -324,7 +324,7 @@ end
     (; z_size, nbz) = state.namelists.domain
     (; g_ndim) = state.constants
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = state.grid
+    (; jac, met13, met23, met33) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (; corx, cory) = state.poisson.correction
@@ -359,8 +359,8 @@ end
                 factor *
                 0.5 *
                 (
-                    met[i, j, k, 1, 3] * (corx[i, j, k] + corx[i - 1, j, k]) +
-                    met[i, j, k, 2, 3] * (cory[i, j, k] + cory[i, j - 1, k])
+                    met13[i, j, k] * (corx[i, j, k] + corx[i - 1, j, k]) +
+                    met23[i, j, k] * (cory[i, j, k] + cory[i, j - 1, k])
                 )
             )
 

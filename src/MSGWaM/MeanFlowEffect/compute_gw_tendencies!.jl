@@ -21,7 +21,9 @@ Calculates the tendencies that are to be added to the equations for momentum and
 \\end{align*}
 ```
 
-where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\hat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. The tendencies to be added to the equation for the resolved tracers are computed by [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_tendencies!`](@ref). For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
+where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\hat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. In the case of turbulence parameterization, the tendencies to be added to the turbulence equation are computed by `compute_gw_turbulence_tendencies!`. The tendencies to be added to the equation for the resolved tracers are computed by `compute_gw_tracer_tendencies!`. For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). 
+
+Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
 
 # Arguments
 
@@ -30,6 +32,8 @@ where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\hat{w}_\\mathrm{b}\\right)`` are 
 # See also
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_tendencies!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)
 """
 function compute_gw_tendencies! end
 
@@ -39,7 +43,7 @@ function compute_gw_tendencies! end
     (; impact_altitude) = state.namelists.wkb
     (; tref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, zc, jac, met) = state.grid
+    (; dx, dy, dz, zc, jac, met13, met23, met33) = state.grid
     (; rhobar, thetabar) = state.atmosphere
     (; rho) = state.variables.predictands
     (; integrals, tendencies) = state.wkb
@@ -69,7 +73,7 @@ function compute_gw_tendencies! end
                 rhotot / rhobar[i, j, k] * (
                     (integrals.uu[i + 1, j, k] - integrals.uu[i - 1, j, k]) /
                     (2.0 * dx) +
-                    met[i, j, k, 1, 3] *
+                    met13[i, j, k] *
                     (integrals.uu[i, j, k + 1] - integrals.uu[i, j, k - 1]) /
                     (2.0 * dz)
                 )
@@ -80,7 +84,7 @@ function compute_gw_tendencies! end
                 rhotot / rhobar[i, j, k] * (
                     (integrals.uv[i, j + 1, k] - integrals.uv[i, j - 1, k]) /
                     (2.0 * dy) +
-                    met[i, j, k, 2, 3] *
+                    met23[i, j, k] *
                     (integrals.uv[i, j, k + 1] - integrals.uv[i, j, k - 1]) /
                     (2.0 * dz)
                 )
@@ -100,7 +104,7 @@ function compute_gw_tendencies! end
                 rhotot / rhobar[i, j, k] * (
                     (integrals.uv[i + 1, j, k] - integrals.uv[i - 1, j, k]) /
                     (2.0 * dx) +
-                    met[i, j, k, 1, 3] *
+                    met13[i, j, k] *
                     (integrals.uv[i, j, k + 1] - integrals.uv[i, j, k - 1]) /
                     (2.0 * dz)
                 )
@@ -111,7 +115,7 @@ function compute_gw_tendencies! end
                 rhotot / rhobar[i, j, k] * (
                     (integrals.vv[i, j + 1, k] - integrals.vv[i, j - 1, k]) /
                     (2.0 * dy) +
-                    met[i, j, k, 2, 3] *
+                    met23[i, j, k] *
                     (integrals.vv[i, j, k + 1] - integrals.vv[i, j, k - 1]) /
                     (2.0 * dz)
                 )
@@ -130,7 +134,7 @@ function compute_gw_tendencies! end
                             integrals.utheta[i + 1, j, k] -
                             integrals.utheta[i - 1, j, k]
                         ) / (2.0 * dx) +
-                        met[i, j, k, 1, 3] * (
+                        met13[i, j, k] * (
                             integrals.utheta[i, j, k + 1] -
                             integrals.utheta[i, j, k - 1]
                         ) / (2.0 * dz)
@@ -144,7 +148,7 @@ function compute_gw_tendencies! end
                             integrals.vtheta[i, j + 1, k] -
                             integrals.vtheta[i, j - 1, k]
                         ) / (2.0 * dy) +
-                        met[i, j, k, 2, 3] * (
+                        met23[i, j, k] * (
                             integrals.vtheta[i, j, k + 1] -
                             integrals.vtheta[i, j, k - 1]
                         ) / (2.0 * dz)
@@ -153,6 +157,8 @@ function compute_gw_tendencies! end
         end
 
         compute_gw_tracer_tendencies!(state, i, j, k)
+
+        compute_gw_turbulence_tendencies!(state, i, j, k)
     end
 
     return

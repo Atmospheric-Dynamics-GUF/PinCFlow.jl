@@ -609,7 +609,7 @@ end
     (; z_size) = state.namelists.domain
     (; re, uref, lref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = grid
+    (; jac, met13, met23, met33) = grid
     (; pbar, rhobar) = state.atmosphere
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
@@ -750,20 +750,20 @@ end
             coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
             stresstens13 =
-                met[i, j, k, 1, 3] * pi11[i, j, k] +
-                met[i, j, k, 2, 3] * pi12[i, j, k] +
+                met13[i, j, k] * pi11[i, j, k] +
+                met23[i, j, k] * pi12[i, j, k] +
                 pi13[i, j, k] / jac[i, j, k]
             stresstens13r =
-                met[i + 1, j, k, 1, 3] * pi11[i + 1, j, k] +
-                met[i + 1, j, k, 2, 3] * pi12[i + 1, j, k] +
+                met13[i + 1, j, k] * pi11[i + 1, j, k] +
+                met23[i + 1, j, k] * pi12[i + 1, j, k] +
                 pi13[i + 1, j, k] / jac[i + 1, j, k]
             stresstens13u =
-                met[i, j, k + 1, 1, 3] * pi11[i, j, k + 1] +
-                met[i, j, k + 1, 2, 3] * pi12[i, j, k + 1] +
+                met13[i, j, k + 1] * pi11[i, j, k + 1] +
+                met23[i, j, k + 1] * pi12[i, j, k + 1] +
                 pi13[i, j, k + 1] / jac[i, j, k + 1]
             stresstens13ru =
-                met[i + 1, j, k + 1, 1, 3] * pi11[i + 1, j, k + 1] +
-                met[i + 1, j, k + 1, 2, 3] * pi12[i + 1, j, k + 1] +
+                met13[i + 1, j, k + 1] * pi11[i + 1, j, k + 1] +
+                met23[i + 1, j, k + 1] * pi12[i + 1, j, k + 1] +
                 pi13[i + 1, j, k + 1] / jac[i + 1, j, k + 1]
             hrhou_visc =
                 coef_v *
@@ -916,7 +916,7 @@ end
     (; z_size) = state.namelists.domain
     (; re, uref, lref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = grid
+    (; jac, met13, met23, met33) = grid
     (; pbar, rhobar) = state.atmosphere
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
@@ -1057,20 +1057,20 @@ end
             coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
 
             stresstens23 =
-                met[i, j, k, 1, 3] * pi12[i, j, k] +
-                met[i, j, k, 2, 3] * pi22[i, j, k] +
+                met13[i, j, k] * pi12[i, j, k] +
+                met23[i, j, k] * pi22[i, j, k] +
                 pi23[i, j, k] / jac[i, j, k]
             stresstens23f =
-                met[i, j + 1, k, 1, 3] * pi12[i, j + 1, k] +
-                met[i, j + 1, k, 2, 3] * pi22[i, j + 1, k] +
+                met13[i, j + 1, k] * pi12[i, j + 1, k] +
+                met23[i, j + 1, k] * pi22[i, j + 1, k] +
                 pi23[i, j + 1, k] / jac[i, j + 1, k]
             stresstens23u =
-                met[i, j, k + 1, 1, 3] * pi12[i, j, k + 1] +
-                met[i, j, k + 1, 2, 3] * pi22[i, j, k + 1] +
+                met13[i, j, k + 1] * pi12[i, j, k + 1] +
+                met23[i, j, k + 1] * pi22[i, j, k + 1] +
                 pi23[i, j, k + 1] / jac[i, j, k + 1]
             stresstens23fu =
-                met[i, j + 1, k + 1, 1, 3] * pi12[i, j + 1, k + 1] +
-                met[i, j + 1, k + 1, 2, 3] * pi22[i, j + 1, k + 1] +
+                met13[i, j + 1, k + 1] * pi12[i, j + 1, k + 1] +
+                met23[i, j + 1, k + 1] * pi22[i, j + 1, k + 1] +
                 pi23[i, j + 1, k + 1] / jac[i, j + 1, k + 1]
             hrhov_visc =
                 coef_v *
@@ -1222,7 +1222,7 @@ end
     (; grid) = state
     (; re, uref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = grid
+    (; jac, met13, met23, met33) = grid
     (; pbar, rhobar) = state.atmosphere
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
@@ -1392,10 +1392,10 @@ end
             hrhow_visc =
                 coef_v * (
                     jac[i, j, k + 1] *
-                    met[i, j, k + 1, 1, 3] *
+                    met13[i, j, k + 1] *
                     pi13[i, j, k + 1] +
                     jac[i, j, k + 1] *
-                    met[i, j, k + 1, 2, 3] *
+                    met23[i, j, k + 1] *
                     pi23[i, j, k + 1] +
                     pi33[i, j, k + 1]
                 )
@@ -1620,7 +1620,7 @@ end
     model::Val{:Compressible},
 )
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, dx, dy, dz, met) = state.grid
+    (; jac, dx, dy, dz, met13, met23, met33) = state.grid
     (; pbar, rhobar) = state.atmosphere
     (; phitheta) = state.variables.fluxes
     (; thermal_conductivity) = state.namelists.atmosphere
@@ -1666,8 +1666,8 @@ end
             0.5 * (jac[i, j, k] + jac[i + 1, j, k]) * (thetar - thetal) / dx +
             0.5 *
             (
-                jac[i, j, k] * met[i, j, k, 1, 3] +
-                jac[i + 1, j, k] * met[i + 1, j, k, 1, 3]
+                jac[i, j, k] * met13[i, j, k] +
+                jac[i + 1, j, k] * met13[i + 1, j, k]
             ) *
             (thetau - thetad) / (2.0 * dz)
 
@@ -1707,8 +1707,8 @@ end
             0.5 * (jac[i, j, k] + jac[i, j + 1, k]) * (thetaf - thetab) / dy +
             0.5 *
             (
-                jac[i, j, k] * met[i, j, k, 2, 3] +
-                jac[i, j + 1, k] * met[i, j + 1, k, 2, 3]
+                jac[i, j, k] * met23[i, j, k] +
+                jac[i, j + 1, k] * met23[i, j + 1, k]
             ) *
             (thetau - thetad) / (2.0 * dz)
 
@@ -1765,12 +1765,11 @@ end
             jac[i, j, k] *
             jac[i, j, k + 1] *
             (
-                (met[i, j, k, 1, 3] + met[i, j, k + 1, 1, 3]) *
-                (thetar - thetal) / (2.0 * dx) +
-                (met[i, j, k, 2, 3] + met[i, j, k + 1, 2, 3]) *
-                (thetaf - thetab) / (2.0 * dy) +
-                (met[i, j, k, 3, 3] + met[i, j, k + 1, 3, 3]) *
-                (thetau - thetad) / dz
+                (met13[i, j, k] + met13[i, j, k + 1]) * (thetar - thetal) /
+                (2.0 * dx) +
+                (met23[i, j, k] + met23[i, j, k + 1]) * (thetaf - thetab) /
+                (2.0 * dy) +
+                (met33[i, j, k] + met33[i, j, k + 1]) * (thetau - thetad) / dz
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi

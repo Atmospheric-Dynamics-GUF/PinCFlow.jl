@@ -177,14 +177,14 @@ function compute_momentum_diffusion_terms end
     direction::X,
 )::AbstractFloat
     (; u) = state.variables.predictands
-    (; dx, dz, met) = state.grid
+    (; dx, dz, met13, met23, met33) = state.grid
 
     uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
     ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
 
     diffux =
         (u[i, j, k] - u[i - 1, j, k]) / dx +
-        met[i, j, k, 1, 3] * (uu - ud) / (2.0 * dz)
+        met13[i, j, k] * (uu - ud) / (2.0 * dz)
 
     return diffux
 end
@@ -198,15 +198,14 @@ end
     direction::Y,
 )::AbstractFloat
     (; u) = state.variables.predictands
-    (; dy, dz, met) = state.grid
+    (; dy, dz, met13, met23, met33) = state.grid
 
     uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
     ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
     uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
     ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
 
-    diffuy =
-        (uf - ub) / (2.0 * dy) + met[i, j, k, 2, 3] * (uu - ud) / (2.0 * dz)
+    diffuy = (uf - ub) / (2.0 * dy) + met23[i, j, k] * (uu - ud) / (2.0 * dz)
 
     return diffuy
 end
@@ -220,7 +219,7 @@ end
     direction::Z,
 )::AbstractFloat
     (; u) = state.variables.predictands
-    (; dx, dy, dz, met) = state.grid
+    (; dx, dy, dz, met13, met23, met33) = state.grid
 
     uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
     ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
@@ -228,9 +227,9 @@ end
     ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
 
     diffuz =
-        met[i, j, k, 1, 3] * (u[i, j, k] - u[i - 1, j, k]) / dx +
-        met[i, j, k, 2, 3] * (uf - ub) / (2.0 * dy) +
-        met[i, j, k, 3, 3] * (uu - ud) / (2.0 * dz)
+        met13[i, j, k] * (u[i, j, k] - u[i - 1, j, k]) / dx +
+        met23[i, j, k] * (uf - ub) / (2.0 * dy) +
+        met33[i, j, k] * (uu - ud) / (2.0 * dz)
 
     return diffuz
 end
@@ -244,15 +243,14 @@ end
     direction::X,
 )::AbstractFloat
     (; v) = state.variables.predictands
-    (; dx, dz, met) = state.grid
+    (; dx, dz, met13, met23, met33) = state.grid
 
     vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
     vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
     vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
     vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
 
-    diffvx =
-        (vr - vl) / (2.0 * dx) + met[i, j, k, 1, 3] * (vu - vd) / (2.0 * dz)
+    diffvx = (vr - vl) / (2.0 * dx) + met13[i, j, k] * (vu - vd) / (2.0 * dz)
 
     return diffvx
 end
@@ -266,14 +264,14 @@ end
     direction::Y,
 )::AbstractFloat
     (; v) = state.variables.predictands
-    (; dy, dz, met) = state.grid
+    (; dy, dz, met13, met23, met33) = state.grid
 
     vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
     vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
 
     diffvy =
         (v[i, j, k] - v[i, j - 1, k]) / dy +
-        met[i, j, k, 2, 3] * (vu - vd) / (2.0 * dz)
+        met23[i, j, k] * (vu - vd) / (2.0 * dz)
 
     return diffvy
 end
@@ -287,7 +285,7 @@ end
     direction::Z,
 )::AbstractFloat
     (; v) = state.variables.predictands
-    (; dx, dy, dz, met) = state.grid
+    (; dx, dy, dz, met13, met23, met33) = state.grid
 
     vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
     vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
@@ -295,9 +293,9 @@ end
     vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
 
     diffvz =
-        met[i, j, k, 1, 3] * (vr - vl) / (2 * dx) +
-        met[i, j, k, 2, 3] * (v[i, j, k] - v[i, j - 1, k]) / dy +
-        met[i, j, k, 3, 3] * (vu - vd) / (2.0 * dz)
+        met13[i, j, k] * (vr - vl) / (2 * dx) +
+        met23[i, j, k] * (v[i, j, k] - v[i, j - 1, k]) / dy +
+        met33[i, j, k] * (vu - vd) / (2.0 * dz)
 
     return diffvz
 end
@@ -310,7 +308,7 @@ end
     variable::W,
     direction::X,
 )::AbstractFloat
-    (; dx, dz, met) = state.grid
+    (; dx, dz, met13, met23, met33) = state.grid
 
     wr =
         0.5 * (
@@ -325,7 +323,7 @@ end
 
     diffwx =
         (wr - wl) / (2.0 * dx) +
-        met[i, j, k, 1, 3] * (
+        met13[i, j, k] * (
             compute_vertical_wind(i, j, k, state) -
             compute_vertical_wind(i, j, k - 1, state)
         ) / dz
@@ -341,7 +339,7 @@ end
     variable::W,
     direction::Y,
 )::AbstractFloat
-    (; dy, dz, met) = state.grid
+    (; dy, dz, met13, met23, met33) = state.grid
 
     wf =
         0.5 * (
@@ -356,7 +354,7 @@ end
 
     diffwy =
         (wf - wb) / (2.0 * dy) +
-        met[i, j, k, 2, 3] * (
+        met23[i, j, k] * (
             compute_vertical_wind(i, j, k, state) -
             compute_vertical_wind(i, j, k - 1, state)
         ) / dz
@@ -372,7 +370,7 @@ end
     variable::W,
     direction::Z,
 )::AbstractFloat
-    (; dx, dy, dz, met) = state.grid
+    (; dx, dy, dz, met13, met23, met33) = state.grid
 
     wr =
         0.5 * (
@@ -396,9 +394,9 @@ end
         )
 
     diffwz =
-        met[i, j, k, 1, 3] * (wr - wl) / (2.0 * dx) +
-        met[i, j, k, 2, 3] * (wf - wb) / (2.0 * dy) +
-        met[i, j, k, 3, 3] * (
+        met13[i, j, k] * (wr - wl) / (2.0 * dx) +
+        met23[i, j, k] * (wf - wb) / (2.0 * dy) +
+        met33[i, j, k] * (
             compute_vertical_wind(i, j, k, state) -
             compute_vertical_wind(i, j, k - 1, state)
         ) / dz

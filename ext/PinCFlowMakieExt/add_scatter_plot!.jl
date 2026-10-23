@@ -44,6 +44,7 @@ function add_scatter_plot! end
         y_tick_format,
     ) = input
 
+    delete!.(contents(figure[row, columns]))
     Axis(
         figure[row, columns[1]];
         title,

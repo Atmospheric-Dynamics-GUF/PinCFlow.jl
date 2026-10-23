@@ -21,7 +21,37 @@ set_turbulence_zonal_boundaries!(
 )
 ```
 
-Return for WKB-variables.
+Enforce zonal boundary conditions for turbulence WKB variables by dispatching to the appropriate method.
+
+```julia
+set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Val{:NoTurbulence},
+)
+```
+
+Return for configurations without turbulence parameterization.
+
+```julia
+set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBIntegrals,
+    turbulence_scheme::Val{:TKEScheme},
+)
+```
+
+Return for turbulence WKB integrals as these are not needed in halo/boundary cells (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)).
+
+```julia
+set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    turbulence_scheme::Val{:TKEScheme},
+)
+```
+
+Enforce zonal boundary conditions for turbulence WKB tendencies.
 
 # Arguments
 
@@ -77,5 +107,53 @@ function set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
 )
+    (; turbulence_scheme) = state.namelists.turbulence
+
+    @dispatch_turbulence_scheme set_turbulence_zonal_boundaries!(
+        state::State,
+        variables::AbstractBoundaryWKBVariables,
+        Val(turbulence_scheme),
+    )
+
+    return
+end
+
+function set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+    turbulence_scheme::Val{:NoTurbulence},
+)
+    return
+end
+
+function set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBIntegrals,
+    turbulence_scheme::Val{:TKEScheme},
+)
+    return
+end
+
+function set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::BoundaryWKBTendencies,
+    turbulence_scheme::Val{:TKEScheme},
+)
+    (; namelists, domain) = state
+    (; turbulencewkbtendencies) = state.turbulence
+    (; gw_coupling) = state.namelists.turbulence
+
+    if !gw_coupling
+        return
+    end
+
+    for field in fieldnames(TurbulenceWKBTendencies)
+        set_zonal_boundaries_of_field!(
+            getfield(turbulencewkbtendencies, field),
+            namelists,
+            domain,
+        )
+    end
+
     return
 end
