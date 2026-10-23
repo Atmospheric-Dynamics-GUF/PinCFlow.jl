@@ -27,22 +27,10 @@ function update_grid! end
     (; wold) = backups
 
     # Calculate the Cartesian vertical wind on the old grid.
-    dkd = dku = 2
-    for k in (k0 - dkd):(k1 + dku), j in j0:j1, i in i0:i1
+    dku = 1
+    for k in 1:(nzz - dku), j in j0:j1, i in i0:i1
         wold[i, j, k] = compute_vertical_wind(i, j, k, state)
     end
-    set_zonal_boundaries_of_field!(
-        wold,
-        namelists,
-        domain;
-        layers = (-1, -1, 2),
-    )
-    set_meridional_boundaries_of_field!(
-        wold,
-        namelists,
-        domain;
-        layers = (-1, -1, 2),
-    )
 
     zcold .= zc
     zctildeold .= zctilde
@@ -67,7 +55,7 @@ function update_grid! end
 
     # Convert the transformed vertical wind into the Cartesian vertical wind
     # for the interpolation.
-    w .= wold
+    w[i0:i1, j0:j1, 1:(nzz - dku)] .= wold[i0:i1, j0:j1, 1:(nzz - dku)]
 
     save_backups!(state)
 
@@ -79,7 +67,11 @@ function update_grid! end
         for field in fieldnames(typeof(p))
             length(getfield(p, field)) == 0 && continue
 
-            for k in k0:k1, j in j0:j1, i in i0:i1
+            imin = field === :u ? i0 - 1 : i0
+            jmin = field === :v ? j0 - 1 : j0
+            kmax = (field === :u || field === :v) ? k1 + 1 : k1
+
+            for k in k0:kmax, j in jmin:j1, i in imin:i1
                 if field === :u
                     zlc = (zc[i, j, k] + zc[i + 1, j, k]) / 2
 
@@ -97,8 +89,7 @@ function update_grid! end
                 elseif field === :w
                     zlc = zctilde[i, j, k]
 
-                    (kd, ku) =
-                        get_half_levels(i, j, zlc, state; dkd, dku, old_grid)
+                    (kd, ku) = get_half_levels(i, j, zlc, state; dku, old_grid)
 
                     zd = zctildeold[i, j, kd]
                     zu = zctildeold[i, j, ku]
