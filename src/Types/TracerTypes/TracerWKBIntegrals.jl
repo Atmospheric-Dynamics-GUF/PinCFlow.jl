@@ -6,10 +6,7 @@ TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 Integrals of gravity-wave induced tracer fluxes.
 
 ```julia
-TracerWKBIntegrals(
-    namelists::Namelists,
-    domain::Domain,
-)::TracerWKBIntegrals
+TracerWKBIntegrals(namelists::Namelists, domain::Domain)::TracerWKBIntegrals
 ```
 
 Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate method.

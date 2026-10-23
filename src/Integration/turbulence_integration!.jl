@@ -34,7 +34,7 @@ Integrate the dissipation contribution of the prognostic equation for the turbul
 The dissipation step is given by
 
 ```math
-\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(\\frac{\\sqrt{2}\\Delta t}{l_d \\sqrt{\\rho}} + \\frac{1}{\\sqrt{\\rho e_\\mathrm{k}}} \\right)^{-2},
+\\left(\\rho e_\\mathrm{k}\\right) \\rightarrow \\left(\\frac{\\Delta t}{l_d \\sqrt{\\rho}} + \\frac{1}{\\sqrt{\\rho e_\\mathrm{k}}} \\right)^{-2},
 ```
 
 with turbulent mixing length ``l_d`` stored in `state.turbulence.turbulenceconstants.ld`.
@@ -158,7 +158,7 @@ end
         tke[i, j, k] =
             1 /
             (
-                sqrt(2) * dt / (ld * sqrt(rho[i, j, k] + rhobar[i, j, k])) +
+                dt / (ld * sqrt(rho[i, j, k] + rhobar[i, j, k])) +
                 1 / sqrt(tke[i, j, k])
             )^2.0
     end
