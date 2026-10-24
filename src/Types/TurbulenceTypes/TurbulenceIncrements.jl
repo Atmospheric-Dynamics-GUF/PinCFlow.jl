@@ -51,7 +51,7 @@ function TurbulenceIncrements(
 )::TurbulenceIncrements
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme return TurbulenceIncrements(
+    @dispatch_turbulence_scheme TurbulenceIncrements(
         domain,
         Val(turbulence_scheme),
     )
@@ -63,7 +63,7 @@ function TurbulenceIncrements(
 )::TurbulenceIncrements
     dtke = zeros(0, 0, 0)
 
-    return TurbulenceIncrements(dtke)
+    TurbulenceIncrements(dtke)
 end
 
 function TurbulenceIncrements(
@@ -74,5 +74,5 @@ function TurbulenceIncrements(
 
     dtke = zeros(nxx, nyy, nzz)
 
-    return TurbulenceIncrements(dtke)
+    TurbulenceIncrements(dtke)
 end

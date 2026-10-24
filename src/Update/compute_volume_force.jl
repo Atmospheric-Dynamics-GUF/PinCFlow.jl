@@ -164,7 +164,7 @@ Return the turbulence impact of the gravity-wave shear.
   - [`PinCFlow.Update.conductive_heating`](@ref)
 
   - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
-  
+
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
 """
 function compute_volume_force end
@@ -178,7 +178,7 @@ function compute_volume_force(
 )::AbstractFloat
     (; wkb_mode) = state.namelists.wkb
 
-    @dispatch_wkb_mode return compute_volume_force(
+    @dispatch_wkb_mode compute_volume_force(
         state,
         i,
         j,
@@ -196,7 +196,7 @@ function compute_volume_force(
     variable::Union{U, V, W, Chi, TKE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
-    return 0.0
+    0.0
 end
 
 @ivy function compute_volume_force(
@@ -209,7 +209,7 @@ end
 )::AbstractFloat
     (; dudt) = state.wkb.tendencies
 
-    return (dudt[i, j, k] + dudt[i + 1, j, k]) / 2
+    (dudt[i, j, k] + dudt[i + 1, j, k]) / 2
 end
 
 @ivy function compute_volume_force(
@@ -222,7 +222,7 @@ end
 )::AbstractFloat
     (; dvdt) = state.wkb.tendencies
 
-    return (dvdt[i, j, k] + dvdt[i, j + 1, k]) / 2
+    (dvdt[i, j, k] + dvdt[i, j + 1, k]) / 2
 end
 
 @ivy function compute_volume_force(
@@ -233,17 +233,15 @@ end
     variable::W,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; jac, met) = state.grid
+    (; jac, met13, met23, met33) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
 
-    return (
-        jac[i, j, k + 1] * (
-            met[i, j, k, 1, 3] * dudt[i, j, k] +
-            met[i, j, k, 2, 3] * dvdt[i, j, k]
-        ) +
+    (
+        jac[i, j, k + 1] *
+        (met13[i, j, k] * dudt[i, j, k] + met23[i, j, k] * dvdt[i, j, k]) +
         jac[i, j, k] * (
-            met[i, j, k + 1, 1, 3] * dudt[i, j, k + 1] +
-            met[i, j, k + 1, 2, 3] * dvdt[i, j, k + 1]
+            met13[i, j, k + 1] * dudt[i, j, k + 1] +
+            met23[i, j, k + 1] * dvdt[i, j, k + 1]
         )
     ) / (jac[i, j, k] + jac[i, j, k + 1])
 end
@@ -256,7 +254,7 @@ function compute_volume_force(
     variable::P,
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
-    return conductive_heating(state, i, j, k)
+    conductive_heating(state, i, j, k)
 end
 
 @ivy function compute_volume_force(
@@ -269,7 +267,7 @@ end
 )::AbstractFloat
     (; dthetadt) = state.wkb.tendencies
 
-    return dthetadt[i, j, k] + conductive_heating(state, i, j, k)
+    dthetadt[i, j, k] + conductive_heating(state, i, j, k)
 end
 
 @ivy function compute_volume_force(
@@ -289,7 +287,8 @@ end
     if leading_order_impact && model === :Compressible
         impact += dchidt0[i, j, k]
     end
-    return impact
+
+    impact
 end
 
 @ivy function compute_volume_force(
@@ -332,7 +331,7 @@ end
 
     buoyancy_production[i, j, k] = buoyancy
 
-    return (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + dtkedt)
+    (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + dtkedt)
 end
 
 @ivy function compute_volume_force(
@@ -345,5 +344,5 @@ end
 )::AbstractFloat
     (; dtkedt) = state.turbulence.turbulencewkbtendencies
 
-    return dtkedt[i, j, k]
+    dtkedt[i, j, k]
 end

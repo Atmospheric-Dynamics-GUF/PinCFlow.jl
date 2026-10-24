@@ -18,9 +18,7 @@ The parameter can take any of the following values:
 macro dispatch_merge_mode end
 
 macro dispatch_merge_mode(input::Expr)
-    return esc(
-        quote
-            @dispatch (:ConstantWaveAction, :ConstantWaveEnergy) $(input)
-        end,
-    )
+    esc(quote
+        @dispatch (:ConstantWaveAction, :ConstantWaveEnergy) $(input)
+    end)
 end

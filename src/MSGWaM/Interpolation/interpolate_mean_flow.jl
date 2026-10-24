@@ -294,7 +294,7 @@ function interpolate_mean_flow end
         ),
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -415,7 +415,7 @@ end
         ),
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -525,7 +525,7 @@ end
         ),
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -694,7 +694,7 @@ end
         ),
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -810,7 +810,7 @@ end
         ),
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -979,7 +979,7 @@ end
         ),
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -1090,7 +1090,7 @@ end
         ),
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -1206,7 +1206,7 @@ end
         ),
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -1322,7 +1322,7 @@ end
         ),
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -1437,7 +1437,7 @@ end
         ),
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -1548,5 +1548,5 @@ end
         ),
     )
 
-    return phi
+    phi
 end

@@ -14,7 +14,7 @@ wkb_mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
 ```
 
 Run the WKB-mountain-wave example simulation.
@@ -37,7 +37,7 @@ function wkb_mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 300
     l0 = 5000
     rl = 10
@@ -109,5 +109,5 @@ function wkb_mountain_wave(;
         )
     end
 
-    return
+    nothing
 end

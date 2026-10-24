@@ -57,7 +57,7 @@ function interpolate_stratification end
     phid = n2[i0, j0, kd]
     phiu = n2[i0, j0, ku]
 
-    return interpolate((; phid, phiu, zd, zu, zlc))
+    interpolate((; phid, phiu, zd, zu, zlc))
 end
 
 @ivy function interpolate_stratification(
@@ -87,5 +87,5 @@ end
             (jac[i0, j0, ku] + jac[i0, j0, ku + 1])
         ) / dz
 
-    return interpolate((; phid, phiu, zd, zu, zlc))
+    interpolate((; phid, phiu, zd, zu, zlc))
 end
