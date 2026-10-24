@@ -54,29 +54,10 @@ function interpolate_stratification end
 
     zd = zc[i0, j0, kd]
     zu = zc[i0, j0, ku]
-    strd = n2[i0, j0, kd]
-    stru = n2[i0, j0, ku]
+    phid = n2[i0, j0, kd]
+    phiu = n2[i0, j0, ku]
 
-    if zu < zd
-        error(
-            "Incorrect vertical-interpolation points: zu = ",
-            zu,
-            " < zd = ",
-            zd,
-        )
-    elseif zu == zd
-        factor = 0.0
-    elseif zlc > zu
-        factor = 0.0
-    elseif zlc > zd
-        factor = (zu - zlc) / (zu - zd)
-    else
-        factor = 1.0
-    end
-
-    str = factor * strd + (1.0 - factor) * stru
-
-    str
+    interpolate((; phid, phiu, zd, zu, zlc))
 end
 
 @ivy function interpolate_stratification(
@@ -95,35 +76,16 @@ end
     zd = zctilde[i0, j0, kd]
     zu = zctilde[i0, j0, ku]
 
-    strd =
+    phid =
         (n2[i0, j0, kd + 1] - n2[i0, j0, kd]) / (
             2.0 * jac[i0, j0, kd] * jac[i0, j0, kd + 1] /
             (jac[i0, j0, kd] + jac[i0, j0, kd + 1])
         ) / dz
-    stru =
+    phiu =
         (n2[i0, j0, ku + 1] - n2[i0, j0, ku]) / (
             2.0 * jac[i0, j0, ku] * jac[i0, j0, ku + 1] /
             (jac[i0, j0, ku] + jac[i0, j0, ku + 1])
         ) / dz
 
-    if zu < zd
-        error(
-            "Incorrect vertical-interpolation points: zu = ",
-            zu,
-            " < zd = ",
-            zd,
-        )
-    elseif zu == zd
-        factor = 0.0
-    elseif zlc > zu
-        factor = 0.0
-    elseif zlc > zd
-        factor = (zu - zlc) / (zu - zd)
-    else
-        factor = 1.0
-    end
-
-    str = factor * strd + (1.0 - factor) * stru
-
-    str
+    interpolate((; phid, phiu, zd, zu, zlc))
 end
