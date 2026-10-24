@@ -134,5 +134,5 @@ function compute_saturation_integrals end
         end
     end
 
-    return (mb2, mb2k2)
+    (mb2, mb2k2)
 end

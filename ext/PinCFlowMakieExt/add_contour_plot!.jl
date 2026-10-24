@@ -1,6 +1,6 @@
 """
 ```julia
-add_contour_plot!(figure::Figure, input::NamedTuple)
+add_contour_plot!(figure::Figure, input::NamedTuple)::Nothing
 ```
 
 Add a contour plot to `figure` using the data in `input`.
@@ -19,7 +19,7 @@ Add a contour plot to `figure` using the data in `input`.
 """
 function add_contour_plot! end
 
-@ivy function add_contour_plot!(figure::Figure, input::NamedTuple)
+@ivy function add_contour_plot!(figure::Figure, input::NamedTuple)::Nothing
     (;
         background_color,
         colormap_name,
@@ -43,6 +43,7 @@ function add_contour_plot! end
     ymax = maximum(y)
     ymin = minimum(y)
 
+    delete!.(contents(figure[row, columns]))
     axis = Axis(
         figure[row, columns[1]];
         backgroundcolor = background_color,
@@ -69,5 +70,5 @@ function add_contour_plot! end
     xlims!(xmin, xmax)
     ylims!(ymin, ymax)
 
-    return
+    nothing
 end

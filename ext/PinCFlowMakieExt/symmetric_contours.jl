@@ -68,5 +68,5 @@ symmetric_contours
     peak = max(abs(levels[1]), abs(levels[end]))
     indices = @fuse ceil(Int, (1 + midpoints / peak) * colormap_length / 2)
 
-    return (levels, colormap[indices])
+    (levels, colormap[indices])
 end

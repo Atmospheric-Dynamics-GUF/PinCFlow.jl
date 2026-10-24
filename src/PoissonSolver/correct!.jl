@@ -1,6 +1,10 @@
 """
 ```julia
-correct!(state::State, dt::AbstractFloat, rayleigh_factor::AbstractFloat)
+correct!(
+    state::State,
+    dt::AbstractFloat,
+    rayleigh_factor::AbstractFloat,
+)::Nothing
 ```
 
 Correct the Exner-pressure, wind and density fluctuations such that the divergence constraint is satisfied, using the Exner-pressure differences obtained from the solution to the Poisson problem.
@@ -13,7 +17,7 @@ correct!(
     dt::AbstractFloat,
     variable::U,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Correct the zonal wind to account for the pressure differences obtained from the solution to the Poisson problem.
@@ -44,7 +48,7 @@ correct!(
     dt::AbstractFloat,
     variable::V,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Correct the meridional wind to account for the pressure differences obtained from the solution to the Poisson problem.
@@ -75,7 +79,7 @@ correct!(
     dt::AbstractFloat,
     variable::W,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Correct the transformed vertical wind to account for the pressure differences obtained from the solution to the Poisson problem.
@@ -108,7 +112,7 @@ correct!(
     dt::AbstractFloat,
     variable::RhoP,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Correct the density fluctuations to account for the pressure differences obtained from the solution to the Poisson problem.
@@ -136,7 +140,7 @@ in Boussinesq/pseudo-incompressible mode and
 in compressible mode, where ``c_p \\left(P_{k + 1 / 2} / \\rho_{k + 1 / 2}\\right) \\mathcal{D}_{k + 1 / 2}^{\\rho \\hat{w}}`` and ``c_p \\left(P_{k - 1 / 2} / \\rho_{k - 1 / 2}\\right) \\mathcal{D}_{k - 1 / 2}^{\\rho \\hat{w}}`` are computed with `compute_pressure_gradient`, and used to interpolate to ``\\left(i, j, k\\right)``.
 
 ```julia
-correct!(state::State, variable::PiP)
+correct!(state::State, variable::PiP)::Nothing
 ```
 
 Update the Exner-pressure fluctuations with the differences obtained from the solution to the Poisson problem.
@@ -165,13 +169,13 @@ function correct!(
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     correct!(state, dt, U(), rayleigh_factor)
     correct!(state, dt, V(), rayleigh_factor)
     correct!(state, dt, W(), rayleigh_factor)
     correct!(state, dt, RhoP(), rayleigh_factor)
     correct!(state, PiP())
-    return
+    nothing
 end
 
 @ivy function correct!(
@@ -179,7 +183,7 @@ end
     dt::AbstractFloat,
     variable::U,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -211,7 +215,7 @@ end
         u[i, j, k] -= jpedger * corx[i, j, k]
     end
 
-    return
+    nothing
 end
 
 @ivy function correct!(
@@ -219,7 +223,7 @@ end
     dt::AbstractFloat,
     variable::V,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -251,7 +255,7 @@ end
         v[i, j, k] -= jpedgef * cory[i, j, k]
     end
 
-    return
+    nothing
 end
 
 @ivy function correct!(
@@ -259,10 +263,10 @@ end
     dt::AbstractFloat,
     variable::W,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = state.grid
+    (; jac, met13, met23, met33) = state.grid
     (; n2) = state.atmosphere
     (; betar) = state.sponge
     (; corx, cory) = state.poisson.correction
@@ -300,19 +304,19 @@ end
             0.5 *
             (
                 jac[i, j, k + 1] * (
-                    met[i, j, k, 1, 3] * (corx[i, j, k] + corx[i - 1, j, k]) +
-                    met[i, j, k, 2, 3] * (cory[i, j, k] + cory[i, j - 1, k])
+                    met13[i, j, k] * (corx[i, j, k] + corx[i - 1, j, k]) +
+                    met23[i, j, k] * (cory[i, j, k] + cory[i, j - 1, k])
                 ) +
                 jac[i, j, k] * (
-                    met[i, j, k + 1, 1, 3] *
+                    met13[i, j, k + 1] *
                     (corx[i, j, k + 1] + corx[i - 1, j, k + 1]) +
-                    met[i, j, k + 1, 2, 3] *
+                    met23[i, j, k + 1] *
                     (cory[i, j, k + 1] + cory[i, j - 1, k + 1])
                 )
             ) / (jac[i, j, k] + jac[i, j, k + 1])
     end
 
-    return
+    nothing
 end
 
 @ivy function correct!(
@@ -320,11 +324,11 @@ end
     dt::AbstractFloat,
     variable::RhoP,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size, nbz) = state.namelists.domain
     (; g_ndim) = state.constants
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = state.grid
+    (; jac, met13, met23, met33) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (; corx, cory) = state.poisson.correction
@@ -359,18 +363,18 @@ end
                 factor *
                 0.5 *
                 (
-                    met[i, j, k, 1, 3] * (corx[i, j, k] + corx[i - 1, j, k]) +
-                    met[i, j, k, 2, 3] * (cory[i, j, k] + cory[i, j - 1, k])
+                    met13[i, j, k] * (corx[i, j, k] + corx[i - 1, j, k]) +
+                    met23[i, j, k] * (cory[i, j, k] + cory[i, j - 1, k])
                 )
             )
 
         rhop[i, j, k] -= (rho[i, j, k] + rhobar[i, j, k]) / g_ndim * db
     end
 
-    return
+    nothing
 end
 
-function correct!(state::State, variable::PiP)
+@ivy function correct!(state::State, variable::PiP)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; pip) = state.variables.predictands
     (; dpip) = state.variables.increments
@@ -381,5 +385,5 @@ function correct!(state::State, variable::PiP)
 
     @fuse pip[ii, jj, kk] += dpip[ii, jj, kk]
 
-    return
+    nothing
 end

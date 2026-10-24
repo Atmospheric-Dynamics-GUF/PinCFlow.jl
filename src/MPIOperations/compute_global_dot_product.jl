@@ -32,5 +32,5 @@ function compute_global_dot_product(
     # Sum over all processes.
     global_dot_product = MPI.Allreduce(local_dot_product, +, comm)
 
-    return global_dot_product
+    global_dot_product
 end

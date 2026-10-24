@@ -4,7 +4,7 @@ apply_preconditioner!(
     sin::AbstractArray{<:AbstractFloat, 3},
     sout::AbstractArray{<:AbstractFloat, 3},
     state::State,
-)
+)::Nothing
 ```
 
 Apply a preconditioner to the Poisson problem.
@@ -45,7 +45,7 @@ function apply_preconditioner!(
     sin::AbstractArray{<:AbstractFloat, 3},
     sout::AbstractArray{<:AbstractFloat, 3},
     state::State,
-)
+)::Nothing
     (; dtau, preconditioner_iterations) = state.namelists.poisson
     (; nx, ny, nz) = state.domain
     (; dx, dy) = state.grid
@@ -71,5 +71,5 @@ function apply_preconditioner!(
 
     @fuse sout = fth
 
-    return
+    nothing
 end

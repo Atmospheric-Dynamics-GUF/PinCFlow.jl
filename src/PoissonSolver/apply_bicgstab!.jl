@@ -145,5 +145,5 @@ function apply_bicgstab!(
     errflag = true
     niter = j_b
 
-    return (errflag, niter)
+    (errflag, niter)
 end

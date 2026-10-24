@@ -5,7 +5,6 @@ Grid{
     B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 5},
 }
 ```
 
@@ -102,7 +101,11 @@ Coordinate transformation.
 
   - `jac::D`: Jacobian.
 
-  - `met::E`: Metric tensor.
+  - `met13::D`: Element 1-3 of the metric tensor.
+
+  - `met23::D`: Element 2-3 of the metric tensor.
+
+  - `met33::D`: Element 3-3 of the metric tensor.
 
 Vertical coordinates:
 
@@ -135,7 +138,6 @@ struct Grid{
     B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 5},
 }
 
     # Scaled domain.
@@ -160,7 +162,9 @@ struct Grid{
 
     # Jacobian and metric tensor.
     jac::D
-    met::E
+    met13::D
+    met23::D
+    met33::D
 
     # Vertical coordinates.
     zc::D
@@ -228,7 +232,6 @@ end
     # Allocate Jacobian and metric tensor.
     jac = zeros(nxx, nyy, nzz)
     (met13, met23, met33) = (zeros(nxx, nyy, nzz) for i in 1:3)
-    met = zeros(nxx, nyy, nzz, 3, 3)
 
     # Set the start index for the computation of the Jacobian and metric tensor.
     kmin = ko == 0 ? 2 : 1
@@ -243,11 +246,6 @@ end
 
     # Compute the metric tensor.
 
-    @fuse met[:, :, :, 1, 2] = 0.0
-    @fuse met[:, :, :, 2, 1] = 0.0
-    @fuse met[:, :, :, 1, 1] = 1.0
-    @fuse met[:, :, :, 2, 2] = 1.0
-
     @fuse for k in kmin:kmax, j in 1:nyy, i in i0:i1
         met13[i, j, k] =
             (hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx) * (zs[ko + k] - lz) /
@@ -256,8 +254,6 @@ end
     set_zonal_boundaries_of_field!(met13, namelists, domain)
     ko == 0 && (@fuse met13[:, :, 1] =
         met13[:, :, 2 * nbz] * (zs[1] - lz) / (zs[2 * nbz] - lz))
-    @fuse met[:, :, :, 1, 3] = met13
-    @fuse met[:, :, :, 3, 1] = met13
 
     @fuse for k in 2:nzz, j in j0:j1, i in 1:nxx
         met23[i, j, k] =
@@ -267,8 +263,6 @@ end
     set_meridional_boundaries_of_field!(met23, namelists, domain)
     ko == 0 && (@fuse met23[:, :, 1] =
         met23[:, :, 2 * nbz] * (zs[1] - lz) / (zs[2 * nbz] - lz))
-    @fuse met[:, :, :, 2, 3] = met23
-    @fuse met[:, :, :, 3, 2] = met23
 
     @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1
         met33[i, j, k] =
@@ -292,7 +286,6 @@ end
     end
     set_zonal_boundaries_of_field!(met33, namelists, domain)
     set_meridional_boundaries_of_field!(met33, namelists, domain)
-    @fuse met[:, :, :, 3, 3] = met33
 
     # Allocate the physical layers.
     (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
@@ -304,15 +297,10 @@ end
     end
 
     # Compute the minimum layer depth.
-    dzcmin = mapreduce(
-        -,
-        min,
-        zctilde[1:nxx, 1:nyy, 2:nzz],
-        zctilde[1:nxx, 1:nyy, 1:(nzz - 1)],
-    )
+    dzcmin = mapreduce(-, min, zctilde[:, :, 2:nzz], zctilde[:, :, 1:(nzz - 1)])
     dzcmin = MPI.Allreduce(dzcmin, min, comm)
 
-    return Grid(
+    Grid(
         lx,
         ly,
         lz,
@@ -326,7 +314,9 @@ end
         kh,
         lh,
         jac,
-        met,
+        met13,
+        met23,
+        met33,
         zc,
         zctilde,
         dzcmin,

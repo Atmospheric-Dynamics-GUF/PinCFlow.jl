@@ -24,7 +24,7 @@ function compute_slope end
 
     deltah = sum(abs, hw[:, i, j])
 
-    return (
+    (
         mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], kh[:, i, j]) / deltah,
         mapreduce((a, b) -> abs(a) * b, +, hw[:, i, j], lh[:, i, j]) / deltah,
     )

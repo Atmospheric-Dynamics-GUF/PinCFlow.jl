@@ -93,7 +93,7 @@ function turbulence_diffusion_coefficient end
         km = lv * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     end
 
-    return km
+    km
 end
 
 @ivy function turbulence_diffusion_coefficient(
@@ -116,7 +116,7 @@ end
         kh = lb * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     end
 
-    return kh
+    kh
 end
 
 @ivy function turbulence_diffusion_coefficient(
@@ -139,5 +139,5 @@ end
         kek = lt * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     end
 
-    return kek
+    kek
 end

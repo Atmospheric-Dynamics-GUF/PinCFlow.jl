@@ -5,7 +5,7 @@ apply_shapiro_filter!(
     input::AbstractVector{<:AbstractFloat},
     order::Val{1},
     i::Integer,
-)
+)::Nothing
 ```
 
 Apply the first-order Shapiro filter to `input` at the index `i`.
@@ -24,7 +24,7 @@ apply_shapiro_filter!(
     input::AbstractVector{<:AbstractFloat},
     order::Val{2},
     i::Integer,
-)
+)::Nothing
 ```
 
 Apply the second-order Shapiro filter to `input` at the index `i`.
@@ -43,7 +43,7 @@ apply_shapiro_filter!(
     input::AbstractVector{<:AbstractFloat},
     order::Val{3},
     i::Integer,
-)
+)::Nothing
 ```
 
 Apply the third-order Shapiro filter to `input` at the index `i`.
@@ -62,7 +62,7 @@ apply_shapiro_filter!(
     input::AbstractVector{<:AbstractFloat},
     order::Val{4},
     i::Integer,
-)
+)::Nothing
 ```
 
 Apply the fourth-order Shapiro filter to `input` at the index `i`.
@@ -92,9 +92,9 @@ function apply_shapiro_filter! end
     input::AbstractVector{<:AbstractFloat},
     order::Val{1},
     i::Integer,
-)
+)::Nothing
     output[i] = (input[i - 1] + input[i + 1] + 2 * input[i]) / 4
-    return
+    nothing
 end
 
 @ivy function apply_shapiro_filter!(
@@ -102,14 +102,14 @@ end
     input::AbstractVector{<:AbstractFloat},
     order::Val{2},
     i::Integer,
-)
+)::Nothing
     output[i] =
         (
             -input[i - 2] - input[i + 2] +
             4 * (input[i - 1] + input[i + 1]) +
             10 * input[i]
         ) / 16
-    return
+    nothing
 end
 
 @ivy function apply_shapiro_filter!(
@@ -117,14 +117,14 @@ end
     input::AbstractVector{<:AbstractFloat},
     order::Val{3},
     i::Integer,
-)
+)::Nothing
     output[i] =
         (
             input[i - 3] + input[i + 3] - 6 * (input[i - 2] + input[i + 2]) +
             15 * (input[i - 1] + input[i + 1]) +
             44 * input[i]
         ) / 64
-    return
+    nothing
 end
 
 @ivy function apply_shapiro_filter!(
@@ -132,7 +132,7 @@ end
     input::AbstractVector{<:AbstractFloat},
     order::Val{4},
     i::Integer,
-)
+)::Nothing
     output[i] =
         (
             -input[i - 4] - input[i + 4] + 8 * (input[i - 3] + input[i + 3]) -
@@ -140,5 +140,5 @@ end
             56 * (input[i - 1] + input[i + 1]) +
             186 * input[i]
         ) / 256
-    return
+    nothing
 end

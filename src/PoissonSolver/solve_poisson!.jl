@@ -69,5 +69,5 @@ function solve_poisson! end
     @fuse solution /= sqrt(pbar[ii, jj, kk]^2 / rhobar[ii, jj, kk])
     @fuse dpip[ii, jj, kk] = dtinv * solution
 
-    return (errflagbicg, niterbicg)
+    (errflagbicg, niterbicg)
 end

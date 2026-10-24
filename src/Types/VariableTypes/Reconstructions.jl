@@ -59,7 +59,7 @@ end
 function Reconstructions(namelists::Namelists, domain::Domain)::Reconstructions
     (; model) = namelists.atmosphere
 
-    @dispatch_model return Reconstructions(domain, Val(model))
+    @dispatch_model Reconstructions(domain, Val(model))
 end
 
 function Reconstructions(
@@ -68,9 +68,9 @@ function Reconstructions(
 )::Reconstructions
     (; nxx, nyy, nzz) = domain
 
-    return Reconstructions(
+    Reconstructions(
         zeros(0, 0, 0, 0, 0),
-        [zeros(nxx, nyy, nzz, 3, 2) for i in 1:4]...,
+        (zeros(nxx, nyy, nzz, 3, 2) for i in 1:4)...,
     )
 end
 
@@ -80,5 +80,5 @@ function Reconstructions(
 )::Reconstructions
     (; nxx, nyy, nzz) = domain
 
-    return Reconstructions([zeros(nxx, nyy, nzz, 3, 2) for i in 1:5]...)
+    Reconstructions((zeros(nxx, nyy, nzz, 3, 2) for i in 1:5)...)
 end

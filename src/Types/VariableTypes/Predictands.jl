@@ -86,7 +86,7 @@ end
     ) = namelists.atmosphere
     (; lref, rhoref, thetaref, uref) = constants
     (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
-    (; x, y, zc, met, jac) = grid
+    (; x, y, zc, met13, met23, met33, jac) = grid
     (; rhobar, thetabar, pbar) = atmosphere
 
     (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
@@ -130,7 +130,7 @@ end
         @fuse rho = rhop
     end
 
-    @fuse w = met[:, :, :, 1, 3] * u + met[:, :, :, 2, 3] * v + w / jac
+    @fuse w = met13 * u + met23 * v + w / jac
 
     for k in 1:nzz, j in 1:nyy, i in i0:i1
         u[i, j, k] = (u[i, j, k] + u[i + 1, j, k]) / 2
@@ -151,5 +151,5 @@ end
 
     @dispatch_model p = set_p(Val(model), pbar)
 
-    return Predictands(rho, rhop, u, v, w, pip, p)
+    Predictands(rho, rhop, u, v, w, pip, p)
 end
