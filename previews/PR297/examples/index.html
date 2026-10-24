@@ -462,8 +462,6 @@ function wkb_mountain_wave(;
         initial_u = (x, y, z) -&gt; 10.0,
     )
 
-    discretization = DiscretizationNamelist(; dtmax = 60)
-
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
@@ -471,7 +469,7 @@ function wkb_mountain_wave(;
             x^2 + y^2 &lt;= (rl * l0)^2 ?
             h0 / 4 *
             (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) *
-            min(1, t / th) : 0.0,
+            min(1, max(eps(), t / th)) : 0.0,
         unresolved_topography = (alpha, x, y, t) -&gt;
             x^2 + y^2 &lt;= (rl * l0)^2 ?
             (
@@ -479,7 +477,7 @@ function wkb_mountain_wave(;
                 0.0,
                 h0 / 4 *
                 (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) *
-                min(1, t / th),
+                min(1, max(eps(), t / th)),
             ) : (0.0, 0.0, 0.0),
     )
 
@@ -506,16 +504,7 @@ function wkb_mountain_wave(;
     turbulence = TurbulenceNamelist(; turbulence_scheme = :NoTurbulence)
 
     integrate(
-        Namelists(;
-            atmosphere,
-            discretization,
-            domain,
-            grid,
-            output,
-            sponge,
-            wkb,
-            turbulence,
-        ),
+        Namelists(; atmosphere, domain, grid, output, sponge, wkb, turbulence),
     )
 
     if visualize &amp;&amp; MPI.Comm_rank(MPI.COMM_WORLD) == 0
@@ -531,11 +520,11 @@ function wkb_mountain_wave(;
     nothing
 end
 </code></pre><p>performs a 3D WKB mountain-wave simulation without turbulence parameterization. The full surface topography is given by</p><p class="math-container">\[\begin{align*}
-    h \left(x, y\right) &amp; = \min \left(1, \frac{t}{t_h}\right) \begin{cases}
+    h \left(x, y\right) &amp; = \min \left[1, \max \left(\epsilon, \frac{t}{t_h}\right)\right] \begin{cases}
         \frac{h_0}{4} \left[1 + \cos \left(\frac{\pi}{r_l l_0} \sqrt{x^2 + y^2}\right)\right] \left[1 + \cos \left(\frac{\pi x}{l_0}\right)\right] &amp; \mathrm{if} \quad x^2 + y^2 \leq r_l^2 l_0^2,\\
         0 &amp; \mathrm{else},
     \end{cases}\\
-\end{align*}\]</p><p>where <span>$h_0 = 300 \ \mathrm{m}$</span>, <span>$l_0 = 5 \ \mathrm{km}$</span>, <span>$r_l = 10$</span>, and <span>$t_h = 300 \ \mathrm{s}$</span>. This is decomposed into a large-scale part <span>$h_\mathrm{b}$</span> and a small-scale part with the spectral amplitude <span>$h_\mathrm{w}$</span>, such that</p><p class="math-container">\[\begin{align*}
+\end{align*}\]</p><p>where <span>$h_0 = 300 \ \mathrm{m}$</span>, <span>$l_0 = 5 \ \mathrm{km}$</span>, <span>$r_l = 10$</span>, <span>$t_h = 300 \ \mathrm{s}$</span>, and <span>$\epsilon$</span> denoting the machine epsilon. This is decomposed into a large-scale part <span>$h_\mathrm{b}$</span> and a small-scale part with the spectral amplitude <span>$h_\mathrm{w}$</span>, such that</p><p class="math-container">\[\begin{align*}
     h_\mathrm{b} \left(x, y\right) &amp; = h_\mathrm{w} \left(x, y\right),\\
     h_\mathrm{w} \left(x, y\right) &amp; = \min \left(1, \frac{t}{t_h}\right) \begin{cases}
         \frac{h_0}{4} \left[1 + \cos \left(\frac{\pi}{r_l l_0} \sqrt{x^2 + y^2}\right)\right] &amp; \mathrm{if} \quad x^2 + y^2 \leq r_l^2 l_0^2,\\
@@ -802,4 +791,4 @@ function wave_action_density(
     (k^2 + l^2 + m^2) / n2(state, x, y, z)^2 / (k^2 + l^2) *
     bhat(state, parameters, x, y, z)^2
 end
-</code></pre><p>that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Saturday 24 October 2026 10:08">Saturday 24 October 2026</span>. Using Julia version 1.10.12.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre><p>that implement the gravity-wave dispersion and polarization relations needed for the initialization of wave packets.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../theory/physics/">Physics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Saturday 24 October 2026 13:00">Saturday 24 October 2026</span>. Using Julia version 1.10.12.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
