@@ -41,5 +41,5 @@ function test_hot_bubble()
         test_example(hot_bubble, keywords, reference; update)
     end
 
-    return
+    nothing
 end

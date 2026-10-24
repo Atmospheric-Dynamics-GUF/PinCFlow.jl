@@ -1,6 +1,9 @@
 """
 ```julia
-set_turbulence_zonal_boundaries!(state::State, variables::BoundaryPredictands)
+set_turbulence_zonal_boundaries!(
+    state::State,
+    variables::BoundaryPredictands,
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for turbulent kinetic energy.
@@ -9,7 +12,7 @@ Enforce zonal boundary conditions for turbulent kinetic energy.
 set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for reconstructions of turbulent kinetic energy.
@@ -18,7 +21,7 @@ Enforce zonal boundary conditions for reconstructions of turbulent kinetic energ
 set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for turbulence WKB variables by dispatching to the appropriate method.
@@ -28,7 +31,7 @@ set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
     turbulence_scheme::Val{:NoTurbulence},
-)
+)::Nothing
 ```
 
 Return for configurations without turbulence parameterization.
@@ -38,7 +41,7 @@ set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBIntegrals,
     turbulence_scheme::Val{:TKEScheme},
-)
+)::Nothing
 ```
 
 Return for turbulence WKB integrals as these are not needed in halo/boundary cells (see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_tendencies!`](@ref)).
@@ -48,7 +51,7 @@ set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     turbulence_scheme::Val{:TKEScheme},
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for turbulence WKB tendencies.
@@ -70,7 +73,7 @@ function set_turbulence_zonal_boundaries! end
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
-)
+)::Nothing
     (; namelists, domain) = state
     (; turbulencepredictands) = state.turbulence
 
@@ -82,13 +85,13 @@ function set_turbulence_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
-)
+)::Nothing
     (; namelists, domain) = state
     (; turbulencereconstructions) = state.turbulence
 
@@ -100,13 +103,13 @@ function set_turbulence_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-)
+)::Nothing
     (; turbulence_scheme) = state.namelists.turbulence
 
     @dispatch_turbulence_scheme set_turbulence_zonal_boundaries!(
@@ -115,36 +118,36 @@ function set_turbulence_zonal_boundaries!(
         Val(turbulence_scheme),
     )
 
-    return
+    nothing
 end
 
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
     turbulence_scheme::Val{:NoTurbulence},
-)
-    return
+)::Nothing
+    nothing
 end
 
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     turbulence_scheme::Val{:TKEScheme},
-)
-    return
+)::Nothing
+    nothing
 end
 
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     turbulence_scheme::Val{:TKEScheme},
-)
+)::Nothing
     (; namelists, domain) = state
     (; turbulencewkbtendencies) = state.turbulence
     (; gw_coupling) = state.namelists.turbulence
 
     if !gw_coupling
-        return
+        return nothing
     end
 
     for field in fieldnames(TurbulenceWKBTendencies)
@@ -155,5 +158,5 @@ function set_turbulence_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end

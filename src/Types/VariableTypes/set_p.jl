@@ -33,12 +33,12 @@ function set_p(
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     pbar::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
-    return zeros(0, 0, 0)
+    zeros(0, 0, 0)
 end
 
 function set_p(
     model::Val{:Compressible},
     pbar::AbstractArray{<:AbstractFloat, 3},
 )::AbstractArray{<:AbstractFloat, 3}
-    return copy(pbar)
+    copy(pbar)
 end

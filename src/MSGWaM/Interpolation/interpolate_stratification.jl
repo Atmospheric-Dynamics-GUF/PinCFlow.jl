@@ -75,7 +75,7 @@ function interpolate_stratification end
 
     str = factor * strd + (1.0 - factor) * stru
 
-    return str
+    str
 end
 
 @ivy function interpolate_stratification(
@@ -123,5 +123,5 @@ end
 
     str = factor * strd + (1.0 - factor) * stru
 
-    return str
+    str
 end

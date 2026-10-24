@@ -37,7 +37,7 @@ function GridNamelist(;
     resolved_topography::Function = (x, y) -> 0.0,
     unresolved_topography::Function = (alpha, x, y) -> (0.0, 0.0, 0.0),
 )::GridNamelist
-    return GridNamelist(
+    GridNamelist(
         vertical_grid_stretching,
         resolved_topography,
         unresolved_topography,

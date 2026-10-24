@@ -101,5 +101,5 @@ function get_levels end
         end
     end
 
-    return (kd, ku)
+    (kd, ku)
 end

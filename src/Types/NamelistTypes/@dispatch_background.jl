@@ -26,7 +26,7 @@ The parameter can take any of the following values:
 macro dispatch_background end
 
 macro dispatch_background(input::Expr)
-    return esc(
+    esc(
         quote
             @dispatch (
                 :NeutralStratification,
