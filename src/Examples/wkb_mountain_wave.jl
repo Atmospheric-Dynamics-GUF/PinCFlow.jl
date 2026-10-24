@@ -57,8 +57,6 @@ function wkb_mountain_wave(;
         initial_u = (x, y, z) -> 10.0,
     )
 
-    discretization = DiscretizationNamelist(; dtmax = 60)
-
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
@@ -66,7 +64,7 @@ function wkb_mountain_wave(;
             x^2 + y^2 <= (rl * l0)^2 ?
             h0 / 4 *
             (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) *
-            min(1, t / th) : 0.0,
+            min(1, max(eps(), t / th)) : 0.0,
         unresolved_topography = (alpha, x, y, t) ->
             x^2 + y^2 <= (rl * l0)^2 ?
             (
@@ -74,7 +72,7 @@ function wkb_mountain_wave(;
                 0.0,
                 h0 / 4 *
                 (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) *
-                min(1, t / th),
+                min(1, max(eps(), t / th)),
             ) : (0.0, 0.0, 0.0),
     )
 
@@ -101,16 +99,7 @@ function wkb_mountain_wave(;
     turbulence = TurbulenceNamelist(; turbulence_scheme = :NoTurbulence)
 
     integrate(
-        Namelists(;
-            atmosphere,
-            discretization,
-            domain,
-            grid,
-            output,
-            sponge,
-            wkb,
-            turbulence,
-        ),
+        Namelists(; atmosphere, domain, grid, output, sponge, wkb, turbulence),
     )
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0

@@ -556,8 +556,6 @@ function wkb_mountain_wave(;
         initial_u = (x, y, z) -> 10.0,
     )
 
-    discretization = DiscretizationNamelist(; dtmax = 60)
-
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
@@ -565,7 +563,7 @@ function wkb_mountain_wave(;
             x^2 + y^2 <= (rl * l0)^2 ?
             h0 / 4 *
             (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) *
-            min(1, t / th) : 0.0,
+            min(1, max(eps(), t / th)) : 0.0,
         unresolved_topography = (alpha, x, y, t) ->
             x^2 + y^2 <= (rl * l0)^2 ?
             (
@@ -573,7 +571,7 @@ function wkb_mountain_wave(;
                 0.0,
                 h0 / 4 *
                 (1 + cos(pi / (rl * l0) * sqrt(x^2 + y^2))) *
-                min(1, t / th),
+                min(1, max(eps(), t / th)),
             ) : (0.0, 0.0, 0.0),
     )
 
@@ -600,16 +598,7 @@ function wkb_mountain_wave(;
     turbulence = TurbulenceNamelist(; turbulence_scheme = :NoTurbulence)
 
     integrate(
-        Namelists(;
-            atmosphere,
-            discretization,
-            domain,
-            grid,
-            output,
-            sponge,
-            wkb,
-            turbulence,
-        ),
+        Namelists(; atmosphere, domain, grid, output, sponge, wkb, turbulence),
     )
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
@@ -630,13 +619,13 @@ end
 performs a 3D WKB mountain-wave simulation without turbulence parameterization. The full surface topography is given by
 
 $$\begin{align*}
-    h \left(x, y\right) & = \min \left(1, \frac{t}{t_h}\right) \begin{cases}
+    h \left(x, y\right) & = \min \left[1, \max \left(\epsilon, \frac{t}{t_h}\right)\right] \begin{cases}
         \frac{h_0}{4} \left[1 + \cos \left(\frac{\pi}{r_l l_0} \sqrt{x^2 + y^2}\right)\right] \left[1 + \cos \left(\frac{\pi x}{l_0}\right)\right] & \mathrm{if} \quad x^2 + y^2 \leq r_l^2 l_0^2,\\
         0 & \mathrm{else},
     \end{cases}\\
 \end{align*}$$
 
-where $h_0 = 300 \ \mathrm{m}$, $l_0 = 5 \ \mathrm{km}$, $r_l = 10$, and $t_h = 300 \ \mathrm{s}$. This is decomposed into a large-scale part $h_\mathrm{b}$ and a small-scale part with the spectral amplitude $h_\mathrm{w}$, such that
+where $h_0 = 300 \ \mathrm{m}$, $l_0 = 5 \ \mathrm{km}$, $r_l = 10$, $t_h = 300 \ \mathrm{s}$, and $\epsilon$ denoting the machine epsilon. This is decomposed into a large-scale part $h_\mathrm{b}$ and a small-scale part with the spectral amplitude $h_\mathrm{w}$, such that
 
 $$\begin{align*}
     h_\mathrm{b} \left(x, y\right) & = h_\mathrm{w} \left(x, y\right),\\
