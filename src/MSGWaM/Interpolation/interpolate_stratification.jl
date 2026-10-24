@@ -33,9 +33,9 @@ This method first determines the two points in ``z + J \\Delta \\hat{z} / 2`` th
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_levels`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_half_levels`](@ref)
 """
 function interpolate_stratification end
 
@@ -49,8 +49,7 @@ function interpolate_stratification end
     (; i0, j0) = domain
     (; zc) = grid
 
-    ku = get_next_level(i0, j0, zlc, state; dkd = 1)
-    kd = ku - 1
+    (kd, ku) = get_levels(i0, j0, zlc, state)
 
     zd = zc[i0, j0, kd]
     zu = zc[i0, j0, ku]
@@ -89,8 +88,7 @@ end
     (; i0, j0) = domain
     (; dz, zctilde, jac) = grid
 
-    ku = get_next_half_level(i0, j0, zlc, state; dkd = 1, dku = 1)
-    kd = ku - 1
+    (kd, ku) = get_half_levels(i0, j0, zlc, state; dku = 1)
 
     zd = zctilde[i0, j0, kd]
     zu = zctilde[i0, j0, ku]
