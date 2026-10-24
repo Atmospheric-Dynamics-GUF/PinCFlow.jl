@@ -1,12 +1,12 @@
 function test_cold_bubble()
     l2 = (
         n2 = 0.0f0,
-        p = 21220.572f0,
+        p = 30010.42f0,
         pip = 0.0018712163f0,
-        rhobar = 70.73524f0,
+        rhobar = 100.03474f0,
         rhop = 0.09722272f0,
         t = 300.0f0,
-        thetabar = 26832.816f0,
+        thetabar = 37947.332f0,
         thetap = 29.200014f0,
         tke = 0.1826098f0,
         us = 60.441563f0,
@@ -14,8 +14,8 @@ function test_cold_bubble()
         wts = 120.458176f0,
         x = 12893.797f0,
         y = 12893.797f0,
-        z = 516236.38f0,
-        ztilde = 535723.8f0,
+        z = 730068.5f0,
+        ztilde = 757627.9f0,
     )
     linf = (
         n2 = 0.0f0,

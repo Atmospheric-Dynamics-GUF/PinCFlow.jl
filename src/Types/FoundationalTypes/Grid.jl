@@ -5,6 +5,7 @@ Grid{
     B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
+    E <: Ref{<:AbstractFloat},
 }
 ```
 
@@ -37,31 +38,15 @@ where ``\\left(L_x, L_y\\right)``, ``\\left(i_0, j_0, k_0\\right)`` and ``\\left
 \\end{align*}
 ```
 
-The vertical layer centers and edges of the stretched and physical grids are given by
+The vertical layer centers and edges of the stretched transformed grid are given by
 
 ```math
 \\begin{align*}
-    \\tilde{z}_{k + 1 / 2} & = s \\left(\\hat{z}_{k + 1 / 2}\\right), & z_{k + 1 / 2} & = \\frac{L_z - h}{L_z} \\tilde{z}_{k + 1 / 2} + h,\\\\
-    \\tilde{z} & = \\frac{\\tilde{z}_{k + 1 / 2} + \\tilde{z}_{k - 1 / 2}}{2}, & z & = \\frac{L_z - h}{L_z} \\tilde{z} + h,
+    \\tilde{z}_{k + 1 / 2} & = s \\left(\\hat{z}_{k + 1 / 2}\\right), & \\tilde{z} & = \\frac{\\tilde{z}_{k + 1 / 2} + \\tilde{z}_{k - 1 / 2}}{2},
 \\end{align*}
 ```
 
-where ``L_z``, ``s`` and ``h`` are the vertical extent of the domain (`namelists.domain.lz`), the vertical grid stretching (`namelists.grid.vertical_grid_stretching`) and the surface topography (as returned by `compute_topography`), respectively. Finally, the Jacobian is
-
-```math
-J = \\frac{L_z - h}{L_z} \\frac{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}}{\\Delta \\hat{z}}
-```
-
-and the non-Cartesian elements of the metric tensor are
-
-```math
-\\begin{align*}
-    G^{1 3} & = \\frac{h_{i + 1} - h_{i - 1}}{2 \\Delta \\hat{x}} \\frac{\\tilde{z} - L_z}{L_z - h} \\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}},\\\\
-    G^{2 3} & = \\frac{h_{j + 1} - h_{j - 1}}{2 \\Delta \\hat{y}} \\frac{\\tilde{z} - L_z}{L_z - h} \\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}},\\\\
-    G^{3 3} & = \\left\\{\\left(\\frac{L_z}{L_z - h}\\right)^2 + \\left(\\frac{\\tilde{z} - L_z}{L_z - h}\\right)^2 \\left[\\left(\\frac{h_{i + 1} - h_{i - 1}}{2 \\Delta \\hat{x}}\\right)^2 + \\left(\\frac{h_{j + 1} - h_{j - 1}}{2 \\Delta \\hat{y}}\\right)^2\\right]\\right\\}\\\\
-    & \\quad \\times \\left(\\frac{\\Delta \\hat{z}}{\\tilde{z}_{k + 1 / 2} - \\tilde{z}_{k - 1 / 2}}\\right)^2.
-\\end{align*}
-```
+where ``s`` represents the vertical grid stretching (`namelists.grid.vertical_grid_stretching`). The resolved and unresolved topography, Jacobian, metric-tensor elements, physical layers, and minimum layer depth are calculated with `compute_grid!`.
 
 # Fields
 
@@ -86,6 +71,12 @@ Horizontal coordinates:
   - `x::B`: Cell-centered ``\\hat{x}``-coordinate.
 
   - `y::B`: Cell-centered ``\\hat{y}``-coordinate.
+
+Terrain-following vertical coordinate:
+
+  - `zs::B`: Terrain-following vertical coordinate at cell centers.
+
+  - `ztildes::B`: Terrain-following vertical coordinate at vertical cell edges.
 
 Topography:
 
@@ -113,9 +104,19 @@ Vertical coordinates:
 
   - `zctilde::D`: Physical height at vertical cell edges.
 
+Vertical-coordinates backup:
+
+  - `zcold::D`: Backup array for the physical height at cell centers.
+
+  - `zctildeold::D`: Backup array for the physical height at vertical cell edges.
+
 Minimum layer depth:
 
-  - `dzcmin::A`: Global minimum of the vertical differences in `zctilde`.
+  - `dzcmin::E`: Global minimum of the vertical differences in `zctilde`.
+
+Minimum-layer-depth backup:
+
+  - `dzcminold::E`: Backup reference for the global minimum of the vertical differences in `zctilde`.
 
 # Arguments
 
@@ -127,17 +128,14 @@ Minimum layer depth:
 
 # See also
 
-  - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
-
-  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
-
-  - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
+  - [`PinCFlow.Types.FoundationalTypes.compute_grid!`](@ref)
 """
 struct Grid{
     A <: AbstractFloat,
     B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
+    E <: Ref{<:AbstractFloat},
 }
 
     # Scaled domain.
@@ -153,6 +151,10 @@ struct Grid{
     # Horizontal coordinates.
     x::B
     y::B
+
+    # Terrain-following vertical coordinates.
+    zs::B
+    ztildes::B
 
     # Topography.
     hb::C
@@ -170,8 +172,15 @@ struct Grid{
     zc::D
     zctilde::D
 
+    # Vertical-coordinates backup.
+    zcold::D
+    zctildeold::D
+
     # Minimum layer depth.
-    dzcmin::A
+    dzcmin::E
+
+    # Minimum-layer-depth backup.
+    dzcminold::E
 end
 
 @ivy function Grid(
@@ -181,7 +190,8 @@ end
 )::Grid
     (; x_size, y_size, z_size, nbz) = namelists.domain
     (; vertical_grid_stretching) = namelists.grid
-    (; nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, comm) = domain
+    (; wave_modes, wkb_mode) = namelists.wkb
+    (; nxx, nyy, nzz, io, jo, ko, i0, j0, k0) = domain
     (; lref) = constants
 
     # Non-dimensionalize domain boundaries.
@@ -235,85 +245,14 @@ end
     end
     zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
 
-    # Compute the topography.
-    (hb, hw, kh, lh) = compute_topography(namelists, constants, domain, x, y)
-
-    # Allocate Jacobian and metric tensor.
-    jac = zeros(nxx, nyy, nzz)
-    (met13, met23, met33) = (zeros(nxx, nyy, nzz) for i in 1:3)
-
-    # Set the start index for the computation of the Jacobian and metric tensor.
-    kmin = ko == 0 ? 2 : 1
-    kmax = nzz
-
-    # Compute the Jacobian.
-    for k in kmin:kmax
-        jac[:, :, k] .=
-            (lz .- hb) ./ lz .* (ztildes[ko + k] .- ztildes[ko + k - 1]) ./ dz
-    end
-    ko == 0 && (jac[:, :, 1] .= jac[:, :, 2 * nbz])
-
-    # Compute the metric tensor.
-
-    for k in kmin:kmax, j in 1:nyy, i in i0:i1
-        met13[i, j, k] =
-            (hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx) * (zs[ko + k] - lz) /
-            (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
-    end
-    set_zonal_boundaries_of_field!(met13, namelists, domain)
-    ko == 0 && (
-        met13[:, :, 1] .=
-            met13[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
-    )
-
-    for k in 2:nzz, j in j0:j1, i in 1:nxx
-        met23[i, j, k] =
-            (hb[i, j + 1] - hb[i, j - 1]) / (2.0 * dy) * (zs[ko + k] - lz) /
-            (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
-    end
-    set_meridional_boundaries_of_field!(met23, namelists, domain)
-    ko == 0 && (
-        met23[:, :, 1] .=
-            met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
-    )
-
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
-        met33[i, j, k] =
-            (
-                (lz / (lz - hb[i, j]))^2.0 +
-                ((zs[ko + k] - lz) / (lz - hb[i, j]))^2.0 * (
-                    ((hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx))^2.0 +
-                    ((hb[i, j + 1] - hb[i, j - 1]) / (2.0 * dy))^2.0
-                )
-            ) * (dz / (ztildes[ko + k] - ztildes[ko + k - 1]))^2.0
-    end
-    ko == 0 && for j in j0:j1, i in i0:i1
-        met33[i, j, 1] =
-            (
-                (lz / (lz - hb[i, j]))^2.0 +
-                ((zs[1] - lz) / (lz - hb[i, j]))^2.0 * (
-                    ((hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx))^2.0 +
-                    ((hb[i, j + 1] - hb[i, j - 1]) / (2.0 * dy))^2.0
-                )
-            ) * (dz / (ztildes[2 * nbz] - ztildes[2 * nbz - 1]))^2.0
-    end
-    set_zonal_boundaries_of_field!(met33, namelists, domain)
-    set_meridional_boundaries_of_field!(met33, namelists, domain)
-
-    # Allocate the physical layers.
-    (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
-
-    # Compute the physical layers.
+    # Prepare the Cartesian vertical grid.
+    (zc, zctilde, zcold, zctildeold) = (zeros(nxx, nyy, nzz) for i in 1:4)
     for k in 1:nzz
-        zctilde[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
-        zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
+        zc[:, :, k] .= zs[ko + k]
+        zctilde[:, :, k] .= ztildes[ko + k]
     end
 
-    # Compute the minimum layer depth.
-    dzcmin = mapreduce(-, min, zctilde[:, :, 2:nzz], zctilde[:, :, 1:(nzz - 1)])
-    dzcmin = MPI.Allreduce(dzcmin, min, comm)
-
-    Grid(
+    grid = Grid(
         lx,
         ly,
         lz,
@@ -322,16 +261,24 @@ end
         dz,
         x,
         y,
-        hb,
-        hw,
-        kh,
-        lh,
-        jac,
-        met13,
-        met23,
-        met33,
+        zs,
+        ztildes,
+        zeros(nxx, nyy),
+        (
+            wkb_mode === :NoWKB ? zeros(0, 0, 0) : zeros(wave_modes, nxx, nyy) for i in 1:3
+        )...,
+        ones(nxx, nyy, nzz),
+        (zeros(nxx, nyy, nzz) for i in 1:2)...,
+        ones(nxx, nyy, nzz),
         zc,
         zctilde,
-        dzcmin,
+        zcold,
+        zctildeold,
+        Ref(dz),
+        Ref(0.0),
     )
+
+    compute_grid!(namelists, constants, domain, grid, 0.0)
+
+    grid
 end

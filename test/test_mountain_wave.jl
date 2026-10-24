@@ -1,12 +1,12 @@
 function test_mountain_wave()
     l2 = (
-        n2 = 0.02856384f0,
-        p = 25773.348f0,
+        n2 = 0.04039537f0,
+        p = 36449.016f0,
         pip = 0.00031950118f0,
-        rhobar = 80.22628f0,
+        rhobar = 113.4571f0,
         rhop = 0.008588399f0,
         t = 600.0f0,
-        thetabar = 29173.713f0,
+        thetabar = 41257.863f0,
         tke = 0.006324555f0,
         us = 1265.0928f0,
         vs = 2.2914555f0,
@@ -14,8 +14,8 @@ function test_mountain_wave()
         wts = 2.7518039f0,
         x = 25787.594f0,
         y = 25787.594f0,
-        z = 258216.62f0,
-        ztilde = 267956.44f0,
+        z = 365173.44f0,
+        ztilde = 378947.62f0,
     )
     linf = (
         n2 = 0.00031935345f0,
