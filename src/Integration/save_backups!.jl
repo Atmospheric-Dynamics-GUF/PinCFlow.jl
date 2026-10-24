@@ -32,7 +32,7 @@ function save_backups!(state::State, variables::Vararg{Symbol})::Nothing
             field = getfield(tracerpredictands, field_name)
             backup_field = getfield(tracerbackups, Symbol(field_name, :old))
         elseif field_name in fieldnames(TurbulencePredictands)
-            field getfield(turbulencepredictands, field_name)
+            field = getfield(turbulencepredictands, field_name)
             backup_field = getfield(turbulencebackups, Symbol(field_name, :old))
         else
             error("Unknown field!")

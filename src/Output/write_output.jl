@@ -176,7 +176,8 @@ function write_output end
 
             # Write the background density.
             HDF5.set_extent_dims(file["rhobar"], (x_size, y_size, z_size, iout))
-            file["rhobar"][iid, jjd, kkd, iout] = @fuse rhobar[ii, jj, kk] * rhoref
+            file["rhobar"][iid, jjd, kkd, iout] =
+                @fuse rhobar[ii, jj, kk] * rhoref
 
             # Write the background potential temperature.
             HDF5.set_extent_dims(

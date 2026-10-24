@@ -138,10 +138,8 @@ function compute_grid! end
             (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
     end
     set_zonal_boundaries_of_field!(met13, namelists, domain)
-    ko == 0 && (
-        @fuse met13[:, :, 1] =
-            met13[:, :, 2 * nbz] * (zs[1] - lz) / (zs[2 * nbz] - lz)
-    )
+    ko == 0 && (@fuse met13[:, :, 1] =
+        met13[:, :, 2 * nbz] * (zs[1] - lz) / (zs[2 * nbz] - lz))
 
     # Compute the metric-tensor element 2-3.
     @fuse for k in 2:nzz, j in j0:j1, i in 1:nxx
@@ -150,10 +148,8 @@ function compute_grid! end
             (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
     end
     set_meridional_boundaries_of_field!(met23, namelists, domain)
-    ko == 0 && (
-        @fuse met23[:, :, 1] =
-            met23[:, :, 2 * nbz] * (zs[1] - lz) / (zs[2 * nbz] - lz)
-    )
+    ko == 0 && (@fuse met23[:, :, 1] =
+        met23[:, :, 2 * nbz] * (zs[1] - lz) / (zs[2 * nbz] - lz))
 
     # Compute the metric-tensor element 3-3.
     @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1

@@ -360,8 +360,7 @@ function compute_background_fields!(
 
     @fuse n2 = 0.0
     @fuse thetabar = theta0
-    @fuse pbar =
-        p0 * (1.0 - kappa * sig / theta0 * zc)^(1.0 / (gamma - 1.0))
+    @fuse pbar = p0 * (1.0 - kappa * sig / theta0 * zc)^(1.0 / (gamma - 1.0))
     @fuse rhobar = pbar / thetabar
 
     nothing
