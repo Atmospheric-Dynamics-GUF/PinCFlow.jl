@@ -45,7 +45,7 @@ is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_half_levels`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
 

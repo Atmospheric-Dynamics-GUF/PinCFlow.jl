@@ -6,10 +6,10 @@ Backups{A <: AbstractArray{<:AbstractFloat, 3}}
 Container for backup copies needed in the semi-implicit time scheme.
 
 ```julia
-Backups(domain::Domain)::Backups
+Backups(predictands::Predictands)::Backups
 ```
 
-Initialize backup arrays sized according to the dimensions of the MPI subdomain.
+Initialize backup arrays sized according to the dimensions of the arrays in `predictands`.
 
 # Fields
 
@@ -23,9 +23,13 @@ Initialize backup arrays sized according to the dimensions of the MPI subdomain.
 
   - `wold::A`: Transformed-vertical-wind backup.
 
+  - `pipold::A`: Exner-pressure-fluctuations backup.
+
+  - `p::A`: Mass-weighted-potential-temperature backup.
+
 # Arguments
 
-  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+  - `predictands`: Predictands for which the backups are needed.
 """
 struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
     rhoold::A
@@ -33,10 +37,15 @@ struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
     uold::A
     vold::A
     wold::A
+    pipold::A
+    pold::A
 end
 
-function Backups(domain::Domain)::Backups
-    (; nxx, nyy, nzz) = domain
-
-    Backups((zeros(nxx, nyy, nzz) for i in 1:5)...)
+function Backups(predictands::Predictands)::Backups
+    Backups(
+        (
+            zeros(size(getfield(predictands, field))) for
+            field in fieldnames(Predictands)
+        )...,
+    )
 end

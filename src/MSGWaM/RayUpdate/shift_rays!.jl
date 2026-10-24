@@ -76,7 +76,7 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_half_levels`](@ref)
 """
 function shift_rays! end
 
@@ -211,7 +211,7 @@ end
     for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             zr = rays.z[r, i, j, k]
-            kray = get_next_half_level(i, j, zr, state)
+            kray = get_half_levels(i, j, zr, state)[2]
 
             if kray != k
                 if abs(kray - k) > 1 && npz > 1

@@ -89,7 +89,7 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_half_levels`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_fields_zero!`](@ref)
 
@@ -192,23 +192,23 @@ end
 
                     kmin = max(
                         k0,
-                        get_next_half_level(
+                        get_half_levels(
                             iray,
                             jray,
                             zr - dzr / 2,
                             state;
                             dkd = 1,
-                        ),
+                        )[2],
                     )
                     kmax = min(
                         k1,
-                        get_next_half_level(
+                        get_half_levels(
                             iray,
                             jray,
                             zr + dzr / 2,
                             state;
                             dkd = 1,
-                        ),
+                        )[2],
                     )
 
                     ko != 0 &&
@@ -417,23 +417,23 @@ end
 
                     kmin = max(
                         k0,
-                        get_next_half_level(
+                        get_half_levels(
                             iray,
                             jray,
                             zr - dzr / 2,
                             state;
                             dkd = 1,
-                        ),
+                        )[2],
                     )
                     kmax = min(
                         k1,
-                        get_next_half_level(
+                        get_half_levels(
                             iray,
                             jray,
                             zr + dzr / 2,
                             state;
                             dkd = 1,
-                        ),
+                        )[2],
                     )
 
                     ko != 0 &&
@@ -607,20 +607,20 @@ end
                         fcpspy = 1.0
                     end
 
-                    kmin = get_next_half_level(
+                    kmin = get_half_levels(
                         iray,
                         jray,
                         zr - dzr / 2,
                         state;
                         dkd = 1,
-                    )
-                    kmax = get_next_half_level(
+                    )[2]
+                    kmax = get_half_levels(
                         iray,
                         jray,
                         zr + dzr / 2,
                         state;
                         dkd = 1,
-                    )
+                    )[2]
 
                     for kray in kmin:kmax
                         dzi =

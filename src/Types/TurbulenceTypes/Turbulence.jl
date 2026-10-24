@@ -9,6 +9,7 @@ Turbulence{
     F <: TurbulenceConstants,
     G <: TurbulenceWKBIntegrals,
     H <: TurbulenceWKBTendencies,
+    I <: TurbulenceBackups,
 }
 ```
 
@@ -40,10 +41,12 @@ Construct a `Turbulence` instance, with array dimensions, initial values, and co
   - `turbulencefluxes::E`: Fluxes of the turbulence variables.
 
   - `turbulenceconstants::F`: Constants used for the turbulence parameterization.
-  
+
   - `turbulencewkbintegrals::G`: Integrals of gravity-wave quantities that impact turbulence.
-  
+
   - `turbulencewkbtendencies::H`: Turbulence impact of unresolved gravity waves.
+
+  - `turbulencebackups::I`: Turbulence backuop copies.
 
 # Arguments
 
@@ -77,6 +80,7 @@ Construct a `Turbulence` instance, with array dimensions, initial values, and co
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceWKBTendencies`](@ref)
 
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceBackups`](@ref)
 """
 struct Turbulence{
     A <: TurbulencePredictands,
@@ -87,6 +91,7 @@ struct Turbulence{
     F <: TurbulenceConstants,
     G <: TurbulenceWKBIntegrals,
     H <: TurbulenceWKBTendencies,
+    I <: TurbulenceBackups,
 }
     turbulencepredictands::A
     turbulenceincrements::B
@@ -96,6 +101,7 @@ struct Turbulence{
     turbulenceconstants::F
     turbulencewkbintegrals::G
     turbulencewkbtendencies::H
+    turbulencebackups::I
 end
 
 function Turbulence(
@@ -121,6 +127,7 @@ function Turbulence(
     turbulenceconstants = TurbulenceConstants(constants)
     turbulencewkbintegrals = TurbulenceWKBIntegrals(namelists, domain)
     turbulencewkbtendencies = TurbulenceWKBTendencies(namelists, domain)
+    turbulencebackups = TurbulenceBackups(turbulencepredictands)
 
     Turbulence(
         turbulencepredictands,
@@ -131,5 +138,6 @@ function Turbulence(
         turbulenceconstants,
         turbulencewkbintegrals,
         turbulencewkbtendencies,
+        turbulencebackups,
     )
 end

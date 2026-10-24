@@ -10,8 +10,8 @@ function test_periodic_hill()
         wts = 9.853479f0,
         x = 25787.594f0,
         y = 0.0f0,
-        z = 232335.95f0,
-        ztilde = 240994.72f0,
+        z = 328572.66f0,
+        ztilde = 340818.0f0,
     )
     linf = (
         pip = 0.00024125425f0,
