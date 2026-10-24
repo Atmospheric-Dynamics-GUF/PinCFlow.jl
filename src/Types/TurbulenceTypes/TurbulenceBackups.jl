@@ -28,7 +28,7 @@ end
 function TurbulenceBackups(
     turbulencepredictands::TurbulencePredictands,
 )::TurbulenceBackups
-    return TurbulenceBackups(
+    TurbulenceBackups(
         (
             zeros(size(getfield(turbulencepredictands, field))) for
             field in fieldnames(TurbulencePredictands)

@@ -113,7 +113,7 @@ function Tracer(
     tracerwkbtendencies = TracerWKBTendencies(namelists, domain)
     tracerbackups = TracerBackups(tracerpredictands)
 
-    return Tracer(
+    Tracer(
         tracerpredictands,
         tracerincrements,
         tracerreconstructions,

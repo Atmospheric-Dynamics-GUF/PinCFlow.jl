@@ -24,7 +24,7 @@ struct TracerBackups{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 function TracerBackups(tracerpredictands::TracerPredictands)::TracerBackups
-    return TracerBackups(
+    TracerBackups(
         (
             zeros(size(getfield(tracerpredictands, field))) for
             field in fieldnames(TracerPredictands)

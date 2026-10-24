@@ -19,7 +19,7 @@ function cold_bubble(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     lx = 10000
     ly = 10000
     lz = 10000
@@ -33,9 +33,9 @@ function cold_bubble(;
         initial_rhop = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2 + ((z - rz) / rz)^2)
             if r <= 1
-                return 0.005 * (1 + cos(pi * r))
+                0.005 * (1 + cos(pi * r))
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -64,7 +64,7 @@ function cold_bubble(;
         )
     end
 
-    return
+    nothing
 end
 
 ```
@@ -92,7 +92,7 @@ function hot_bubble(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     lx = 10000
     ly = 10000
     lz = 10000
@@ -106,9 +106,9 @@ function hot_bubble(;
         initial_rhop = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2 + ((z - 3 * rz) / rz)^2)
             if r <= 1
-                return -0.005 * (1 + cos(pi * r))
+                -0.005 * (1 + cos(pi * r))
             else
-                return 0.0
+                0.0
             end
         end,
         model = :Compressible,
@@ -138,7 +138,7 @@ function hot_bubble(;
         )
     end
 
-    return
+    nothing
 end
 
 ```
@@ -166,7 +166,7 @@ function mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 100
     l0 = 1000
 
@@ -182,6 +182,7 @@ function mountain_wave(;
     atmosphere = AtmosphereNamelist(;
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
+        kinematic_diffusivity = 2.0E-5,
     )
 
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
@@ -208,7 +209,7 @@ function mountain_wave(;
                 sin(pi * (abs(y) - (ly - dyr) / 2) / dyr)^2 : 0.0
             alpharz =
                 z >= lz - dzr ? sin(pi / 2 * (z - (lz - dzr)) / dzr)^2 : 0.0
-            return alpharmax * (alpharx + alphary + alpharz) / 3
+            alpharmax * (alpharx + alphary + alpharz) / 3
         end,
         relaxed_u = (x, y, z, t, dt) -> 10.0,
     )
@@ -225,7 +226,7 @@ function mountain_wave(;
         )
     end
 
-    return
+    nothing
 end
 
 ```
@@ -234,7 +235,7 @@ performs a 3D mountain-wave simulation. The surface topography is given by
 
 $$h \left(x, y\right) = \frac{h_0}{1 + \left(x^2 + y^2\right) / l_0^2},$$
 
-with $h_0 = 100 \ \mathrm{m}$ and $l_0 = 1 \ \mathrm{km}$. The atmosphere is isothermal, with the default temperature $T_0 = 300 \ \mathrm{K}$ and the initial wind $\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \ \mathrm{m \ s^{- 1}}$.
+with $h_0 = 100 \ \mathrm{m}$ and $l_0 = 1 \ \mathrm{km}$. The atmosphere is isothermal, with the default temperature $T_0 = 300 \ \mathrm{K}$, with kinematic diffusivity of $\mu = 2 \ 10^{- 5} \ \mathrm{m^2 \ s^{- 1}}$ and initial wind $\boldsymbol{u}_0 = \left(10, 0, 0\right)^\mathrm{T} \ \mathrm{m \ s^{- 1}}$.
 
 Reflections at the upper boundary are prevented by damping the generated mountain waves in a sponge defined by
 
@@ -282,7 +283,7 @@ function periodic_hill(;
     x_size::Integer = 20,
     y_size::Integer = 1,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 500
     l0 = 10000
 
@@ -316,7 +317,7 @@ function periodic_hill(;
         plot_output(plot_file, output_file, (:w, 2); display_figure)
     end
 
-    return
+    nothing
 end
 
 ```
@@ -344,7 +345,7 @@ function vortex(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 1,
-)
+)::Nothing
     lx = 20000
     ly = 20000
 
@@ -357,17 +358,17 @@ function vortex(;
         initial_u = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2)
             if r <= 1
-                return -5 * y / ry * (1 + cos(pi * r)) / 2
+                -5 * y / ry * (1 + cos(pi * r)) / 2
             else
-                return 0.0
+                0.0
             end
         end,
         initial_v = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2)
             if r <= 1
-                return 5 * x / rx * (1 + cos(pi * r)) / 2
+                5 * x / rx * (1 + cos(pi * r)) / 2
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -385,9 +386,9 @@ function vortex(;
         initial_chi = (x, y, z) -> begin
             r = sqrt(((abs(x) - rx) / rx)^2 + (y / ry)^2)
             if r <= 1
-                return sign(x) * (1 + cos(pi * r)) / 2
+                sign(x) * (1 + cos(pi * r)) / 2
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -398,7 +399,7 @@ function vortex(;
         plot_output(plot_file, output_file, (:chi, 2); display_figure)
     end
 
-    return
+    nothing
 end
 
 ```
@@ -426,7 +427,7 @@ function wave_packet(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     z0 = 10000
 
     lx = 20000
@@ -507,7 +508,7 @@ function wave_packet(;
         )
     end
 
-    return
+    nothing
 end
 
 ```
@@ -535,7 +536,7 @@ function wkb_mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 300
     l0 = 5000
     rl = 10
@@ -621,7 +622,7 @@ function wkb_mountain_wave(;
         )
     end
 
-    return
+    nothing
 end
 
 ```
@@ -678,7 +679,7 @@ function wkb_wave_packet(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     z0 = 10000
 
     lx = 20000
@@ -748,7 +749,7 @@ function wkb_wave_packet(;
         )
     end
 
-    return
+    nothing
 end
 
 ```
@@ -772,7 +773,7 @@ The `Examples` module contains another module called `WavePacketTools`, which pr
     j = argmin(abs.(y .- grid.y .* lref))
     k = argmin(abs.(z .- grid.zc[i, j, :] .* lref))
 
-    return CartesianIndex(i, j, k)
+    CartesianIndex(i, j, k)
 end
 
 ```
@@ -784,7 +785,7 @@ end
     (; atmosphere) = state
     (; rhoref) = state.constants
 
-    return atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
+    atmosphere.rhobar[ijk(state, x, y, z)] .* rhoref
 end
 
 ```
@@ -796,7 +797,7 @@ end
     (; atmosphere) = state
     (; thetaref) = state.constants
 
-    return atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
+    atmosphere.thetabar[ijk(state, x, y, z)] .* thetaref
 end
 
 ```
@@ -808,7 +809,7 @@ end
     (; atmosphere) = state
     (; tref) = state.constants
 
-    return atmosphere.n2[ijk(state, x, y, z)] ./ tref .^ 2
+    atmosphere.n2[ijk(state, x, y, z)] ./ tref .^ 2
 end
 
 ```
@@ -826,9 +827,9 @@ function envelope(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
             (rz * m * (z - z0))^2,
         ) / pi
     if r <= 1
-        return (1 + cos(pi * r)) / 2
+        (1 + cos(pi * r)) / 2
     else
-        return 0.0
+        0.0
     end
 end
 
@@ -840,7 +841,7 @@ end
 function phi(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
     (; k, l, m) = parameters
 
-    return k * x + l * y + m * z
+    k * x + l * y + m * z
 end
 
 ```
@@ -858,7 +859,7 @@ function omega(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; k, l, m) = parameters
 
-    return -sqrt(
+    -sqrt(
         (n2(state, x, y, z) * (k^2 + l^2) + coriolis_frequency^2 * m^2) /
         (k^2 + l^2 + m^2),
     )
@@ -878,7 +879,7 @@ function bhat(
 )::Real
     (; a0, m) = parameters
 
-    return a0 * n2(state, x, y, z) / m * envelope(parameters, x, y, z)
+    a0 * n2(state, x, y, z) / m * envelope(parameters, x, y, z)
 end
 
 ```
@@ -896,15 +897,12 @@ function uhat(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; k, l, m) = parameters
 
-    return n2(state, x, y, z) == 0.0 ? 0.0 :
-           1im / m / n2(state, x, y, z) *
-           (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
-           (omega(state, parameters, x, y, z)^2 - coriolis_frequency^2) *
-           (
-               k * omega(state, parameters, x, y, z) +
-               1im * l * coriolis_frequency
-           ) *
-           bhat(state, parameters, x, y, z)
+    n2(state, x, y, z) == 0.0 ? 0.0 :
+    1im / m / n2(state, x, y, z) *
+    (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
+    (omega(state, parameters, x, y, z)^2 - coriolis_frequency^2) *
+    (k * omega(state, parameters, x, y, z) + 1im * l * coriolis_frequency) *
+    bhat(state, parameters, x, y, z)
 end
 
 ```
@@ -922,15 +920,12 @@ function vhat(
     (; coriolis_frequency) = state.namelists.atmosphere
     (; k, l, m) = parameters
 
-    return n2(state, x, y, z) == 0.0 ? 0.0 :
-           1im / m / n2(state, x, y, z) *
-           (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
-           (omega(state, parameters, x, y, z)^2 - coriolis_frequency^2) *
-           (
-               l * omega(state, parameters, x, y, z) -
-               1im * k * coriolis_frequency
-           ) *
-           bhat(state, parameters, x, y, z)
+    n2(state, x, y, z) == 0.0 ? 0.0 :
+    1im / m / n2(state, x, y, z) *
+    (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
+    (omega(state, parameters, x, y, z)^2 - coriolis_frequency^2) *
+    (l * omega(state, parameters, x, y, z) - 1im * k * coriolis_frequency) *
+    bhat(state, parameters, x, y, z)
 end
 
 ```
@@ -945,9 +940,9 @@ function what(
     y::Real,
     z::Real,
 )::Number
-    return n2(state, x, y, z) == 0.0 ? 0.0 :
-           1im * omega(state, parameters, x, y, z) / n2(state, x, y, z) *
-           bhat(state, parameters, x, y, z)
+    n2(state, x, y, z) == 0.0 ? 0.0 :
+    1im * omega(state, parameters, x, y, z) / n2(state, x, y, z) *
+    bhat(state, parameters, x, y, z)
 end
 
 ```
@@ -965,10 +960,10 @@ function pihat(
     (; kappa, rsp) = state.constants
     (; m) = parameters
 
-    return n2(state, x, y, z) == 0.0 ? 0.0 :
-           kappa / rsp / thetabar(state, x, y, z) * 1im / m *
-           (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
-           n2(state, x, y, z) * bhat(state, parameters, x, y, z)
+    n2(state, x, y, z) == 0.0 ? 0.0 :
+    kappa / rsp / thetabar(state, x, y, z) * 1im / m *
+    (omega(state, parameters, x, y, z)^2 - n2(state, x, y, z)) /
+    n2(state, x, y, z) * bhat(state, parameters, x, y, z)
 end
 
 ```
@@ -985,11 +980,11 @@ function wave_action_density(
 )::Real
     (; k, l, m) = parameters
 
-    return n2(state, x, y, z) == 0.0 ? 0.0 :
-           rhobar(state, x, y, z) / 2 *
-           omega(state, parameters, x, y, z) *
-           (k^2 + l^2 + m^2) / n2(state, x, y, z)^2 / (k^2 + l^2) *
-           bhat(state, parameters, x, y, z)^2
+    n2(state, x, y, z) == 0.0 ? 0.0 :
+    rhobar(state, x, y, z) / 2 *
+    omega(state, parameters, x, y, z) *
+    (k^2 + l^2 + m^2) / n2(state, x, y, z)^2 / (k^2 + l^2) *
+    bhat(state, parameters, x, y, z)^2
 end
 
 ```

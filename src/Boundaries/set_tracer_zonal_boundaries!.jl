@@ -1,6 +1,9 @@
 """
 ```julia
-set_tracer_zonal_boundaries!(state::State, variables::AbstractBoundaryVariables)
+set_tracer_zonal_boundaries!(
+    state::State,
+    variables::AbstractBoundaryVariables,
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for tracers by dispatching to the appropriate method.
@@ -10,7 +13,7 @@ set_tracer_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -20,7 +23,7 @@ set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for tracer predictands.
@@ -30,7 +33,7 @@ set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for tracer reconstructions.
@@ -40,7 +43,7 @@ set_tracer_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for tracer WKB quantities by dispatching to the appropriate method.
@@ -50,7 +53,7 @@ set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for tracer WKB integrals.
@@ -60,7 +63,7 @@ set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
 ```
 
 Enforce zonal boundary conditions for tracer WKB tendencies.
@@ -84,29 +87,29 @@ function set_tracer_zonal_boundaries! end
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-)
+)::Nothing
     (; tracer_setup) = state.namelists.tracer
     @dispatch_tracer_setup set_tracer_zonal_boundaries!(
         state,
         variables,
         Val(tracer_setup),
     )
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; namelists, domain) = state
     (; tracerpredictands) = state.tracer
 
@@ -118,14 +121,14 @@ function set_tracer_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; namelists, domain) = state
     (; tracerreconstructions) = state.tracer
 
@@ -137,28 +140,28 @@ function set_tracer_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode set_tracer_zonal_boundaries!(
         state,
         variables,
         Val(wkb_mode),
     )
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
     (; namelists, domain) = state
     (; tracerwkbintegrals) = state.tracer
     (; leading_order_impact) = namelists.tracer
@@ -174,14 +177,14 @@ function set_tracer_zonal_boundaries!(
         end
     end
 
-    return
+    nothing
 end
 
 function set_tracer_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
     (; namelists, domain) = state
     (; dchidt0) = state.tracer.tracerwkbtendencies
     (; leading_order_impact) = namelists.tracer
@@ -195,5 +198,5 @@ function set_tracer_zonal_boundaries!(
         )
     end
 
-    return
+    nothing
 end

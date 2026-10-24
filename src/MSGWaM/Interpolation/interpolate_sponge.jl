@@ -125,5 +125,5 @@ function interpolate_sponge end
         ),
     )
 
-    return phi
+    phi
 end

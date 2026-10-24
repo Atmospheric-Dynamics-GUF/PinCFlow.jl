@@ -8,7 +8,7 @@ plot_snapshot!(
     },
     input::NamedTuple,
     row::Integer,
-)
+)::Nothing
 ```
 
 Plot the snapshot specified by `field` in the row `row` of the figure `figure`.
@@ -39,7 +39,7 @@ function plot_snapshot! end
     },
     input::NamedTuple,
     row::Integer,
-)
+)::Nothing
     (;
         colormap_name,
         color_tick_format,
@@ -316,5 +316,5 @@ function plot_snapshot! end
         end
     end
 
-    return
+    nothing
 end

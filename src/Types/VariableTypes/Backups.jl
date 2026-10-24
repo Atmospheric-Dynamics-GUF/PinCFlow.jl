@@ -42,7 +42,7 @@ struct Backups{A <: AbstractArray{<:AbstractFloat, 3}}
 end
 
 function Backups(predictands::Predictands)::Backups
-    return Backups(
+    Backups(
         (
             zeros(size(getfield(predictands, field))) for
             field in fieldnames(Predictands)

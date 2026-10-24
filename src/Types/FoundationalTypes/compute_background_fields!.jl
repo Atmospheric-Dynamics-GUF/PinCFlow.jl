@@ -6,7 +6,7 @@ compute_background_fields!(
     domain::Domain,
     grid::Grid,
     atmosphere::Atmosphere,
-)
+)::Nothing
 ```
 
 Compute the background fields in `atmosphere` by dispatching to a method specific for the background and dynamic equations set in `namelists`.
@@ -20,7 +20,7 @@ compute_background_fields!(
     atmosphere::Atmosphere,
     model::Val{:Boussinesq},
     background::Val{:NeutralStratification},
-)
+)::Nothing
 ```
 
 Compute a uniform (i.e. neutral) background of a Boussinesq atmosphere.
@@ -44,7 +44,7 @@ compute_background_fields!(
     atmosphere::Atmosphere,
     model::Val{:Boussinesq},
     background::Val{:StableStratification},
-)
+)::Nothing
 ```
 
 Compute a stratified background of a Boussinesq atmosphere.
@@ -68,7 +68,7 @@ compute_background_fields!(
     atmosphere::Atmosphere,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:Isothermal},
-)
+)::Nothing
 ```
 
 Compute an isothermal background of a pseudo-incompressible or compressible atmosphere.
@@ -95,7 +95,7 @@ compute_background_fields!(
     atmosphere::Atmosphere,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:Isentropic},
-)
+)::Nothing
 ```
 
 Compute an isentropic background of a pseudo-incompressible or compressible atmosphere.
@@ -122,7 +122,7 @@ compute_background_fields!(
     atmosphere::Atmosphere,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:Realistic},
-)
+)::Nothing
 ```
 
 Compute a 'realistic' background (isentropic troposphere and isothermal stratosphere, with the tropopause located at the altitude ``z_{\\mathrm{TP}}``) of a pseudo-incompressible or compressible atmosphere.
@@ -165,7 +165,7 @@ compute_background_fields!(
     atmosphere::Atmosphere,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:LapseRates},
-)
+)::Nothing
 ```
 
 Compute a background with two different lapse rates (``\\Gamma_{\\mathrm{TS}}`` in the troposphere and ``\\Gamma_{\\mathrm{SS}}`` in the stratosphere, with the tropopause located at the altitude ``z_{\\mathrm{TP}}``) in a pseudo-incompressible or compressible atmosphere.
@@ -240,7 +240,7 @@ function compute_background_fields!(
     domain::Domain,
     grid::Grid,
     atmosphere::Atmosphere,
-)
+)::Nothing
     (; model, background) = namelists.atmosphere
 
     @dispatch_model @dispatch_background return compute_background_fields!(
@@ -253,7 +253,7 @@ function compute_background_fields!(
         Val(background),
     )
 
-    return
+    nothing
 end
 
 function compute_background_fields!(
@@ -264,7 +264,7 @@ function compute_background_fields!(
     atmosphere::Atmosphere,
     model::Val{:Boussinesq},
     background::Val{:NeutralStratification},
-)
+)::Nothing
     (; potential_temperature) = namelists.atmosphere
     (; thetaref) = constants
     (; nxx, nyy, nzz) = domain
@@ -275,7 +275,7 @@ function compute_background_fields!(
     pbar .= rhobar .* thetabar
     n2 .= 0.0
 
-    return
+    nothing
 end
 
 function compute_background_fields!(
@@ -286,7 +286,7 @@ function compute_background_fields!(
     atmosphere::Atmosphere,
     model::Val{:Boussinesq},
     background::Val{:StableStratification},
-)
+)::Nothing
     (; buoyancy_frequency, potential_temperature) = namelists.atmosphere
     (; tref, thetaref) = constants
     (; nxx, nyy, nzz) = domain
@@ -297,7 +297,7 @@ function compute_background_fields!(
     pbar .= rhobar .* thetabar
     n2 .= (buoyancy_frequency .* tref) .^ 2
 
-    return
+    nothing
 end
 
 function compute_background_fields!(
@@ -308,7 +308,7 @@ function compute_background_fields!(
     atmosphere::Atmosphere,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:Isothermal},
-)
+)::Nothing
     (; temperature, ground_pressure) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, gamma) = constants
     (; nxx, nyy, nzz) = domain
@@ -324,7 +324,7 @@ function compute_background_fields!(
 
     compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
-    return
+    nothing
 end
 
 function compute_background_fields!(
@@ -335,7 +335,7 @@ function compute_background_fields!(
     atmosphere::Atmosphere,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:Isentropic},
-)
+)::Nothing
     (; lz) = namelists.domain
     (; potential_temperature, ground_pressure) = namelists.atmosphere
     (; thetaref, pref, kappa, sig, rsp, gamma, g) = constants
@@ -364,7 +364,7 @@ function compute_background_fields!(
         p0 .* (1.0 .- kappa .* sig ./ theta0 .* zc) .^ (1.0 ./ (gamma .- 1.0))
     rhobar .= pbar ./ thetabar
 
-    return
+    nothing
 end
 
 @ivy function compute_background_fields!(
@@ -375,7 +375,7 @@ end
     atmosphere::Atmosphere,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:Realistic},
-)
+)::Nothing
     (; potential_temperature, ground_pressure, tropopause_height) =
         namelists.atmosphere
     (; thetaref, lref, pref, kappa, sig, rsp, gamma, gammainv, g) = constants
@@ -418,7 +418,7 @@ end
 
     compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
-    return
+    nothing
 end
 
 @ivy function compute_background_fields!(
@@ -429,7 +429,7 @@ end
     atmosphere::Atmosphere,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
     background::Val{:LapseRates},
-)
+)::Nothing
     (;
         ground_pressure,
         troposphere_lapse_rate,
@@ -487,5 +487,5 @@ end
 
     compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
-    return
+    nothing
 end

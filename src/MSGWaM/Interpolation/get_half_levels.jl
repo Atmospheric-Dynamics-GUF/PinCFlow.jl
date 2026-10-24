@@ -104,5 +104,5 @@ function get_half_levels end
         end
     end
 
-    return (kd, ku)
+    (kd, ku)
 end

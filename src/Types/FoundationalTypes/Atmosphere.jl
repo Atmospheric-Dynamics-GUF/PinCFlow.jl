@@ -61,5 +61,5 @@ function Atmosphere(
 
     compute_background_fields!(namelists, constants, domain, grid, atmosphere)
 
-    return atmosphere
+    atmosphere
 end

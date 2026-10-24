@@ -280,5 +280,5 @@ end
 
     compute_grid!(namelists, constants, domain, grid, 0.0)
 
-    return grid
+    grid
 end

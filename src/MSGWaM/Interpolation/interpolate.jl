@@ -176,7 +176,7 @@ function interpolate(
         factor = 1.0
     end
 
-    return factor * phid + (1.0 - factor) * phiu
+    factor * phid + (1.0 - factor) * phiu
 end
 
 function interpolate(
@@ -313,5 +313,5 @@ function interpolate(
         zu = factor * zbu + (1.0 - factor) * zfu
     end
 
-    return interpolate((; phid, phiu, zd, zu, zlc))
+    interpolate((; phid, phiu, zd, zu, zlc))
 end

@@ -1,6 +1,6 @@
 """
 ```julia
-update_grid!(state::State, time::AbstractFloat)
+update_grid!(state::State, time::AbstractFloat)::Nothing
 ```
 
 Recompute the grid and the atmospheric background fields, interpolate all predictands to the new grid, and shift MS-GWaM's ray volumes such that they are assigned to the correct grid cells.
@@ -19,7 +19,7 @@ The transformed vertical wind (``\\hat{w}``) is converted into the Cartesian ver
 """
 function update_grid! end
 
-@ivy function update_grid!(state::State, time::AbstractFloat)
+@ivy function update_grid!(state::State, time::AbstractFloat)::Nothing
     (; namelists, constants, domain, grid, atmosphere) = state
     (; i0, i1, j0, j1, k0, k1, nzz) = domain
     (; zc, zctilde, zcold, zctildeold, dzcmin, dzcminold) = grid
@@ -42,7 +42,7 @@ function update_grid! end
 
     changes = compute_grid!(namelists, constants, domain, grid, time)
 
-    changes == 0 && return
+    changes == 0 && return nothing
 
     if mapreduce(
         (a, b, c, d) -> max(abs(a - c), abs(b - d)),
@@ -154,5 +154,5 @@ function update_grid! end
         shift_rays!(state, Val(:SingleColumn))
     end
 
-    return
+    nothing
 end

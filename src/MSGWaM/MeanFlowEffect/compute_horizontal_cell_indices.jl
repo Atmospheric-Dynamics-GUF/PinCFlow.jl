@@ -97,5 +97,5 @@ function compute_horizontal_cell_indices(
         jmax = j0
     end
 
-    return (imin, imax, jmin, jmax)
+    (imin, imax, jmin, jmax)
 end

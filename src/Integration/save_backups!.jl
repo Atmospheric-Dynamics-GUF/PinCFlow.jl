@@ -1,12 +1,12 @@
 """
 ```julia
-save_backups!(state::State, variables::Vararg{Symbol})
+save_backups!(state::State, variables::Vararg{Symbol})::Nothing
 ```
 
 Copy the specified fields in `state.variables.predictands`, `state.tracer.tracerpredictands`, or `state.turbulence.turbulencepredictands` to their counterparts in `state.variables.backups`, `state.tracer.tracerbackups`, or `state.turbulence.turbulencebackups`, respectively.
 
 ```julia
-save_backups!(state::State)
+save_backups!(state::State)::Nothing
 ```
 
 Copy all fields in `state.variables.predictands`, `state.tracer.tracerpredictands`, and `state.turbulence.turbulencepredictands` to their counterparts in `state.variables.backups`, `state.tracer.tracerbackups`, and `state.turbulence.turbulencebackups`, respectively.
@@ -19,7 +19,7 @@ Copy all fields in `state.variables.predictands`, `state.tracer.tracerpredictand
 """
 function save_backups! end
 
-function save_backups!(state::State, variables::Vararg{Symbol})
+function save_backups!(state::State, variables::Vararg{Symbol})::Nothing
     (; backups, predictands) = state.variables
     (; tracerbackups, tracerpredictands) = state.tracer
     (; turbulencebackups, turbulencepredictands) = state.turbulence
@@ -39,10 +39,10 @@ function save_backups!(state::State, variables::Vararg{Symbol})
         end
     end
 
-    return
+    nothing
 end
 
-function save_backups!(state::State)
+function save_backups!(state::State)::Nothing
     save_backups!(
         state,
         fieldnames(Predictands)...,
@@ -50,5 +50,5 @@ function save_backups!(state::State)
         fieldnames(TurbulencePredictands)...,
     )
 
-    return
+    nothing
 end

@@ -81,7 +81,7 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     (; tracer_setup) = namelists.tracer
 
-    @dispatch_tracer_setup return TracerWKBIntegrals(
+    @dispatch_tracer_setup TracerWKBIntegrals(
         namelists,
         domain,
         Val(tracer_setup),
@@ -93,7 +93,7 @@ function TracerWKBIntegrals(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerWKBIntegrals
-    return TracerWKBIntegrals((zeros(0, 0, 0) for i in 1:3)...)
+    TracerWKBIntegrals((zeros(0, 0, 0) for i in 1:3)...)
 end
 
 function TracerWKBIntegrals(
@@ -103,11 +103,7 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     (; wkb_mode) = namelists.wkb
 
-    @dispatch_wkb_mode return TracerWKBIntegrals(
-        namelists,
-        domain,
-        Val(wkb_mode),
-    )
+    @dispatch_wkb_mode TracerWKBIntegrals(namelists, domain, Val(wkb_mode))
 end
 
 function TracerWKBIntegrals(
@@ -115,7 +111,7 @@ function TracerWKBIntegrals(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBIntegrals
-    return TracerWKBIntegrals((zeros(0, 0, 0) for i in 1:3)...)
+    TracerWKBIntegrals((zeros(0, 0, 0) for i in 1:3)...)
 end
 
 function TracerWKBIntegrals(
@@ -127,8 +123,8 @@ function TracerWKBIntegrals(
     (; leading_order_impact) = namelists.tracer
 
     if leading_order_impact
-        return TracerWKBIntegrals((zeros(nxx, nyy, nzz) for i in 1:3)...)
+        TracerWKBIntegrals((zeros(nxx, nyy, nzz) for i in 1:3)...)
     else
-        return TracerWKBIntegrals((zeros(0, 0, 0) for i in 1:3)...)
+        TracerWKBIntegrals((zeros(0, 0, 0) for i in 1:3)...)
     end
 end

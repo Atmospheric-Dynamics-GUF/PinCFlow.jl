@@ -129,7 +129,7 @@ function Turbulence(
     turbulencewkbtendencies = TurbulenceWKBTendencies(namelists, domain)
     turbulencebackups = TurbulenceBackups(turbulencepredictands)
 
-    return Turbulence(
+    Turbulence(
         turbulencepredictands,
         turbulenceincrements,
         turbulenceauxiliaries,
