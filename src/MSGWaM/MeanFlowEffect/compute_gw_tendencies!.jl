@@ -140,11 +140,11 @@ function compute_gw_tendencies! end
 
             if fc != 0.0 && (x_size > 1 || y_size > 1)
                 if x_size > 1
-                    tendencies.dudt[i, j, k] -=
-                        rhotot / rhobar[i, j, k] * (
+                    tendencies.dthetadt[i, j, k] -=
+                        rhotot * (
                             (
-                                integrals.uu[i + 1, j, k] -
-                                integrals.uu[i - 1, j, k]
+                                integrals.utheta[i + 1, j, k] -
+                                integrals.utheta[i - 1, j, k]
                             ) / (2.0 * dx) +
                             met13[i, j, k] * (
                                 integrals.utheta[i, j, k + 1] -
@@ -154,11 +154,11 @@ function compute_gw_tendencies! end
                 end
 
                 if y_size > 1
-                    tendencies.dudt[i, j, k] -=
-                        rhotot / rhobar[i, j, k] * (
+                    tendencies.dthetadt[i, j, k] -=
+                        rhotot * (
                             (
-                                integrals.uv[i, j + 1, k] -
-                                integrals.uv[i, j - 1, k]
+                                integrals.vtheta[i, j + 1, k] -
+                                integrals.vtheta[i, j - 1, k]
                             ) / (2.0 * dy) +
                             met23[i, j, k] * (
                                 integrals.vtheta[i, j, k + 1] -
