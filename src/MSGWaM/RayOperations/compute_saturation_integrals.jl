@@ -93,7 +93,7 @@ function compute_saturation_integrals end
                 jray = j0
             end
 
-            kray = get_next_half_level(iray, jray, zr, state)
+            kray = get_half_levels(iray, jray, zr, state)[2]
 
             n2r = interpolate_stratification(zr, state, N2())
 
