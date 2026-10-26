@@ -7,7 +7,7 @@ set_vertical_boundaries!(
         BoundaryReconstructions,
         BoundaryFluxes,
     },
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for predictands, reconstructions or fluxes, by dispatching to the appropriate method.
@@ -17,7 +17,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:Boussinesq},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for predictands in Boussinesq mode.
@@ -37,7 +37,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:PseudoIncompressible},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for predictands in pseudo-incompressible mode.
@@ -49,7 +49,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for predictands in compressible mode.
@@ -61,7 +61,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     model::Val{:Boussinesq},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for reconstructions in Boussinesq mode.
@@ -71,7 +71,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for reconstructions in non-Boussinesq modes.
@@ -81,7 +81,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:Boussinesq},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for vertical fluxes in Boussinesq mode.
@@ -91,7 +91,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:PseudoIncompressible},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for vertical fluxes in pseudo-incompressible mode.
@@ -101,13 +101,16 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for vertical fluxes in compressible mode.
 
 ```julia
-set_vertical_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)
+set_vertical_boundaries!(
+    state::State,
+    variables::AbstractBoundaryWKBVariables,
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for WKB variables by dispatching to the appropriate method.
@@ -117,7 +120,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for WKB integrals needed in `:SingleColumn` and `:SteadyState` configurations, using line reflection.
@@ -127,7 +130,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Val{:MultiColumn},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for WKB integrals needed in `:MultiColumn` configurations, using line reflection.
@@ -137,7 +140,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for WKB tendencies needed in `:SingleColumn` and `:SteadyState` configurations, using line reflection.
@@ -147,7 +150,7 @@ set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Val{:MultiColumn},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for WKB tendencies needed in `:MultiColumn` configurations, using line reflection.
@@ -173,17 +176,17 @@ function set_vertical_boundaries!(
         BoundaryReconstructions,
         BoundaryFluxes,
     },
-)
+)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model set_vertical_boundaries!(state, variables, Val(model))
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:Boussinesq},
-)
+)::Nothing
     (; namelists, domain) = state
     (; rhop, u, v, w, pip) = state.variables.predictands
 
@@ -193,14 +196,14 @@ function set_vertical_boundaries!(
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
     set_vertical_boundaries_of_field!(pip, namelists, domain, +)
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:PseudoIncompressible},
-)
+)::Nothing
     (; namelists, domain) = state
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
@@ -211,14 +214,14 @@ function set_vertical_boundaries!(
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
     set_vertical_boundaries_of_field!(pip, namelists, domain, +)
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     model::Val{:Compressible},
-)
+)::Nothing
     (; namelists, domain) = state
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 
@@ -230,14 +233,14 @@ function set_vertical_boundaries!(
     set_vertical_boundaries_of_field!(pip, namelists, domain, +)
     set_vertical_boundaries_of_field!(p, namelists, domain, +)
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     model::Val{:Boussinesq},
-)
+)::Nothing
     (; namelists, domain) = state
     (; reconstructions) = state.variables
 
@@ -249,14 +252,14 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
     (; namelists, domain) = state
     (; reconstructions) = state.variables
 
@@ -268,14 +271,14 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 @ivy function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:Boussinesq},
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
@@ -293,14 +296,14 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:PseudoIncompressible},
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
@@ -318,14 +321,14 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:Compressible},
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
@@ -343,23 +346,23 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
-)
+)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode set_vertical_boundaries!(state, variables, Val(wkb_mode))
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
-)
+)::Nothing
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
@@ -373,14 +376,14 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Val{:MultiColumn},
-)
+)::Nothing
     (; namelists, domain) = state
     (; integrals) = state.wkb
 
@@ -394,14 +397,14 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}},
-)
+)::Nothing
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
@@ -414,14 +417,14 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Val{:MultiColumn},
-)
+)::Nothing
     (; namelists, domain) = state
     (; tendencies) = state.wkb
 
@@ -434,5 +437,5 @@ function set_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
 end

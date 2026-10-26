@@ -30,5 +30,5 @@ function replace_argument(input::Any, argument::Any, literal::Any)::Any
         end
     end
 
-    return output
+    output
 end

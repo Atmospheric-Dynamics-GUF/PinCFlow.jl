@@ -16,7 +16,7 @@ The parameter can take any of the following values:
 macro dispatch_limiter_type end
 
 macro dispatch_limiter_type(input::Expr)
-    return esc(quote
+    esc(quote
         @dispatch (:MCVariant,) $(input)
     end)
 end

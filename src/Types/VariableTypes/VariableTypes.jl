@@ -27,9 +27,16 @@ include("Backups.jl")
 include("Auxiliaries.jl")
 include("Reconstructions.jl")
 include("Fluxes.jl")
+include("StressTensor.jl")
 include("Variables.jl")
 
 export Predictands,
-    Increments, Backups, Auxiliaries, Reconstructions, Fluxes, Variables
+    Increments,
+    Backups,
+    Auxiliaries,
+    Reconstructions,
+    Fluxes,
+    StressTensor,
+    Variables
 
 end

@@ -2,18 +2,18 @@ function test_wave_packet()
     l2 = (
         n2 = 0.03744983f0,
         p = 5563.24f0,
-        pip = 5.3333617f-5,
+        pip = 5.333359f-5,
         rhobar = 15.7452135f0,
-        rhop = 0.00090898166f0,
+        rhop = 0.0009089797f0,
         t = 600.0f0,
         thetabar = 43872.85f0,
         tke = 0.0063245553f0,
-        u = 1.3253986f0,
-        us = 1.6192237f0,
-        v = 1.325949f0,
-        vs = 1.620395f0,
-        w = 2.736039f0,
-        wts = 4.841161f0,
+        u = 1.325374f0,
+        us = 1.6191899f0,
+        v = 1.3259238f0,
+        vs = 1.6203604f0,
+        w = 2.7359848f0,
+        wts = 4.8410654f0,
         x = 25787.594f0,
         y = 25787.594f0,
         z = 1.8617196f6,
@@ -27,7 +27,7 @@ function test_wave_packet()
         rhop = 0.00015550917f0,
         t = 600.0f0,
         thetabar = 695.6166f0,
-        tke = 5.003752f-5,
+        tke = 5.0037517f-5,
         u = 0.19352245f0,
         us = 0.24351631f0,
         v = 0.19409175f0,
@@ -45,5 +45,5 @@ function test_wave_packet()
         test_example(wave_packet, keywords, reference; update)
     end
 
-    return
+    nothing
 end
