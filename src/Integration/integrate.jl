@@ -65,7 +65,7 @@ Therein, the left-hand sides of the equations include advective fluxes, diffusio
 """
 function integrate end
 
-function integrate(namelists::Namelists)
+function integrate(namelists::Namelists; resolved_source = nothing)
 
     #-------------------------------------------------
     #                     Setup
@@ -251,6 +251,14 @@ function integrate(namelists::Namelists)
         #-----------------------------------------------------------------
 
         wkb_integration!(state, dt)
+
+        # ---------------------------------------------------------------
+        #                Optional resolved-flow source
+        # ---------------------------------------------------------------
+
+        if resolved_source !== nothing
+            resolved_source(state, time, dt)
+        end
 
         #---------------------------------------------------------------
         #                   Semi-implicit time scheme
