@@ -6,7 +6,7 @@ explicit_integration!(
     dtstage::AbstractFloat,
     time::AbstractFloat,
     side::LHS,
-)
+)::Nothing
 ```
 
 Integrate the left-hand sides of the prognostic equations with a Runge-Kutta time step.
@@ -20,7 +20,7 @@ explicit_integration!(
     dtstage::AbstractFloat,
     time::AbstractFloat,
     side::RHS,
-)
+)::Nothing
 ```
 
 Perform an explicit Euler step on the right-hand sides of the prognostic equations and, if the atmosphere is compressible, update the Exner-pressure such that it is synchronized with the mass-weighted potential temperature.
@@ -45,7 +45,7 @@ function explicit_integration! end
     dtstage::AbstractFloat,
     time::AbstractFloat,
     side::LHS,
-)
+)::Nothing
     (; nstages, stepfrac) = state.time
     (; tracer_setup) = state.namelists.tracer
 
@@ -87,7 +87,7 @@ function explicit_integration! end
 
     apply_lhs_sponge!(state, dtstage, time, PiP())
 
-    return
+    nothing
 end
 
 function explicit_integration!(
@@ -96,7 +96,7 @@ function explicit_integration!(
     dtstage::AbstractFloat,
     time::AbstractFloat,
     side::RHS,
-)
+)::Nothing
     synchronize_compressible_atmosphere!(state, state.variables.predictands)
 
     modify_compressible_wind!(state, *)
@@ -117,5 +117,5 @@ function explicit_integration!(
 
     set_boundaries!(state, BoundaryPredictands())
 
-    return
+    nothing
 end

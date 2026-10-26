@@ -140,11 +140,11 @@ end
 function WKB(namelists::Namelists, domain::Domain)::WKB
     (; wkb_mode) = namelists.wkb
 
-    @dispatch_wkb_mode return WKB(namelists, domain, Val(wkb_mode))
+    @dispatch_wkb_mode WKB(namelists, domain, Val(wkb_mode))
 end
 
 function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
-    return WKB(
+    WKB(
         (0 for i in 1:3)...,
         zeros(Int, 0, 0, 0),
         Rays(0, 0, 0, 0),
@@ -253,7 +253,7 @@ function WKB(
     spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
     elastic_mode_selection = ElasticModeSelection(wave_modes, nxx, nyy)
 
-    return WKB(
+    WKB(
         bins,
         nray_wrk,
         n_sfc,

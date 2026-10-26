@@ -99,7 +99,7 @@ function Variables(
     fluxes = Fluxes(namelists, domain)
     stress_tensor = StressTensor(domain)
 
-    return Variables(
+    Variables(
         predictands,
         increments,
         backups,

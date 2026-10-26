@@ -52,5 +52,5 @@ function replace_assignments(
         end
     end
 
-    return code
+    code
 end

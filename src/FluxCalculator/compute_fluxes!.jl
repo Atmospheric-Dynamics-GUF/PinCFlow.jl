@@ -1,6 +1,6 @@
 """
 ```julia
-compute_fluxes!(state::State, predictands::Predictands)
+compute_fluxes!(state::State, predictands::Predictands)::Nothing
 ```
 
 Compute fluxes by dispatching to specialized methods for each prognostic variable.
@@ -8,7 +8,7 @@ Compute fluxes by dispatching to specialized methods for each prognostic variabl
 Before the computation of the fluxes, the stress tensor elements, needed for the momentum fluxes, are computed using `compute_stress_tensor!`.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
+compute_fluxes!(state::State, predictands::Predictands, variable::Rho)::Nothing
 ```
 
 Compute the density fluxes in all three directions, by dispatching to a model-specific method.
@@ -19,7 +19,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Rho,
     model::Val{:Boussinesq},
-)
+)::Nothing
 ```
 
 Return in Boussinesq mode.
@@ -30,7 +30,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
 ```
 
 Compute the density fluxes in all three directions.
@@ -60,7 +60,7 @@ are the transporting velocities (weighted by the Jacobian) and ``\\tilde{\\phi}`
 
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
+compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)::Nothing
 ```
 
 Compute the density-fluctuations fluxes in all three directions.
@@ -73,7 +73,7 @@ compute_fluxes!(
     predictands::Predictands,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
-)
+)::Nothing
 ```
 
 Return in non-compressible modes.
@@ -84,7 +84,7 @@ compute_fluxes!(
     predictands::Predictands,
     model::Val{:Compressible},
     variable::P,
-)
+)::Nothing
 ```
 
 Compute the mass-weighted potential-temperature fluxes in all three directions.
@@ -100,7 +100,11 @@ The fluxes are given by
 ```
 
 ```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::U)
+compute_fluxes!(
+    state::State,
+    old_predictands::Predictands,
+    variable::U,
+)::Nothing
 ```
 
 Compute the zonal-momentum fluxes in all three directions.
@@ -146,7 +150,11 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 ```
 
 ```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::V)
+compute_fluxes!(
+    state::State,
+    old_predictands::Predictands,
+    variable::V,
+)::Nothing
 ```
 
 Compute the meridional-momentum fluxes in all three directions.
@@ -192,7 +200,11 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 ```
 
 ```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::W)
+compute_fluxes!(
+    state::State,
+    old_predictands::Predictands,
+    variable::W,
+)::Nothing
 ```
 
 Compute the vertical-momentum fluxes in all three directions.
@@ -242,7 +254,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -252,7 +264,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Compute the tracer fluxes in all three directions.
@@ -260,7 +272,11 @@ Compute the tracer fluxes in all three directions.
 The computation is analogous to that of the density fluxes.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::Theta)
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+)::Nothing
 ```
 
 Compute the potential temperature fluxes by dispatching to a model-specific method.
@@ -271,7 +287,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
 ```
 
 Return in Boussinesq/pseudo-incompressible mode.
@@ -282,7 +298,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Compute the potential temperature fluxes due to heat conduction (weighted by the Jacobian) in compressible mode.
@@ -304,7 +320,7 @@ The fluxes are given by
 where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.atmosphere.thermal_conductivity`).
 
 ```julia
-compute_fluxes!(state::State, variable::TKE)
+compute_fluxes!(state::State, variable::TKE)::Nothing
 ```
 
 Compute the turbulence fluxes in all three directions.
@@ -333,7 +349,7 @@ The computation is analogous to that of the density fluxes.
 """
 function compute_fluxes! end
 
-function compute_fluxes!(state::State, predictands::Predictands)
+function compute_fluxes!(state::State, predictands::Predictands)::Nothing
     (; model) = state.namelists.atmosphere
 
     compute_stress_tensor!(state)
@@ -350,13 +366,17 @@ function compute_fluxes!(state::State, predictands::Predictands)
         predictands,
         Val(state.namelists.tracer.tracer_setup),
     )
-    return
+    nothing
 end
 
-function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -364,8 +384,8 @@ function compute_fluxes!(
     predictands::Predictands,
     variable::Rho,
     model::Val{:Boussinesq},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_fluxes!(
@@ -373,7 +393,7 @@ end
     predictands::Predictands,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar, rhobar) = state.atmosphere
@@ -456,14 +476,14 @@ end
         phirho[i, j, k, 3] = hrho
     end
 
-    return
+    nothing
 end
 
 @ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::RhoP,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -532,7 +552,7 @@ end
         phirhop[i, j, k, 3] = hrhop
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -540,8 +560,8 @@ function compute_fluxes!(
     predictands::Predictands,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_fluxes!(
@@ -549,7 +569,7 @@ end
     predictands::Predictands,
     model::Val{:Compressible},
     variable::P,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -597,14 +617,14 @@ end
             (jac[i, j, k] + jac[i, j, k + 1]) * w0[i, j, k]
     end
 
-    return
+    nothing
 end
 
 @ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::U,
-)
+)::Nothing
     (; grid) = state
     (; z_size) = state.namelists.domain
     (; re, uref, lref) = state.constants
@@ -904,14 +924,14 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::V,
-)
+)::Nothing
     (; grid) = state
     (; z_size) = state.namelists.domain
     (; re, uref, lref) = state.constants
@@ -1211,14 +1231,14 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::W,
-)
+)::Nothing
     (; grid) = state
     (; re, uref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -1391,12 +1411,8 @@ end
 
             hrhow_visc =
                 coef_v * (
-                    jac[i, j, k + 1] *
-                    met13[i, j, k + 1] *
-                    pi13[i, j, k + 1] +
-                    jac[i, j, k + 1] *
-                    met23[i, j, k + 1] *
-                    pi23[i, j, k + 1] +
+                    jac[i, j, k + 1] * met13[i, j, k + 1] * pi13[i, j, k + 1] +
+                    jac[i, j, k + 1] * met23[i, j, k + 1] * pi23[i, j, k + 1] +
                     pi33[i, j, k + 1]
                 )
 
@@ -1523,22 +1539,22 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -1590,18 +1606,18 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Theta,
-)
+)::Nothing
     (; model) = state.namelists.atmosphere
 
     @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -1609,8 +1625,8 @@ function compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_fluxes!(
@@ -1618,7 +1634,7 @@ end
     predictands::Predictands,
     variable::Theta,
     model::Val{:Compressible},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dx, dy, dz, met13, met23, met33) = state.grid
     (; pbar, rhobar) = state.atmosphere
@@ -1628,7 +1644,7 @@ end
     (; rho) = predictands
 
     if thermal_conductivity == 0.0
-        return
+        return nothing
     end
 
     mu_conduct = thermal_conductivity / uref / lref
@@ -1775,10 +1791,10 @@ end
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi
     end
 
-    return
+    nothing
 end
 
-@ivy function compute_fluxes!(state::State, variable::TKE)
+@ivy function compute_fluxes!(state::State, variable::TKE)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -1829,5 +1845,5 @@ end
         end
     end
 
-    return
+    nothing
 end

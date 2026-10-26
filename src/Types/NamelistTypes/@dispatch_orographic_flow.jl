@@ -20,7 +20,7 @@ The parameter can take any of the following values:
 macro dispatch_orographic_flow end
 
 macro dispatch_orographic_flow(input::Expr)
-    return esc(quote
+    esc(quote
         @dispatch (:Surface, :Summit, :Average) $(input)
     end)
 end

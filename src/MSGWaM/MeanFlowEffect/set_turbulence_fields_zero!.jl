@@ -1,18 +1,24 @@
 """
 ```julia
-set_turbulence_fields_zero!(state)
+set_turbulence_fields_zero!(state)::Nothing
 ```
 
 Reset the gravity-wave shear and the turbulence tendencies to zero by dispatching to the appropriate method.
 
 ```julia
-set_turbulence_fields_zero!(state::State, turbulence_setup::Val{:Noturbulence})
+set_turbulence_fields_zero!(
+    state::State,
+    turbulence_setup::Val{:Noturbulence},
+)::Nothing
 ```
 
 Return for configurations without turbulence parameterization.
 
 ```julia
-set_turbulence_fields_zero!(state::State, turbulence_setup::Val{:turbulenceOn})
+set_turbulence_fields_zero!(
+    state::State,
+    turbulence_setup::Val{:turbulenceOn},
+)::Nothing
 ```
 
 Set the gravity-wave shear and turbulence tendencies to zero.
@@ -25,7 +31,7 @@ Set the gravity-wave shear and turbulence tendencies to zero.
 """
 function set_turbulence_fields_zero! end
 
-function set_turbulence_fields_zero!(state::State)
+function set_turbulence_fields_zero!(state::State)::Nothing
     (; turbulence_scheme) = state.namelists.turbulence
 
     @dispatch_turbulence_scheme set_turbulence_fields_zero!(
@@ -33,20 +39,20 @@ function set_turbulence_fields_zero!(state::State)
         Val(turbulence_scheme),
     )
 
-    return
+    nothing
 end
 
 function set_turbulence_fields_zero!(
     state::State,
     turbulence_scheme::Val{:NoTurbulence},
-)
-    return
+)::Nothing
+    nothing
 end
 
 function set_turbulence_fields_zero!(
     state::State,
     turbulence_scheme::Val{:TKEScheme},
-)
+)::Nothing
     (; turbulencewkbtendencies, turbulencewkbintegrals) = state.turbulence
 
     for field in fieldnames(TurbulenceWKBIntegrals)
@@ -57,5 +63,5 @@ function set_turbulence_fields_zero!(
         getfield(turbulencewkbtendencies, field) .= 0.0
     end
 
-    return
+    nothing
 end
