@@ -1,0 +1,40 @@
+name: Documentation preview cleanup
+
+on:
+  pull_request:
+    types: [closed]
+
+concurrency:
+  group: documentation-preview-cleanup
+  cancel-in-progress: false
+
+jobs:
+  remove-preview:
+    # Do not run on forks to avoid authorization errors
+    # Source: https://github.community/t/have-github-action-only-run-on-master-repo-and-not-on-forks/140840/18
+    if: github.repository_owner == 'Atmospheric-Dynamics-GUF'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+
+      - name: Delete preview and history
+        shell: bash
+        run: |
+            git config user.name "Documenter.jl"
+            git config user.email "documenter@juliadocs.github.io"
+            git rm -rf --ignore-unmatch "previews/PR$PRNUM"
+            git commit -m "Preview deletion for PR #$PRNUM" --allow-empty
+            git branch gh-pages-new $(echo "History deletion" | git commit-tree HEAD^{tree})
+        env:
+            PRNUM: ${{ github.event.number }}
+
+      - name: Push changes
+        run: |
+            git pull origin gh-pages --rebase || true
+            git push --force origin gh-pages-new:gh-pages
