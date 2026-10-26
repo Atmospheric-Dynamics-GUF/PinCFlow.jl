@@ -23,7 +23,7 @@ function compute_spectral_bounds(
     (krminp, krmaxp) =
         extrema(kr for kr in wavenumbers if kr > 0; init = (0.0, 0.0))
     (krminn, krmaxn) =
-        extrema(kr for kr in wavenumbers if kr < 0; init = (0.0, 0.0))
+        extrema(-kr for kr in wavenumbers if kr < 0; init = (0.0, 0.0))
 
     # Adjust bounds that are zero.
     if krminp == krmaxp == krminn == krmaxn == 0
