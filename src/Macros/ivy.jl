@@ -5,6 +5,8 @@ ivy(x::Any; root::Bool = true)::Any
 
 If `x` is an expression, climb its AST and apply `@inbounds` to the bodies of hard-local-scope blocks (i.e., `macro` and `function` definitions, `let` blocks, comprehensions, and generators), apply `@inbounds` and `@views` to `x` itself if `root == true`, and return it.
 
+To correctly modify the body of all `function` definitions, this macro also converts short `function` definitions into long ones.
+
 # Arguments
 
   - `x`: Input object.
@@ -15,14 +17,11 @@ function ivy end
 
 function ivy(x::Any; root::Bool = true)::Any
     if x isa Expr
+        isdef(x) && (x = longdef(x))
+
         if x.head === :macro ||
            x.head === :function ||
            x.head === :-> ||
-           (
-               x.head === :(=) &&
-               isa(x.args[1], Expr) &&
-               x.args[1].head === :call
-           ) ||
            x.head === :let
             x.args[2] = quote
                 @inbounds $(ivy(x.args[2]; root = false))
