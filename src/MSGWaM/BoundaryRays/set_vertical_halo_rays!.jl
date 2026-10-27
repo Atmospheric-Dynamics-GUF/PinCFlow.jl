@@ -1,6 +1,6 @@
 """
 ```julia
-set_vertical_halo_rays!(state::State)
+set_vertical_halo_rays!(state::State)::Nothing
 ```
 
 Exchange ray volumes in vertical halo cells.
@@ -13,7 +13,7 @@ Performs MPI communication between downward and upward neighbor processes. The n
 """
 function set_vertical_halo_rays! end
 
-@ivy function set_vertical_halo_rays!(state::State)
+@ivy function set_vertical_halo_rays!(state::State)::Nothing
     (; z_size) = state.namelists.domain
     (; comm, nz, nx, ny, ko, i0, i1, j0, j1, k0, k1, down, up) = state.domain
     (; nray, rays) = state.wkb
@@ -77,5 +77,5 @@ function set_vertical_halo_rays! end
         end
     end
 
-    return
+    nothing
 end

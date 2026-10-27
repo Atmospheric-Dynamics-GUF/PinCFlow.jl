@@ -27,5 +27,5 @@ function ijk end
     j = argmin(abs.(y .- grid.y .* lref))
     k = argmin(abs.(z .- grid.zc[i, j, :] .* lref))
 
-    return CartesianIndex(i, j, k)
+    CartesianIndex(i, j, k)
 end

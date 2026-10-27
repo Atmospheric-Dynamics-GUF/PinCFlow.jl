@@ -49,7 +49,7 @@ function test_formatting(; directory::AbstractString = "..", fix::Bool = false)
                     fix && open(joinpath(root, file), "w") do io
                         formatted = false
                         write(io, modified_script)
-                        return
+                        nothing
                     end
                 end
             end
@@ -60,5 +60,5 @@ function test_formatting(; directory::AbstractString = "..", fix::Bool = false)
         @test formatted
     end
 
-    return
+    nothing
 end

@@ -30,7 +30,9 @@ Contributions to the code should respect the following rules.
 
   - Use type parameters to declare the types of all composite-type fields.
 
-  - Declare the types of all method arguments and the return types of all methods that return something other than `nothing`.
+  - Declare the types of all method arguments and the return types of all methods.
+
+  - Use Julia's automatic return of the last expression's value.
 
   - Apply PinCFlow.jl's `@ivy` to the definitions of functions that perform indexing and/or slicing operations.
 

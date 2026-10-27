@@ -116,7 +116,7 @@ function compute_pressure_gradient end
     (; z_size, nbz) = state.namelists.domain
     (; kappainv, mainv2) = state.constants
     (; ko, k0) = state.domain
-    (; dx, dz, met) = state.grid
+    (; dx, dz, met13, met23, met33) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
 
@@ -126,7 +126,7 @@ function compute_pressure_gradient end
     rhobaredger = 0.5 * (rhobar[i, j, k] + rhobar[i + 1, j, k])
     rhoedger += rhobaredger
     pedger = 0.5 * (pbar[i, j, k] + pbar[i + 1, j, k])
-    met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
+    met13edger = 0.5 * (met13[i, j, k] + met13[i + 1, j, k])
 
     # Compute the pressure gradient component.
     if ko + k == k0
@@ -161,7 +161,7 @@ function compute_pressure_gradient end
             )
     end
 
-    return gradient
+    gradient
 end
 
 @ivy function compute_pressure_gradient(
@@ -175,7 +175,7 @@ end
     (; z_size, nbz) = state.namelists.domain
     (; kappainv, mainv2) = state.constants
     (; ko, k0) = state.domain
-    (; dy, dz, met) = state.grid
+    (; dy, dz, met13, met23, met33) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
 
@@ -185,7 +185,7 @@ end
     rhobaredgef = 0.5 * (rhobar[i, j, k] + rhobar[i, j + 1, k])
     rhoedgef += rhobaredgef
     pedgef = 0.5 * (pbar[i, j, k] + pbar[i, j + 1, k])
-    met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
+    met23edgef = 0.5 * (met23[i, j, k] + met23[i, j + 1, k])
 
     # Compute the pressure gradient component.
     if ko + k == k0
@@ -220,7 +220,7 @@ end
             )
     end
 
-    return gradient
+    gradient
 end
 
 @ivy function compute_pressure_gradient(
@@ -232,7 +232,7 @@ end
     variable::W,
 )::AbstractFloat
     (; kappainv, mainv2) = state.constants
-    (; dx, dy, dz, jac, met) = state.grid
+    (; dx, dy, dz, jac, met13, met23, met33) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
 
@@ -251,18 +251,18 @@ end
         (jac[i, j, k] + jac[i, j, k + 1])
     met13edgeu =
         (
-            jac[i, j, k + 1] * met[i, j, k, 1, 3] +
-            jac[i, j, k] * met[i, j, k + 1, 1, 3]
+            jac[i, j, k + 1] * met13[i, j, k] +
+            jac[i, j, k] * met13[i, j, k + 1]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
     met23edgeu =
         (
-            jac[i, j, k + 1] * met[i, j, k, 2, 3] +
-            jac[i, j, k] * met[i, j, k + 1, 2, 3]
+            jac[i, j, k + 1] * met23[i, j, k] +
+            jac[i, j, k] * met23[i, j, k + 1]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
     met33edgeu =
         (
-            jac[i, j, k + 1] * met[i, j, k, 3, 3] +
-            jac[i, j, k] * met[i, j, k + 1, 3, 3]
+            jac[i, j, k + 1] * met33[i, j, k] +
+            jac[i, j, k] * met33[i, j, k + 1]
         ) / (jac[i, j, k] + jac[i, j, k + 1])
 
     # Compute the pressure gradient component.
@@ -293,5 +293,5 @@ end
             met33edgeu * (pip[i, j, k + 1] - pip[i, j, k]) / dz
         )
 
-    return gradient
+    gradient
 end

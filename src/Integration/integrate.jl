@@ -5,7 +5,7 @@ integrate(
     base_comm::MPI.Comm = MPI.COMM_WORLD,
     delay::Real = 0,
     skip_exceptions_reduction::Bool = false,
-)
+)::Nothing
 ```
 
 Call the `integrate` method below and reduce potential exceptions with `reduce_exceptions`.
@@ -17,7 +17,7 @@ integrate(
     namelists::Namelists,
     ::ParallelExceptions;
     base_comm::MPI.Comm = MPI.COMM_WORLD,
-)
+)::Nothing
 ```
 
 Initialize the model state and integrate it in time.
@@ -99,7 +99,7 @@ function integrate(
     base_comm::MPI.Comm = MPI.COMM_WORLD,
     delay::Real = 0,
     skip_exceptions_reduction::Bool = false,
-)
+)::Nothing
     !MPI.Initialized() && MPI.Init()
     rank = MPI.Comm_rank(base_comm)
 
@@ -111,7 +111,7 @@ function integrate(
                    "Rank $(rank) has thrown the following exception:",
         ) do
             integrate(namelists[1], ParallelExceptions(); base_comm)
-            return
+            nothing
         end
     else
         reduce_exceptions(
@@ -153,24 +153,24 @@ function integrate(
                             ParallelExceptions();
                             base_comm = member_comm,
                         )
-                        return
+                        nothing
                     end
-                    return
+                    nothing
                 end
-                return
+                nothing
             end
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end
 
 function integrate(
     namelists::Namelists,
     ::ParallelExceptions;
     base_comm::MPI.Comm = MPI.COMM_WORLD,
-)
+)::Nothing
 
     #-------------------------------------------------
     #                     Setup
@@ -518,5 +518,5 @@ function integrate(
         println(repeat("-", 80))
     end
 
-    return
+    nothing
 end

@@ -245,7 +245,7 @@ function Atmosphere(
     grid::Grid,
 )::Atmosphere
     (; model, background) = namelists.atmosphere
-    @dispatch_model @dispatch_background return Atmosphere(
+    @dispatch_model @dispatch_background Atmosphere(
         namelists,
         constants,
         domain,
@@ -272,7 +272,7 @@ function Atmosphere(
     pbar = rhobar .* thetabar
     n2 = zeros(nxx, nyy, nzz)
 
-    return Atmosphere(pbar, thetabar, rhobar, n2)
+    Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
 function Atmosphere(
@@ -292,7 +292,7 @@ function Atmosphere(
     pbar = rhobar .* thetabar
     n2 = (buoyancy_frequency .* tref) .^ 2 .* ones(nxx, nyy, nzz)
 
-    return Atmosphere(pbar, thetabar, rhobar, n2)
+    Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
 function Atmosphere(
@@ -319,7 +319,7 @@ function Atmosphere(
 
     compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
-    return Atmosphere(pbar, thetabar, rhobar, n2)
+    Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
 function Atmosphere(
@@ -359,7 +359,7 @@ function Atmosphere(
         p0 .* (1.0 .- kappa .* sig ./ theta0 .* zc) .^ (1.0 ./ (gamma .- 1.0))
     rhobar .= pbar ./ thetabar
 
-    return Atmosphere(pbar, thetabar, rhobar, n2)
+    Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
 @ivy function Atmosphere(
@@ -413,7 +413,7 @@ end
 
     compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
-    return Atmosphere(pbar, thetabar, rhobar, n2)
+    Atmosphere(pbar, thetabar, rhobar, n2)
 end
 
 @ivy function Atmosphere(
@@ -482,5 +482,5 @@ end
 
     compute_n2!(namelists, constants, domain, grid, thetabar, n2)
 
-    return Atmosphere(pbar, thetabar, rhobar, n2)
+    Atmosphere(pbar, thetabar, rhobar, n2)
 end

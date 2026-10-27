@@ -16,5 +16,5 @@ Return `x` with all slices turned into views and all bounds checks turned off.
 macro ivy end
 
 macro ivy(x::Any)
-    return esc(ivy(x))
+    esc(ivy(x))
 end

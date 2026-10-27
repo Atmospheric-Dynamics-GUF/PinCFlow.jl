@@ -148,7 +148,8 @@ function compute_turbulent_velocity end
         q2r += qtilde * exp(-2im * phi) * dphi
         phi += dphi
     end
-    return (q1r / pi, q2r / pi)
+
+    (q1r / pi, q2r / pi)
 end
 
 function compute_turbulent_velocity(
@@ -180,5 +181,5 @@ function compute_turbulent_velocity(
 
     qtilde = sqrt(max(0, ld * (lv * sterm - lb * bterm)))
 
-    return qtilde
+    qtilde
 end

@@ -14,7 +14,7 @@ mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
 ```
 
 Run the mountain-wave example simulation.
@@ -37,7 +37,7 @@ function mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 100
     l0 = 1000
 
@@ -53,6 +53,7 @@ function mountain_wave(;
     atmosphere = AtmosphereNamelist(;
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
+        kinematic_diffusivity = 2.0E-5,
     )
 
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
@@ -79,7 +80,7 @@ function mountain_wave(;
                 sin(pi * (abs(y) - (ly - dyr) / 2) / dyr)^2 : 0.0
             alpharz =
                 z >= lz - dzr ? sin(pi / 2 * (z - (lz - dzr)) / dzr)^2 : 0.0
-            return alpharmax * (alpharx + alphary + alpharz) / 3
+            alpharmax * (alpharx + alphary + alpharz) / 3
         end,
         relaxed_u = (x, y, z, t, dt) -> 10.0,
     )
@@ -96,5 +97,5 @@ function mountain_wave(;
         )
     end
 
-    return
+    nothing
 end

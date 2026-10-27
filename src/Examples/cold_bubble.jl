@@ -14,7 +14,7 @@ cold_bubble(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
 ```
 
 Run the cold-bubble example simulation.
@@ -57,7 +57,7 @@ function cold_bubble(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     lx = 10000
     ly = 10000
     lz = 10000
@@ -71,9 +71,9 @@ function cold_bubble(;
         initial_rhop = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2 + ((z - rz) / rz)^2)
             if r <= 1
-                return 0.005 * (1 + cos(pi * r))
+                0.005 * (1 + cos(pi * r))
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -102,5 +102,5 @@ function cold_bubble(;
         )
     end
 
-    return
+    nothing
 end

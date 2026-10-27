@@ -11,7 +11,7 @@ compute_gw_turbulence_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
 ```
 
 Compute the gravity-wave shear by dispatching to the appropriate method.
@@ -29,7 +29,7 @@ compute_gw_turbulence_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
 ```
 
 Return for configurations without turbulence parameterization.
@@ -47,7 +47,7 @@ compute_gw_turbulence_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
 ```
 
 Compute the gravity-wave shear at ``\\left(i, j, k \\right)``, using
@@ -93,7 +93,7 @@ function compute_gw_turbulence_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
     (; turbulence_scheme) = state.namelists.turbulence
 
     @dispatch_turbulence_scheme compute_gw_turbulence_integrals!(
@@ -110,7 +110,7 @@ function compute_gw_turbulence_integrals!(
         k,
     )
 
-    return
+    nothing
 end
 
 function compute_gw_turbulence_integrals!(
@@ -125,8 +125,8 @@ function compute_gw_turbulence_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_gw_turbulence_integrals!(
@@ -141,18 +141,18 @@ end
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
     (; rhobar) = state.atmosphere
     (; gw_shear) = state.turbulence.turbulencewkbintegrals
     (; gw_coupling) = state.namelists.turbulence
 
     if !gw_coupling
-        return
+        return nothing
     end
 
     gw_shear[i, j, k] +=
         mr^4 * wadr / rhobar[i, j, k] * (fc^2 + omir^2) /
         (omir * (kr^2 + lr^2 + mr^2))
 
-    return
+    nothing
 end

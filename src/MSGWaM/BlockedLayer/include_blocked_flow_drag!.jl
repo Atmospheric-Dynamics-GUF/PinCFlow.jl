@@ -1,6 +1,6 @@
 """
 ```julia
-include_blocked_flow_drag!(state::State)
+include_blocked_flow_drag!(state::State)::Nothing
 ```
 
 Compute the blocked-flow drag and adjust the mean-flow impact accordingly.
@@ -29,7 +29,7 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 """
 function include_blocked_flow_drag! end
 
-@ivy function include_blocked_flow_drag!(state::State)
+@ivy function include_blocked_flow_drag!(state::State)::Nothing
     (; blocking, drag_coefficient) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dz, jac, zctilde, hb, hw, kh, lh) = state.grid
@@ -39,7 +39,7 @@ function include_blocked_flow_drag! end
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
     if !blocking
-        return
+        return nothing
     end
 
     # Adjust the drag to account for blocking.
@@ -71,5 +71,5 @@ function include_blocked_flow_drag! end
         end
     end
 
-    return
+    nothing
 end
