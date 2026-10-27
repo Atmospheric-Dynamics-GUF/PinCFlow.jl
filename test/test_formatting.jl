@@ -1,7 +1,6 @@
 function test_formatting(; directory::AbstractString = "..", fix::Bool = false)
     keywords = (
         always_for_in = true,
-        always_use_return = true,
         force_long_function_def = true,
         margin = 80,
         normalize_line_endings = "unix",
