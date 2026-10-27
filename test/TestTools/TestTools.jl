@@ -18,6 +18,6 @@ include("occurrences.jl")
 include("replace_assignments.jl")
 include("test_example.jl")
 
-export occurences, test_example
+export occurrences, test_example
 
 end
