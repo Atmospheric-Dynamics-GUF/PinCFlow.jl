@@ -14,9 +14,10 @@ using MPI
 using HDF5
 
 include("compute_norms.jl")
+include("occurrences.jl")
 include("replace_assignments.jl")
 include("test_example.jl")
 
-export test_example
+export occurences, test_example
 
 end
