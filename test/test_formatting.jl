@@ -1,4 +1,4 @@
-function test_formatting(; directory::AbstractString = "..", fix::Bool = false)
+function test_formatting(; fix::Bool = false)
     keywords = (
         always_for_in = true,
         force_long_function_def = true,
@@ -13,7 +13,7 @@ function test_formatting(; directory::AbstractString = "..", fix::Bool = false)
     )
 
     formatted = true
-    for (root, directories, files) in walkdir(directory)
+    for (root, directories, files) in walkdir(joinpath(@__DIR__, ".."))
         for file in files
             if endswith(joinpath(root, file), r"\.(jl|md)")
                 script = read(joinpath(root, file), String)
