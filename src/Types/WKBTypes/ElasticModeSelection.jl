@@ -26,9 +26,6 @@ Construct an `ElasticModeSelection` instance with arrays sized according to the 
   - `launch_mode_count::B`: Array that stores the numbers of selected modes.
 
   - `launch_power_fraction::C`: Array that stores the power fractions retained by the selection algorithm.
-
-!!! danger "Experimental"
-    The elastic mode selection is an experimental feature adapted from [Banerjee (2026)](https://doi.org/10.5281/zenodo.20582010).
 """
 struct ElasticModeSelection{
     A <: AbstractVector{<:Integer},
@@ -45,7 +42,7 @@ function ElasticModeSelection(
     nxx::Integer,
     nyy::Integer,
 )::ElasticModeSelection
-    return ElasticModeSelection(
+    ElasticModeSelection(
         zeros(Int, wave_modes),
         zeros(Int, nxx, nyy),
         zeros(nxx, nyy),

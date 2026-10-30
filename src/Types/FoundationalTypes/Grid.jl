@@ -5,7 +5,6 @@ Grid{
     B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 5},
 }
 ```
 
@@ -102,7 +101,11 @@ Coordinate transformation.
 
   - `jac::D`: Jacobian.
 
-  - `met::E`: Metric tensor.
+  - `met13::D`: Element 1-3 of the metric tensor.
+
+  - `met23::D`: Element 2-3 of the metric tensor.
+
+  - `met33::D`: Element 3-3 of the metric tensor.
 
 Vertical coordinates:
 
@@ -135,7 +138,6 @@ struct Grid{
     B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 5},
 }
 
     # Scaled domain.
@@ -160,7 +162,9 @@ struct Grid{
 
     # Jacobian and metric tensor.
     jac::D
-    met::E
+    met13::D
+    met23::D
+    met33::D
 
     # Vertical coordinates.
     zc::D
@@ -219,12 +223,8 @@ end
 
     if vertical_boundary_condition === :Periodic
         @warn "Input topographies and grid stretching are ignored for periodic vertical boundary conditions."
-
-        # Compute the metric tensor.
-        met[:, :, :, 1, 1] .= 1.0
-        met[:, :, :, 2, 2] .= 1.0
-        met[:, :, :, 3, 3] .= 1.0
-
+        met33 .= 1.0
+        
         jac .= 1.0
 
         # Compute the physical layers.
@@ -252,7 +252,7 @@ end
                 ztildes[k] = vertical_grid_stretching(level * lref) / lref
             end
         end
-        !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = <=) &&
+        !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = (<=)) &&
             error("Impossible vertical grid stretching!")
         for k in 2:(z_size + 2 * nbz)
             zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
@@ -276,11 +276,6 @@ end
 
         # Compute the metric tensor.
 
-        met[:, :, :, 1, 2] .= 0.0
-        met[:, :, :, 2, 1] .= 0.0
-        met[:, :, :, 1, 1] .= 1.0
-        met[:, :, :, 2, 2] .= 1.0
-
         for k in kmin:kmax, j in 1:nyy, i in i0:i1
             met13[i, j, k] =
                 (hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx) * (zs[ko + k] - lz) /
@@ -291,8 +286,6 @@ end
             met13[:, :, 1] .=
                 met13[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
         )
-        met[:, :, :, 1, 3] .= met13
-        met[:, :, :, 3, 1] .= met13
 
         for k in 2:nzz, j in j0:j1, i in 1:nxx
             met23[i, j, k] =
@@ -304,8 +297,6 @@ end
             met23[:, :, 1] .=
                 met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
         )
-        met[:, :, :, 2, 3] .= met23
-        met[:, :, :, 3, 2] .= met23
 
         for k in kmin:kmax, j in j0:j1, i in i0:i1
             met33[i, j, k] =
@@ -329,7 +320,9 @@ end
         end
         set_zonal_boundaries_of_field!(met33, namelists, domain)
         set_meridional_boundaries_of_field!(met33, namelists, domain)
-        met[:, :, :, 3, 3] .= met33
+
+        # Allocate the physical layers.
+        (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
 
         # Compute the physical layers.
         for k in 1:nzz
@@ -339,10 +332,10 @@ end
     end
 
     # Compute the minimum layer depth.
-    dzcmin = minimum(diff(zctilde; dims = 3))
+    dzcmin = mapreduce(-, min, zctilde[:, :, 2:nzz], zctilde[:, :, 1:(nzz - 1)])
     dzcmin = MPI.Allreduce(dzcmin, min, comm)
 
-    return Grid(
+    Grid(
         lx,
         ly,
         lz,
@@ -356,7 +349,9 @@ end
         kh,
         lh,
         jac,
-        met,
+        met13,
+        met23,
+        met33,
         zc,
         zctilde,
         dzcmin,

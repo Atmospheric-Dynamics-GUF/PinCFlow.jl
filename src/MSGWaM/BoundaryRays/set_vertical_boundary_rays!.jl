@@ -1,6 +1,6 @@
 """
 ```julia
-set_vertical_boundary_rays!(state::State)
+set_vertical_boundary_rays!(state::State)::Nothing
 ```
 
 Enforce vertical boundary conditions for ray volumes by dispatching to the vertical boundary condition appropriate method.
@@ -9,7 +9,7 @@ Enforce vertical boundary conditions for ray volumes by dispatching to the verti
 set_vertical_boundary_rays!(
     state::State,
     vertical_boundary_condition::Val{:Periodic},
-)
+)::Nothing
 ```
 
 Enforce periodic vertical boundary conditions for ray volumes.
@@ -20,7 +20,7 @@ This method first enforces vertical boundary conditions for `state.wkb.nray` (by
 set_vertical_boundary_rays!(
     state::State,
     vertical_boundary_condition::Val{:SolidWall},
-)
+)::Nothing
 ```
 
 Enforce solid wall vertical boundary conditions for ray volumes.
@@ -43,7 +43,7 @@ If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray vol
 """
 function set_vertical_boundary_rays! end
 
-function set_vertical_boundary_rays!(state::State)
+function set_vertical_boundary_rays!(state::State)::Nothing
     (; vertical_boundary_condition) = state.namelists.domain
     (; namelists, domain) = state
     (; nray) = state.wkb
@@ -55,13 +55,13 @@ function set_vertical_boundary_rays!(state::State)
         state,
         Val(vertical_boundary_condition),
     )
-    return
+    nothing
 end
 
 @ivy function set_vertical_boundary_rays!(
     state::State,
     vertical_boundary_condition::Val{:Periodic},
-)
+)::Nothing
     (; namelists, domain) = state
     (; z_size) = namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
@@ -98,13 +98,13 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function set_vertical_boundary_rays!(
     state::State,
     vertical_boundary_condition::Val{:SolidWall},
-)
+)::Nothing
     (; namelists, domain) = state
     (; z_size, npz) = namelists.domain
     (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
@@ -163,5 +163,5 @@ end
         end
     end
 
-    return
+    nothing
 end

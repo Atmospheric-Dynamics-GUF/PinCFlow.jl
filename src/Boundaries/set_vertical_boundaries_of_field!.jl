@@ -7,7 +7,7 @@ set_vertical_boundaries_of_field!(
     mode::Function;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions by dispatching to the vertical boundary condition appropriate method.
@@ -21,7 +21,7 @@ set_vertical_boundaries_of_field!(
     vertical_boundary_condition::Val{:Periodic};
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
-)
+)::Nothing
 ```
 
 Enforce periodic vertical boundary conditions for a 3D array.
@@ -37,20 +37,20 @@ set_vertical_boundaries_of_field!(
     vertical_boundary_condition::Val{:SolidWall};
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
-)
+)::Nothing
 ```
 
 Enforce solid-wall vertical boundary conditions for a 3D array.
 
 Halo exchange is used for multi-process domains (`npz > 1`). Use `mode = +` (`mode = -`) for line-reflected (point-reflected) ghost-cell values.
 
-```julia 
+```julia
 set_vertical_boundaries_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for a 5D array by dispatching to the appropriate vertical boundary condition method.
@@ -62,7 +62,7 @@ set_vertical_boundaries_of_field!(
     domain::Domain,
     vertical_boundary_condition::Val{:Periodic};
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Enforce periodic vertical boundary conditions for a 5D array. 
@@ -75,7 +75,7 @@ set_vertical_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Exchange halo values of a 5D array if multiple processes are used in the vertical (`npz > 1`).
@@ -113,7 +113,7 @@ function set_vertical_boundaries_of_field!(
     mode::Function = +,
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
-)
+)::Nothing
     (; vertical_boundary_condition) = namelists.domain
 
     @dispatch_vertical_boundary_condition set_vertical_boundaries_of_field!(
@@ -126,7 +126,7 @@ function set_vertical_boundaries_of_field!(
         staggered,
     )
 
-    return
+    nothing
 end
 
 @ivy function set_vertical_boundaries_of_field!(
@@ -137,7 +137,7 @@ end
     mode::Function = +,
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
-)
+)::Nothing
     (; z_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
@@ -157,7 +157,7 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function set_vertical_boundaries_of_field!(
@@ -168,7 +168,7 @@ end
     mode::Function = +,
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
-)
+)::Nothing
     (; z_size) = namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
 
@@ -209,7 +209,7 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries_of_field!(
@@ -217,7 +217,7 @@ function set_vertical_boundaries_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; vertical_boundary_condition) = namelists.domain
 
     @dispatch_vertical_boundary_condition set_vertical_boundaries_of_field!(
@@ -227,7 +227,7 @@ function set_vertical_boundaries_of_field!(
         Val(vertical_boundary_condition);
         layers,
     )
-    return
+    nothing
 end
 
 @ivy function set_vertical_boundaries_of_field!(
@@ -236,7 +236,7 @@ end
     domain::Domain,
     vertical_boundary_condition::Val{:Periodic};
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; z_size) = namelists.domain
     (; i0, i1, j0, j1, k0, k1) = domain
 
@@ -256,7 +256,7 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 function set_vertical_boundaries_of_field!(
@@ -265,12 +265,12 @@ function set_vertical_boundaries_of_field!(
     domain::Domain,
     vertical_boundary_condition::Val{:SolidWall};
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; z_size) = namelists.domain
 
     if z_size > 1
         set_vertical_halos_of_field!(field, namelists, domain; layers)
     end
 
-    return
+    nothing
 end

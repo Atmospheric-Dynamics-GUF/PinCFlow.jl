@@ -86,7 +86,7 @@ function TurbulencePredictands(
 )::TurbulencePredictands
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme return TurbulencePredictands(
+    @dispatch_turbulence_scheme TurbulencePredictands(
         namelists,
         constants,
         domain,
@@ -108,7 +108,7 @@ function TurbulencePredictands(
 )::TurbulencePredictands
     tke = zeros(0, 0, 0)
 
-    return TurbulencePredictands(tke)
+    TurbulencePredictands(tke)
 end
 
 @ivy function TurbulencePredictands(
@@ -146,5 +146,5 @@ end
 
     set_vertical_boundaries_of_field!(tke, namelists, domain)
 
-    return TurbulencePredictands(tke)
+    TurbulencePredictands(tke)
 end

@@ -72,6 +72,10 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:buoyancy_production`: Turbulent kinetic energy production/destruction due to buoyancy.
 
+  - `:gw_shear::A`: Shear of unresolved gravity waves.
+  
+  - `:dtkedt::A`: Turbulence impact of unresolved gravity waves.
+
   - `:launch_mode_count`: Numbers of modes selected by the elastic-mode-selection algorithm.
 
   - `:launch_power_fraction`: Power fractions retained by the elastic-mode-selection algorithm.
@@ -207,7 +211,7 @@ function write_output end
             file["u"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return (u[i, j, k] + u[i - 1, j, k]) / 2 * uref
+                    (u[i, j, k] + u[i - 1, j, k]) / 2 * uref
                 end
         end
 
@@ -223,7 +227,7 @@ function write_output end
             file["v"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return (v[i, j, k] + v[i, j - 1, k]) / 2 * uref
+                    (v[i, j, k] + v[i, j - 1, k]) / 2 * uref
                 end
         end
 
@@ -239,7 +243,7 @@ function write_output end
             file["w"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return (
+                    (
                         compute_vertical_wind(i, j, k, state) +
                         compute_vertical_wind(i, j, k - 1, state)
                     ) / 2 * uref
@@ -252,7 +256,7 @@ function write_output end
             file["ws"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return compute_vertical_wind(i, j, k, state) * uref
+                    compute_vertical_wind(i, j, k, state) * uref
                 end
         end
 
@@ -262,7 +266,7 @@ function write_output end
             file["wt"][iid, jjd, kkd, iout] =
                 map(CartesianIndices((ii, jj, kk))) do ijk
                     (i, j, k) = Tuple(ijk)
-                    return (w[i, j, k] + w[i, j, k - 1]) / 2 * uref
+                    (w[i, j, k] + w[i, j, k - 1]) / 2 * uref
                 end
         end
 
@@ -398,6 +402,38 @@ function write_output end
                         kk,
                     ] .* uref .^ 2 ./ tref
             end
+
+            # Write GW shear.
+            if state.namelists.turbulence.gw_coupling &&
+               wkb_mode !== :NoWKB &&
+               :gw_shear in output_variables
+                HDF5.set_extent_dims(
+                    file["gw_shear"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["gw_shear"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbintegrals.gw_shear[
+                        ii,
+                        jj,
+                        kk,
+                    ] ./ tref .^ 2
+            end
+
+            # Write turbulence tendencies.
+            if state.namelists.turbulence.gw_coupling &&
+               wkb_mode !== :NoWKB &&
+               :dtkedt in output_variables
+                HDF5.set_extent_dims(
+                    file["dtkedt"],
+                    (x_size, y_size, z_size, iout),
+                )
+                file["dtkedt"][iid, jjd, kkd, iout] =
+                    state.turbulence.turbulencewkbtendencies.dtkedt[
+                        ii,
+                        jj,
+                        kk,
+                    ] .* uref .^ 2 ./ tref
+            end
         end
 
         # Write WKB variables.
@@ -497,8 +533,8 @@ function write_output end
             end
         end
 
-        return
+        nothing
     end
 
-    return iout
+    iout
 end

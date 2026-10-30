@@ -54,7 +54,7 @@ function SpongeNamelist(;
     relaxed_v::Function = (x, y, z, t, dt) -> 0.0,
     relaxed_w::Function = (x, y, z, t, dt) -> 0.0,
 )::SpongeNamelist
-    return SpongeNamelist(
+    SpongeNamelist(
         damp_horizontal_wind_on_rhs,
         relax_to_mean,
         lhs_sponge,

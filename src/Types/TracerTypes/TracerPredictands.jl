@@ -86,7 +86,7 @@ function TracerPredictands(
 )::TracerPredictands
     (; tracer_setup) = namelists.tracer
 
-    @dispatch_tracer_setup return TracerPredictands(
+    @dispatch_tracer_setup TracerPredictands(
         namelists,
         constants,
         domain,
@@ -106,8 +106,8 @@ function TracerPredictands(
     tracer_setup::Val{:NoTracer},
     variables::Variables,
 )::TracerPredictands
-    return TracerPredictands(
-        [zeros(0, 0, 0) for field in fieldnames(TracerPredictands)]...,
+    TracerPredictands(
+        (zeros(0, 0, 0) for field in fieldnames(TracerPredictands))...,
     )
 end
 
@@ -138,5 +138,5 @@ end
 
     chi .*= rho .+ rhobar
 
-    return TracerPredictands(chi)
+    TracerPredictands(chi)
 end

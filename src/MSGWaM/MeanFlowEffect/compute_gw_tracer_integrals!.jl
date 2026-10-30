@@ -14,7 +14,7 @@ compute_gw_tracer_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
 ```
 
 Compute the leading-order gravity-wave-tracer fluxes by dispatching to the appropriate method.
@@ -35,7 +35,7 @@ compute_gw_tracer_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -56,7 +56,7 @@ compute_gw_tracer_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
 ```
 
 Compute the leading-order gravity-wave tracer fluxes at ``(i, j, k)``.
@@ -67,7 +67,17 @@ The zonal, meridional, and vertical fluxes are given by
 \\begin{align*}
     \\bar{\\rho}\\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle & = \\frac{\\bar{\\rho}}{2} \\sum_{r, \\lambda,\\mu,\\nu} \\left[F \\Re \\left(u_\\mathrm{w}\\chi^*_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
     \\bar{\\rho}\\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle & = \\frac{\\bar{\\rho}}{2} \\sum_{r,  \\lambda, \\mu, \\nu} \\left[F \\Re \\left(v_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    \\bar{\\rho}\\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle & = \\frac{\\bar{\\rho}}{2} \\sum_{r, \\lambda, \\mu, \\nu} \\left[F \\Re \\left(w_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu}.
+    \\bar{\\rho}\\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle & = \\frac{\\bar{\\rho}}{2} \\sum_{r, \\lambda, \\mu, \\nu} \\left[F \\Re \\left(w_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu},
+\\end{align*}
+```
+
+with flux contributions given by 
+
+```math 
+\\begin{align*}
+\\frac{\\bar{\\rho}}{2} \\Re \\left(u_{\\mathrm{w}, r}\\chi^*_{\\mathrm{w}, r}\\right) & = \\frac{f}{\\hat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r - m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r\\right], \\\\
+\\frac{\\bar{\\rho}}{2} \\Re \\left(v_{\\mathrm{w}, r} \\chi^*_{\\mathrm{w}, r}\\right) & = \\frac{f}{\\hat{\\omega}_{r}} \\frac{m_r}{\\left|\\boldsymbol{k}_{r}\\right|^2} \\mathcal{A}_r \\left[m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r - k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r\\right], \\\\
+\\frac{\\bar{\\rho}}{2} \\Re \\left(w_{\\mathrm{w}, r} \\chi^*_{\\mathrm{w}, r}\\right) & = \\frac{f}{\\hat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r\\right].
 \\end{align*}
 ```
 
@@ -103,7 +113,7 @@ The zonal, meridional, and vertical fluxes are given by
 
 # See also
 
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.leading_order_tracer_fluxes`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 """
 function compute_gw_tracer_integrals! end
 
@@ -121,7 +131,7 @@ function compute_gw_tracer_integrals!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup compute_gw_tracer_integrals!(
@@ -140,7 +150,7 @@ function compute_gw_tracer_integrals!(
         k,
         Val(tracer_setup),
     )
-    return
+    nothing
 end
 
 function compute_gw_tracer_integrals!(
@@ -158,8 +168,8 @@ function compute_gw_tracer_integrals!(
     j::Integer,
     k::Integer,
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_gw_tracer_integrals!(
@@ -177,55 +187,23 @@ end
     j::Integer,
     k::Integer,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
     (; leading_order_impact) = state.namelists.tracer
 
     if fc == 0.0 || !leading_order_impact
-        return
+        return nothing
     end
 
-    uchi0[i, j, k] += leading_order_tracer_fluxes(
-        state,
-        fc,
-        omir,
-        wnrk,
-        wnrl,
-        wnrm,
-        wadr,
-        xlc,
-        ylc,
-        zlc,
-        UChi(),
-    )
+    coeff = fc / omir * wnrm * wadr / (wnrk^2.0 + wnrl^2.0 + wnrm^2.0)
 
-    vchi0[i, j, k] += leading_order_tracer_fluxes(
-        state,
-        fc,
-        omir,
-        wnrk,
-        wnrl,
-        wnrm,
-        wadr,
-        xlc,
-        ylc,
-        zlc,
-        VChi(),
-    )
+    dchidx = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDX())
+    dchidy = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDY())
+    dchidz = interpolate_mean_flow(xlc, ylc, zlc, state, DChiDZ())
 
-    wchi0[i, j, k] += leading_order_tracer_fluxes(
-        state,
-        fc,
-        omir,
-        wnrk,
-        wnrl,
-        wnrm,
-        wadr,
-        xlc,
-        ylc,
-        zlc,
-        WChi(),
-    )
+    uchi0[i, j, k] += coeff * (wnrl * dchidz - wnrm * dchidy)
+    vchi0[i, j, k] += coeff * (wnrm * dchidx - wnrk * dchidz)
+    wchi0[i, j, k] += coeff * (wnrk * dchidy - wnrl * dchidx)
 
-    return
+    nothing
 end

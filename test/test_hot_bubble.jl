@@ -2,16 +2,16 @@ function test_hot_bubble()
     l2 = (
         n2 = 0.0f0,
         p = 30010.416f0,
-        pip = 0.0044958885f0,
+        pip = 0.0044927574f0,
         rhobar = 70.73524f0,
-        rhop = 0.08934642f0,
+        rhop = 0.08934252f0,
         t = 300.0f0,
         thetabar = 26832.816f0,
-        thetap = 52.045616f0,
-        tke = 0.7188404f0,
-        us = 119.88122f0,
-        vs = 119.88122f0,
-        wts = 171.93732f0,
+        thetap = 52.06481f0,
+        tke = 1.1254265f0,
+        us = 119.83607f0,
+        vs = 119.83607f0,
+        wts = 171.91023f0,
         x = 12893.797f0,
         y = 12893.797f0,
         z = 516236.38f0,
@@ -20,16 +20,16 @@ function test_hot_bubble()
     linf = (
         n2 = 0.0f0,
         p = 341.38608f0,
-        pip = 0.0007016715f0,
+        pip = 0.0007011359f0,
         rhobar = 1.1379536f0,
         rhop = 0.009277864f0,
         t = 300.0f0,
         thetabar = 300.0f0,
         thetap = 5.0405197f0,
-        tke = 0.08789424f0,
-        us = 17.522026f0,
-        vs = 17.522026f0,
-        wts = 15.267317f0,
+        tke = 0.13543123f0,
+        us = 17.509645f0,
+        vs = 17.509645f0,
+        wts = 15.267013f0,
         x = 4750.0f0,
         y = 4750.0f0,
         z = 9750.0f0,
@@ -41,5 +41,5 @@ function test_hot_bubble()
         test_example(hot_bubble, keywords, reference; update)
     end
 
-    return
+    nothing
 end

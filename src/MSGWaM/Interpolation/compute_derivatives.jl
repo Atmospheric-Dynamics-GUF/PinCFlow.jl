@@ -202,12 +202,12 @@ function compute_derivatives end
     ku::Integer,
     phitype::DUDX,
 )::NTuple{2, <:AbstractFloat}
-    (; dx, dz, met) = state.grid
+    (; dx, dz, met13) = state.grid
     (; u) = state.variables.predictands
 
     phid =
         (u[i, j, kd] - u[i - 1, j, kd]) / dx +
-        met[i, j, kd, 1, 3] *
+        met13[i, j, kd] *
         0.25 *
         (
             u[i, j, kd + 1] + u[i - 1, j, kd + 1] - u[i, j, kd - 1] -
@@ -215,14 +215,14 @@ function compute_derivatives end
         ) / dz
     phiu =
         (u[i, j, ku] - u[i - 1, j, ku]) / dx +
-        met[i, j, ku, 1, 3] *
+        met13[i, j, ku] *
         0.25 *
         (
             u[i, j, ku + 1] + u[i - 1, j, ku + 1] - u[i, j, ku - 1] -
             u[i - 1, j, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -233,17 +233,17 @@ end
     ku::Integer,
     phitype::DUDY,
 )::NTuple{2, <:AbstractFloat}
-    (; dy, dz, met) = state.grid
+    (; dy, dz, met23) = state.grid
     (; u) = state.variables.predictands
 
     phid =
         (u[i, j + 1, kd] - u[i, j, kd]) / dy +
         0.25 *
         (
-            met[i, j, kd, 2, 3] +
-            met[i + 1, j, kd, 2, 3] +
-            met[i, j + 1, kd, 2, 3] +
-            met[i + 1, j + 1, kd, 2, 3]
+            met23[i, j, kd] +
+            met23[i + 1, j, kd] +
+            met23[i, j + 1, kd] +
+            met23[i + 1, j + 1, kd]
         ) *
         0.25 *
         (
@@ -254,10 +254,10 @@ end
         (u[i, j + 1, ku] - u[i, j, ku]) / dy +
         0.25 *
         (
-            met[i, j, ku, 2, 3] +
-            met[i + 1, j, ku, 2, 3] +
-            met[i, j + 1, ku, 2, 3] +
-            met[i + 1, j + 1, ku, 2, 3]
+            met23[i, j, ku] +
+            met23[i + 1, j, ku] +
+            met23[i, j + 1, ku] +
+            met23[i + 1, j + 1, ku]
         ) *
         0.25 *
         (
@@ -265,7 +265,7 @@ end
             u[i, j + 1, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -342,7 +342,7 @@ end
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -353,17 +353,17 @@ end
     ku::Integer,
     phitype::DVDX,
 )::NTuple{2, <:AbstractFloat}
-    (; dx, dz, met) = state.grid
+    (; dx, dz, met13) = state.grid
     (; v) = state.variables.predictands
 
     phid =
         (v[i + 1, j, kd] - v[i, j, kd]) / dx +
         0.25 *
         (
-            met[i, j, kd, 1, 3] +
-            met[i + 1, j, kd, 1, 3] +
-            met[i, j + 1, kd, 1, 3] +
-            met[i + 1, j + 1, kd, 1, 3]
+            met13[i, j, kd] +
+            met13[i + 1, j, kd] +
+            met13[i, j + 1, kd] +
+            met13[i + 1, j + 1, kd]
         ) *
         0.25 *
         (
@@ -374,10 +374,10 @@ end
         (v[i + 1, j, ku] - v[i, j, ku]) / dx +
         0.25 *
         (
-            met[i, j, ku, 1, 3] +
-            met[i + 1, j, ku, 1, 3] +
-            met[i, j + 1, ku, 1, 3] +
-            met[i + 1, j + 1, ku, 1, 3]
+            met13[i, j, ku] +
+            met13[i + 1, j, ku] +
+            met13[i, j + 1, ku] +
+            met13[i + 1, j + 1, ku]
         ) *
         0.25 *
         (
@@ -385,7 +385,7 @@ end
             v[i + 1, j, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -396,12 +396,12 @@ end
     ku::Integer,
     phitype::DVDY,
 )::NTuple{2, <:AbstractFloat}
-    (; dy, dz, met) = state.grid
+    (; dy, dz, met23) = state.grid
     (; v) = state.variables.predictands
 
     phid =
         (v[i, j, kd] - v[i, j - 1, kd]) / dy +
-        met[i, j, kd, 2, 3] *
+        met23[i, j, kd] *
         0.25 *
         (
             v[i, j, kd + 1] + v[i, j - 1, kd + 1] - v[i, j, kd - 1] -
@@ -409,14 +409,14 @@ end
         ) / dz
     phiu =
         (v[i, j, ku] - v[i, j - 1, ku]) / dy +
-        met[i, j, ku, 2, 3] *
+        met23[i, j, ku] *
         0.25 *
         (
             v[i, j, ku + 1] + v[i, j - 1, ku + 1] - v[i, j, ku - 1] -
             v[i, j - 1, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -493,7 +493,7 @@ end
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -504,7 +504,7 @@ end
     ku::Integer,
     phitype::DChiDX,
 )::NTuple{2, <:AbstractFloat}
-    (; dx, dz, met) = state.grid
+    (; dx, dz, met13) = state.grid
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
@@ -523,7 +523,7 @@ end
     phid =
         (cr - cc) / dx +
         0.5 *
-        (met[i, j, kd, 1, 3] + met[i + 1, j, kd, 1, 3]) *
+        (met13[i, j, kd] + met13[i + 1, j, kd]) *
         0.25 *
         (cu + cru - cd - crd) / dz
 
@@ -541,11 +541,11 @@ end
     phiu =
         (cr - cc) / dx +
         0.5 *
-        (met[i, j, ku, 1, 3] + met[i + 1, j, ku, 1, 3]) *
+        (met13[i, j, ku] + met13[i + 1, j, ku]) *
         0.25 *
         (cu + cru - cd - crd) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -556,7 +556,7 @@ end
     ku::Integer,
     phitype::DChiDY,
 )::NTuple{2, <:AbstractFloat}
-    (; dy, dz, met) = state.grid
+    (; dy, dz, met23) = state.grid
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
@@ -575,7 +575,7 @@ end
     phid =
         (cf - cc) / dy +
         0.5 *
-        (met[i, j, kd, 2, 3] + met[i, j + 1, kd, 2, 3]) *
+        (met23[i, j, kd] + met23[i, j + 1, kd]) *
         0.25 *
         (cu + cfu - cd - cfd) / dz
 
@@ -593,11 +593,11 @@ end
     phiu =
         (cf - cc) / dy +
         0.5 *
-        (met[i, j, ku, 2, 3] + met[i, j + 1, ku, 2, 3]) *
+        (met23[i, j, ku] + met23[i, j + 1, ku]) *
         0.25 *
         (cu + cfu - cd - cfd) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -667,5 +667,5 @@ end
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end
