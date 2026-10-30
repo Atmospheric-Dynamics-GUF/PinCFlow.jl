@@ -179,7 +179,8 @@ end
     constants::Constants,
     domain::Domain,
 )::Grid
-    (; x_size, y_size, z_size, nbz) = namelists.domain
+    (; x_size, y_size, z_size, nbz, vertical_boundary_condition) =
+        namelists.domain
     (; vertical_grid_stretching) = namelists.grid
     (; nxx, nyy, nzz, io, jo, ko, i0, i1, j0, j1, k0, comm) = domain
     (; lref) = constants
@@ -212,101 +213,122 @@ end
         z[k] = (k - k0) * dz + dz / 2
     end
 
-    # Allocate the stretched vertical grid.
-    (ztildes, zs) = (zeros(z_size + 2 * nbz) for i in 1:2)
-
-    # Compute the stretched vertical grid.
-    for k in 1:(z_size + 2 * nbz)
-        level = z[k] + 0.5 * dz
-        if level < 0
-            ztildes[k] = -vertical_grid_stretching(-level * lref) / lref
-        elseif level > lz
-            ztildes[k] =
-                2 * lz -
-                vertical_grid_stretching((2 * lz - level) * lref) / lref
-        else
-            ztildes[k] = vertical_grid_stretching(level * lref) / lref
-        end
-    end
-    !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = <=) &&
-        error("Impossible vertical grid stretching!")
-    for k in 2:(z_size + 2 * nbz)
-        zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
-    end
-    zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
-
-    # Compute the topography.
-    (hb, hw, kh, lh) = compute_topography(namelists, constants, domain, x, y)
-
     # Allocate Jacobian and metric tensor.
     jac = zeros(nxx, nyy, nzz)
     (met13, met23, met33) = (zeros(nxx, nyy, nzz) for i in 1:3)
-
-    # Set the start index for the computation of the Jacobian and metric tensor.
-    kmin = ko == 0 ? 2 : 1
-    kmax = nzz
-
-    # Compute the Jacobian.
-    for k in kmin:kmax
-        jac[:, :, k] .=
-            (lz .- hb) ./ lz .* (ztildes[ko + k] .- ztildes[ko + k - 1]) ./ dz
-    end
-    ko == 0 && (jac[:, :, 1] .= jac[:, :, 2 * nbz])
-
-    # Compute the metric tensor.
-
-    for k in kmin:kmax, j in 1:nyy, i in i0:i1
-        met13[i, j, k] =
-            (hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx) * (zs[ko + k] - lz) /
-            (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
-    end
-    set_zonal_boundaries_of_field!(met13, namelists, domain)
-    ko == 0 && (
-        met13[:, :, 1] .=
-            met13[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
-    )
-
-    for k in 2:nzz, j in j0:j1, i in 1:nxx
-        met23[i, j, k] =
-            (hb[i, j + 1] - hb[i, j - 1]) / (2.0 * dy) * (zs[ko + k] - lz) /
-            (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
-    end
-    set_meridional_boundaries_of_field!(met23, namelists, domain)
-    ko == 0 && (
-        met23[:, :, 1] .=
-            met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
-    )
-
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
-        met33[i, j, k] =
-            (
-                (lz / (lz - hb[i, j]))^2.0 +
-                ((zs[ko + k] - lz) / (lz - hb[i, j]))^2.0 * (
-                    ((hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx))^2.0 +
-                    ((hb[i, j + 1] - hb[i, j - 1]) / (2.0 * dy))^2.0
-                )
-            ) * (dz / (ztildes[ko + k] - ztildes[ko + k - 1]))^2.0
-    end
-    ko == 0 && for j in j0:j1, i in i0:i1
-        met33[i, j, 1] =
-            (
-                (lz / (lz - hb[i, j]))^2.0 +
-                ((zs[1] - lz) / (lz - hb[i, j]))^2.0 * (
-                    ((hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx))^2.0 +
-                    ((hb[i, j + 1] - hb[i, j - 1]) / (2.0 * dy))^2.0
-                )
-            ) * (dz / (ztildes[2 * nbz] - ztildes[2 * nbz - 1]))^2.0
-    end
-    set_zonal_boundaries_of_field!(met33, namelists, domain)
-    set_meridional_boundaries_of_field!(met33, namelists, domain)
+    met = zeros(nxx, nyy, nzz, 3, 3)
 
     # Allocate the physical layers.
     (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
 
-    # Compute the physical layers.
-    for k in 1:nzz
-        zctilde[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
-        zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
+    if vertical_boundary_condition === :Periodic
+        @warn "Input topographies and grid stretching are ignored for periodic vertical boundary conditions."
+        met33 .= 1.0
+        
+        jac .= 1.0
+
+        # Compute the physical layers.
+        for k in 1:nzz
+            zctilde[:, :, k] .= z[ko + k] + 0.5 * dz
+            zc[:, :, k] .= z[ko + k]
+        end
+
+        hb = zeros(0, 0)
+        (hw, kh, lh) = (zeros(0, 0, 0) for i in 1:3)
+    else
+        # Allocate the stretched vertical grid.
+        (ztildes, zs) = (zeros(z_size + 2 * nbz) for i in 1:2)
+
+        # Compute the stretched vertical grid.
+        for k in 1:(z_size + 2 * nbz)
+            level = z[k] + 0.5 * dz
+            if level < 0
+                ztildes[k] = -vertical_grid_stretching(-level * lref) / lref
+            elseif level > lz
+                ztildes[k] =
+                    2 * lz -
+                    vertical_grid_stretching((2 * lz - level) * lref) / lref
+            else
+                ztildes[k] = vertical_grid_stretching(level * lref) / lref
+            end
+        end
+        !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = (<=)) &&
+            error("Impossible vertical grid stretching!")
+        for k in 2:(z_size + 2 * nbz)
+            zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
+        end
+        zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
+
+        # Compute the topography.
+        (hb, hw, kh, lh) =
+            compute_topography(namelists, constants, domain, x, y)
+        # Set the start index for the computation of the Jacobian and metric tensor.
+        kmin = ko == 0 ? 2 : 1
+        kmax = nzz
+
+        # Compute the Jacobian.
+        for k in kmin:kmax
+            jac[:, :, k] .=
+                (lz .- hb) ./ lz .* (ztildes[ko + k] .- ztildes[ko + k - 1]) ./
+                dz
+        end
+        ko == 0 && (jac[:, :, 1] .= jac[:, :, 2 * nbz])
+
+        # Compute the metric tensor.
+
+        for k in kmin:kmax, j in 1:nyy, i in i0:i1
+            met13[i, j, k] =
+                (hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx) * (zs[ko + k] - lz) /
+                (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
+        end
+        set_zonal_boundaries_of_field!(met13, namelists, domain)
+        ko == 0 && (
+            met13[:, :, 1] .=
+                met13[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
+        )
+
+        for k in 2:nzz, j in j0:j1, i in 1:nxx
+            met23[i, j, k] =
+                (hb[i, j + 1] - hb[i, j - 1]) / (2.0 * dy) * (zs[ko + k] - lz) /
+                (lz - hb[i, j]) * dz / (ztildes[ko + k] - ztildes[ko + k - 1])
+        end
+        set_meridional_boundaries_of_field!(met23, namelists, domain)
+        ko == 0 && (
+            met23[:, :, 1] .=
+                met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
+        )
+
+        for k in kmin:kmax, j in j0:j1, i in i0:i1
+            met33[i, j, k] =
+                (
+                    (lz / (lz - hb[i, j]))^2.0 +
+                    ((zs[ko + k] - lz) / (lz - hb[i, j]))^2.0 * (
+                        ((hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx))^2.0 +
+                        ((hb[i, j + 1] - hb[i, j - 1]) / (2.0 * dy))^2.0
+                    )
+                ) * (dz / (ztildes[ko + k] - ztildes[ko + k - 1]))^2.0
+        end
+        ko == 0 && for j in j0:j1, i in i0:i1
+            met33[i, j, 1] =
+                (
+                    (lz / (lz - hb[i, j]))^2.0 +
+                    ((zs[1] - lz) / (lz - hb[i, j]))^2.0 * (
+                        ((hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx))^2.0 +
+                        ((hb[i, j + 1] - hb[i, j - 1]) / (2.0 * dy))^2.0
+                    )
+                ) * (dz / (ztildes[2 * nbz] - ztildes[2 * nbz - 1]))^2.0
+        end
+        set_zonal_boundaries_of_field!(met33, namelists, domain)
+        set_meridional_boundaries_of_field!(met33, namelists, domain)
+
+        # Allocate the physical layers.
+        (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
+
+        # Compute the physical layers.
+        for k in 1:nzz
+            zctilde[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
+            zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
+        end
     end
 
     # Compute the minimum layer depth.

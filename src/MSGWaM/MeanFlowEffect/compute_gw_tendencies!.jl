@@ -43,7 +43,7 @@ function compute_gw_tendencies! end
     (; impact_altitude) = state.namelists.wkb
     (; tref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, zc, jac, met13, met23, met33) = state.grid
+    (; dx, dy, dz, zc, jac, met13, met23) = state.grid
     (; rhobar, thetabar) = state.atmosphere
     (; rho) = state.variables.predictands
     (; integrals, tendencies) = state.wkb

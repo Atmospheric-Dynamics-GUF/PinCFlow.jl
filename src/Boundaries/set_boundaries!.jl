@@ -18,7 +18,7 @@ Enforce all boundary conditions for the gravity wave integral and tendency field
 set_boundaries!(state::State, variables::BoundaryFluxes)::Nothing
 ```
 
-Enforce vertical boundary conditions for flux fields (horizontal boundaries are taken care of at the reconstruction stage).
+Enforce boundary conditions for flux fields (horizontal boundaries are taken care of at the reconstruction stage).
 
 ```julia
 set_boundaries!(
@@ -38,7 +38,7 @@ set_boundaries!(
 )::Nothing
 ```
 
-Enforce vertical boundary conditions for turbulence flux fields (horizontal boundaries are taken care of at the reconstruction stage).
+Enforce boundary conditions for turbulence flux fields (horizontal boundaries are taken care of at the reconstruction stage).
 
 # Arguments
 

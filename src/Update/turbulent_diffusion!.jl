@@ -302,6 +302,7 @@ function turbulent_diffusion!(
         state.namelists.turbulence
 
     check_tke!(state)
+    set_boundaries!(state, BoundaryPredictands(), TKE())
 
     if momentum_coupling
         turbulent_diffusion!(state, dt, U())
@@ -432,13 +433,7 @@ end
     u[i0:i1, j0:j1, k0:k1] .= fth
 
     set_zonal_boundaries_of_field!(u, namelists, domain)
-    set_vertical_boundaries_of_field!(
-        u,
-        namelists,
-        domain,
-        +;
-        layers = (1, 1, 1),
-    )
+    set_vertical_boundaries_of_field!(u, namelists, domain; layers = (1, 1, 1))
 
     nothing
 end
@@ -557,13 +552,7 @@ end
     v[i0:i1, j0:j1, k0:k1] .= fth
 
     set_meridional_boundaries_of_field!(v, namelists, domain)
-    set_vertical_boundaries_of_field!(
-        v,
-        namelists,
-        domain,
-        +;
-        layers = (1, 1, 1),
-    )
+    set_vertical_boundaries_of_field!(v, namelists, domain; layers = (1, 1, 1))
 
     nothing
 end
@@ -575,7 +564,7 @@ end
 )::Nothing
     (; u, v, w) = state.variables.predictands
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met13, met23, met33, dz) = state.grid
+    (; jac, met13, met23, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
 
     dtdz2 = dt / (2.0 * dz^2.0)

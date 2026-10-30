@@ -113,10 +113,10 @@ function compute_pressure_gradient end
     k::Integer,
     variable::U,
 )::AbstractFloat
-    (; z_size, nbz) = state.namelists.domain
+    (; z_size, nbz, vertical_boundary_condition) = state.namelists.domain
     (; kappainv, mainv2) = state.constants
     (; ko, k0) = state.domain
-    (; dx, dz, met13, met23, met33) = state.grid
+    (; dx, dz, met13) = state.grid
     (; rhobar, pbar) = state.atmosphere
     (; rho) = state.variables.predictands
 
@@ -129,7 +129,7 @@ function compute_pressure_gradient end
     met13edger = 0.5 * (met13[i, j, k] + met13[i + 1, j, k])
 
     # Compute the pressure gradient component.
-    if ko + k == k0
+    if ko + k == k0 && vertical_boundary_condition === :SolidWall
         pipuuedger = 0.5 * (pip[i, j, k + 2] + pip[i + 1, j, k + 2])
         pipuedger = 0.5 * (pip[i, j, k + 1] + pip[i + 1, j, k + 1])
         pipedger = 0.5 * (pip[i, j, k] + pip[i + 1, j, k])
@@ -140,7 +140,9 @@ function compute_pressure_gradient end
                 (-pipuuedger + 4.0 * pipuedger - 3.0 * pipedger) *
                 0.5 / dz
             )
-    elseif ko + k == z_size + nbz
+    elseif (
+        ko + k == z_size + nbz && vertical_boundary_condition === :SolidWall
+    )
         pipddedger = 0.5 * (pip[i, j, k - 2] + pip[i + 1, j, k - 2])
         pipdedger = 0.5 * (pip[i, j, k - 1] + pip[i + 1, j, k - 1])
         pipedger = 0.5 * (pip[i, j, k] + pip[i + 1, j, k])
@@ -172,7 +174,7 @@ end
     k::Integer,
     variable::V,
 )::AbstractFloat
-    (; z_size, nbz) = state.namelists.domain
+    (; z_size, nbz, vertical_boundary_condition) = state.namelists.domain
     (; kappainv, mainv2) = state.constants
     (; ko, k0) = state.domain
     (; dy, dz, met13, met23, met33) = state.grid
@@ -188,7 +190,7 @@ end
     met23edgef = 0.5 * (met23[i, j, k] + met23[i, j + 1, k])
 
     # Compute the pressure gradient component.
-    if ko + k == k0
+    if ko + k == k0 && vertical_boundary_condition === :SolidWall
         pipuuedgef = 0.5 * (pip[i, j, k + 2] + pip[i, j + 1, k + 2])
         pipuedgef = 0.5 * (pip[i, j, k + 1] + pip[i, j + 1, k + 1])
         pipedgef = 0.5 * (pip[i, j, k] + pip[i, j + 1, k])
@@ -199,7 +201,9 @@ end
                 (-pipuuedgef + 4.0 * pipuedgef - 3.0 * pipedgef) *
                 0.5 / dz
             )
-    elseif ko + k == z_size + nbz
+    elseif (
+        ko + k == z_size + nbz && vertical_boundary_condition === :SolidWall
+    )
         pipddedgef = 0.5 * (pip[i, j, k - 2] + pip[i, j + 1, k - 2])
         pipdedgef = 0.5 * (pip[i, j, k - 1] + pip[i, j + 1, k - 1])
         pipedgef = 0.5 * (pip[i, j, k] + pip[i, j + 1, k])

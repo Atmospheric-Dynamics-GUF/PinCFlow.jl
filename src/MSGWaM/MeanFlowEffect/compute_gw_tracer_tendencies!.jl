@@ -96,7 +96,7 @@ end
     tracer_setup::Val{:TracerOn},
 )::Nothing
     (; x_size, y_size) = state.namelists.domain
-    (; dx, dy, dz, jac, met13, met23, met33) = state.grid
+    (; dx, dy, dz, jac, met13, met23) = state.grid
     (; uchi0, vchi0, wchi0) = state.tracer.tracerwkbintegrals
     (; dchidt0) = state.tracer.tracerwkbtendencies
     (; rho) = state.variables.predictands

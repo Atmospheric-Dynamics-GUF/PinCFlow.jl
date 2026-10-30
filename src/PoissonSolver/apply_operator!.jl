@@ -10,7 +10,7 @@ apply_operator!(
 
 Apply the total linear operator to the solution array `sin`.
 
-Before the operator is applied, the boundary/halo values of `sin` are set, using `set_zonal_boundaries_of_field!`, `set_meridional_boundaries_of_field!` and `set_vertical_halos_of_field!`. Note that in the vertical, only halo values need to be set (if the domain is parallelized in that direction), due to the solid-wall boundaries.
+Before the operator is applied, the boundary/halo values of `sin` are set, using `set_zonal_boundaries_of_field!`, `set_meridional_boundaries_of_field!` and `set_vertical_halos_of_field!` or `set_vertical_boundaries_of_field!`.
 
 ```julia
 apply_operator!(
@@ -41,6 +41,8 @@ Before the operator is applied, the boundary/halo values of `sin` are set, in th
 
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+
   - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """
 function apply_operator! end
@@ -52,7 +54,7 @@ function apply_operator! end
     state::State,
 )::Nothing
     (; namelists, domain) = state
-    (; npz) = state.namelists.domain
+    (; npz, vertical_boundary_condition) = state.namelists.domain
     (; nx, ny, nz, i0, i1, j0, j1, k0, k1) = state.domain
     (;
         ac_b,
@@ -103,6 +105,12 @@ function apply_operator! end
             namelists,
             domain;
             layers = (1, 1, 1),
+        )
+        set_vertical_boundaries_of_field!(
+            s,
+            namelists,
+            domain;
+            layers = (1, 1, 2),
         )
     end
 
@@ -327,6 +335,12 @@ end
             namelists,
             domain;
             layers = (1, 1, 1),
+        )
+        set_vertical_boundaries_of_field!(
+            s,
+            namelists,
+            domain;
+            layers = (1, 1, 2),
         )
     end
 

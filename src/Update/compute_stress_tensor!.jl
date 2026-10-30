@@ -43,7 +43,7 @@ function compute_stress_tensor! end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; pi11, pi12, pi13, pi22, pi23, pi33) = state.variables.stress_tensor
     (; u, v, w) = state.variables.predictands
-    (; dx, dy, dz, jac, met13, met23, met33) = state.grid
+    (; dx, dy, dz, jac, met13, met23) = state.grid
     (; re) = state.constants
 
     if 1 / re <= eps()

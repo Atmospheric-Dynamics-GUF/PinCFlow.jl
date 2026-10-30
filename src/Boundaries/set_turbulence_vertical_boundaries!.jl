@@ -24,6 +24,26 @@ set_turbulence_vertical_boundaries!(
 )::Nothing
 ```
 
+Enforce vertical boundary conditions for turbulence fluxes by dispatching to the vertical boundary condition specific method.
+
+```julia
+set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:Periodic},
+)::Nothing
+```
+
+Return for periodic vertical boundary conditions.
+
+```julia
+set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:SolidWall},
+)::Nothing
+```
+
 Set the vertical turbulent kinetic energy fluxes at the vertical boundaries to zero.
 
 ```julia
@@ -73,6 +93,8 @@ Enforce vertical boundary conditions for turbulence WKB tendencies.
 
   - `turbulence_scheme`: General turbulence parameterization configuration.
 
+  - `vertical_boundary_condition`: Vertical boundary conditions.
+
 # See also
 
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
@@ -91,7 +113,6 @@ function set_turbulence_vertical_boundaries!(
             getfield(turbulencepredictands, field),
             namelists,
             domain,
-            +,
         )
     end
 
@@ -116,9 +137,31 @@ function set_turbulence_vertical_boundaries!(
     nothing
 end
 
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+)::Nothing
+    (; vertical_boundary_condition) = state.namelists.domain
+    @dispatch_vertical_boundary_condition set_turbulence_vertical_boundaries!(
+        state,
+        variables,
+        Val(vertical_boundary_condition),
+    )
+    nothing
+end
+
+function set_turbulence_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:Periodic},
+)::Nothing 
+    nothing
+end
+
 @ivy function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:SolidWall},
 )::Nothing
     (; nz, ko, k0, k1) = state.domain
     (; z_size) = state.namelists.domain
@@ -146,8 +189,8 @@ function set_turbulence_vertical_boundaries!(
     (; turbulence_scheme) = state.namelists.turbulence
 
     @dispatch_turbulence_scheme set_turbulence_vertical_boundaries!(
-        state::State,
-        variables::AbstractBoundaryWKBVariables,
+        state,
+        variables,
         Val(turbulence_scheme),
     )
 

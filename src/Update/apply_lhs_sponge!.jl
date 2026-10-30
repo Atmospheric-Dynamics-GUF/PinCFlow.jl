@@ -509,7 +509,7 @@ end
     (; layer_comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar, horizontal_mean) = state.sponge
     (; w) = state.variables.predictands
-    (; x, y, zc, jac, met13, met23, met33) = state.grid
+    (; x, y, zc, jac, met13, met23) = state.grid
 
     (ii, jj, kk) = (i0:i1, j0:j1, k0:k1)
 
