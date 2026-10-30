@@ -209,47 +209,59 @@ end
         z[k] = (k - k0) * dz + dz / 2
     end
 
-    # Allocate the stretched vertical grid.
-    (ztildes, zs) = (zeros(z_size + 2 * nbz) for i in 1:2)
-
-    # Compute the stretched vertical grid.
-    for k in 1:(z_size + 2 * nbz)
-        level = z[k] + 0.5 * dz
-        if level < 0
-            ztildes[k] = -vertical_grid_stretching(-level * lref) / lref
-        elseif level > lz
-            ztildes[k] =
-                2 * lz -
-                vertical_grid_stretching((2 * lz - level) * lref) / lref
-        else
-            ztildes[k] = vertical_grid_stretching(level * lref) / lref
-        end
-    end
-    !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = <=) &&
-        error("Impossible vertical grid stretching!")
-    for k in 2:(z_size + 2 * nbz)
-        zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
-    end
-    zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
-
-    # Compute the topography.
-    (hb, hw, kh, lh) = compute_topography(namelists, constants, domain, x, y)
-
     # Allocate Jacobian and metric tensor.
     jac = zeros(nxx, nyy, nzz)
     (met13, met23, met33) = (zeros(nxx, nyy, nzz) for i in 1:3)
     met = zeros(nxx, nyy, nzz, 3, 3)
 
+    # Allocate the physical layers.
+    (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
+
     if vertical_boundary_condition === :Periodic
+        @warn "Input topographies and grid stretching are ignored for periodic vertical boundary conditions."
 
         # Compute the metric tensor.
-
         met[:, :, :, 1, 1] .= 1.0
         met[:, :, :, 2, 2] .= 1.0
         met[:, :, :, 3, 3] .= 1.0
 
         jac .= 1.0
+
+        # Compute the physical layers.
+        for k in 1:nzz
+            zctilde[:, :, k] .= z[ko + k] + 0.5 * dz
+            zc[:, :, k] .= z[ko + k]
+        end
+
+        hb = zeros(0, 0)
+        (hw, kh, lh) = (zeros(0, 0, 0) for i in 1:3)
     else
+        # Allocate the stretched vertical grid.
+        (ztildes, zs) = (zeros(z_size + 2 * nbz) for i in 1:2)
+
+        # Compute the stretched vertical grid.
+        for k in 1:(z_size + 2 * nbz)
+            level = z[k] + 0.5 * dz
+            if level < 0
+                ztildes[k] = -vertical_grid_stretching(-level * lref) / lref
+            elseif level > lz
+                ztildes[k] =
+                    2 * lz -
+                    vertical_grid_stretching((2 * lz - level) * lref) / lref
+            else
+                ztildes[k] = vertical_grid_stretching(level * lref) / lref
+            end
+        end
+        !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = <=) &&
+            error("Impossible vertical grid stretching!")
+        for k in 2:(z_size + 2 * nbz)
+            zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
+        end
+        zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
+
+        # Compute the topography.
+        (hb, hw, kh, lh) =
+            compute_topography(namelists, constants, domain, x, y)
         # Set the start index for the computation of the Jacobian and metric tensor.
         kmin = ko == 0 ? 2 : 1
         kmax = nzz
@@ -318,15 +330,12 @@ end
         set_zonal_boundaries_of_field!(met33, namelists, domain)
         set_meridional_boundaries_of_field!(met33, namelists, domain)
         met[:, :, :, 3, 3] .= met33
-    end
 
-    # Allocate the physical layers.
-    (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
-
-    # Compute the physical layers.
-    for k in 1:nzz
-        zctilde[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
-        zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
+        # Compute the physical layers.
+        for k in 1:nzz
+            zctilde[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
+            zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
+        end
     end
 
     # Compute the minimum layer depth.

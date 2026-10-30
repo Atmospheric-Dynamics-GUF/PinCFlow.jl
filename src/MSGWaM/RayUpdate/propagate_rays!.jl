@@ -201,7 +201,7 @@ end
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 - 1 : k0
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 - 1 : k0
     kmax = k1
 
     # Initialize the WKB increments and maximum group velocities at the first
@@ -275,13 +275,20 @@ end
             # Determine if horizontal propagation and refraction are allowed.
             multi_column = wkb_mode === Val(:MultiColumn)
             launch_layer = k == k0 - 1
-            blocked_layer = blocking && zr1 < hb[i, j] + deltazb[i, j] / 2
+            blocked_layer =
+                vertical_boundary_condition === :SolidWall &&
+                blocking &&
+                zr1 < hb[i, j] + deltazb[i, j] / 2
+
             zonal_propagation =
                 x_size > 1 && multi_column && !launch_layer && !blocked_layer
             meridional_propagation =
                 y_size > 1 && multi_column && !launch_layer && !blocked_layer
             refraction =
-                zr > impact_altitude / lref && !launch_layer && !blocked_layer
+                vertical_boundary_condition === :SolidWall &&
+                zr > impact_altitude / lref &&
+                !launch_layer &&
+                !blocked_layer
 
             # Compute intrinsic zonal group velocity.
             if x_size > 1

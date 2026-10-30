@@ -134,7 +134,7 @@ end
     (; lx, dx) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 : k0 - 1
     kmax =
         (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
@@ -170,7 +170,7 @@ end
     (; ly, dy) = state.grid
     (; nray_wrk, nray, rays) = state.wkb
 
-    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 : k0 - 1
     kmax =
         (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
@@ -206,7 +206,7 @@ end
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; nray_wrk, nray, rays) = state.wkb
 
-    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 : k0 - 1
     kmax =
         (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1

@@ -427,13 +427,7 @@ end
     u[i0:i1, j0:j1, k0:k1] .= fth
 
     set_zonal_boundaries_of_field!(u, namelists, domain)
-    set_vertical_boundaries_of_field!(
-        u,
-        namelists,
-        domain,
-        +;
-        layers = (1, 1, 1),
-    )
+    set_vertical_boundaries_of_field!(u, namelists, domain; layers = (1, 1, 1))
     return
 end
 
@@ -547,13 +541,7 @@ end
     v[i0:i1, j0:j1, k0:k1] .= fth
 
     set_meridional_boundaries_of_field!(v, namelists, domain)
-    set_vertical_boundaries_of_field!(
-        v,
-        namelists,
-        domain,
-        +;
-        layers = (1, 1, 1),
-    )
+    set_vertical_boundaries_of_field!(v, namelists, domain; layers = (1, 1, 1))
     return
 end
 

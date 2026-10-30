@@ -46,6 +46,26 @@ set_tracer_vertical_boundaries!(
 )
 ```
 
+Enforce vertical boundary conditions for vertical tracer fluxes by dispatching to the vertical boundary condition specific method.
+
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:Periodic},
+)
+```
+
+Return for periodic vertical boundary conditions.
+
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:SolidWall},
+)
+```
+
 Enforce vertical boundary conditions for vertical tracer fluxes.
 
 ```julia
@@ -88,6 +108,8 @@ Enforce vertical boundary conditions for tracer WKB tendencies.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
+  - `vertical_boundary_condition`: Vertical boundary conditions.
+
 # See also
 
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
@@ -127,8 +149,8 @@ function set_tracer_vertical_boundaries!(
         set_vertical_boundaries_of_field!(
             getfield(tracerpredictands, field),
             namelists,
-            domain,
-            -,
+            domain;
+            mode = -,
         )
     end
 
@@ -154,10 +176,33 @@ function set_tracer_vertical_boundaries!(
     return
 end
 
-@ivy function set_tracer_vertical_boundaries!(
+function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     tracer_setup::Val{:TracerOn},
+)
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    @dispatch_vertical_boundary_condition set_tracer_vertical_boundaries!(
+        state,
+        variables,
+        Val(vertical_boundary_condition),
+    )
+    return
+end
+
+function set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:Periodic},
+)
+    return
+end
+
+@ivy function set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:SolidWall},
 )
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
@@ -206,8 +251,7 @@ function set_tracer_vertical_boundaries!(
             set_vertical_boundaries_of_field!(
                 getfield(tracerwkbintegrals, field),
                 namelists,
-                domain,
-                +;
+                domain;
                 layers = (1, 1, 1),
             )
         end
@@ -226,7 +270,7 @@ function set_tracer_vertical_boundaries!(
     (; leading_order_impact) = namelists.tracer
 
     if leading_order_impact
-        set_vertical_boundaries_of_field!(dchidt0, namelists, domain, +)
+        set_vertical_boundaries_of_field!(dchidt0, namelists, domain)
     end
 
     return

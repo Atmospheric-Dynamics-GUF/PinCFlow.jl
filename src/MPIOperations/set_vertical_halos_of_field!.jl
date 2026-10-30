@@ -10,8 +10,6 @@ set_vertical_halos_of_field!(
 
 Exchange a specified number of vertical halo values of a 3D array by performing MPI communication between downward and upward neighbor processes.
 
-The corresponding ghost-cell values are not changed.
-
 ```julia
 set_vertical_halos_of_field!(
     field::AbstractArray{<:AbstractFloat, 5},

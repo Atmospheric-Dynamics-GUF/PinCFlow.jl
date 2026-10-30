@@ -40,8 +40,9 @@ function include_blocked_flow_drag! end
     (; rho, u, v) = state.variables.predictands
     (; deltazb) = state.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
+    (; vertical_boundary_condition) = state.namelists.domain
 
-    if !blocking
+    if !blocking || vertical_boundary_condition === :Periodic
         return
     end
 

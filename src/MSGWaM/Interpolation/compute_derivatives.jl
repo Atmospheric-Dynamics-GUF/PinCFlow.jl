@@ -58,7 +58,7 @@ The derivative is given by
 \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_{i + 1 / 2, k + 1 / 2} = \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2}}{J_{i + 1 / 2, k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
-In the case of solid-wall vertical boundary conditions, the grid points beyond the vertical boundaries are set to zero.
+In the case of solid-wall vertical boundary conditions, the derivative is set to zero at grid points beyond the vertical boundaries.
 
 ```julia
 compute_derivatives(
@@ -117,7 +117,7 @@ The derivative is given by
 \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_{j + 1 / 2, k + 1 / 2} = \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2}}{J_{j + 1 / 2, k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
-In the case of solid-wall vertical boundary conditions, the grid points beyond the vertical boundaries are set to zero.
+In the case of solid-wall vertical boundary conditions, the derivative is set to zero at grid points beyond the vertical boundaries.
 
 ```julia
 compute_derivatives(
@@ -176,7 +176,7 @@ The derivative is given by
 \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_{k + 1 / 2} = \\frac{\\chi_{\\mathrm{b}, k + 1} - \\chi_\\mathrm{b}}{J_{k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
-In the case of solid-wall vertical boundary conditions, the grid points beyond the vertical boundaries are set to zero.
+In the case of solid-wall vertical boundary conditions, the derivative is set to zero at grid points beyond the vertical boundaries.
 
 # Arguments
 

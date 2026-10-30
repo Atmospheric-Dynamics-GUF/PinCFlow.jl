@@ -43,6 +43,17 @@ function read_input! end
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
     time = h5open(input_file, "r", comm) do file
+        vbc = file["namelists"]["domain"]["vertical_boundary_condition"][]
+
+        if (vbc === "Periodic" && vertical_boundary_condition === :Periodic) || (
+            vbc === "SolidWall" && vertical_boundary_condition === :SolidWall
+        )
+            return
+        else
+            error(
+                "Vertical boundary condition from input file doesn't match simulation setup.",
+            )
+        end
 
         # Read the time.
         time = file["t"][iin == -1 ? end : iin] / tref

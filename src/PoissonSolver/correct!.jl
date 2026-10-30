@@ -273,9 +273,9 @@ end
     (; dpip) = state.variables.increments
     (; w) = state.variables.predictands
 
-    kmin = (ko == 0 && vertical_boundary_condition === :Solid) ? k0 : k0 - 1
+    kmin = ko == 0 && vertical_boundary_condition === :Solid ? k0 : k0 - 1
     kmax =
-        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
+        ko + nz == z_size && vertical_boundary_condition === :SolidWall ?
         k1 - 1 : k1
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1

@@ -187,11 +187,17 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; rhop, u, v, w, pip) = state.variables.predictands
 
-    set_vertical_boundaries_of_field!(rhop, namelists, domain, -)
-    set_vertical_boundaries_of_field!(u, namelists, domain, +)
-    set_vertical_boundaries_of_field!(v, namelists, domain, +)
-    set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
-    set_vertical_boundaries_of_field!(pip, namelists, domain, +)
+    set_vertical_boundaries_of_field!(rhop, namelists, domain; mode = -)
+    set_vertical_boundaries_of_field!(u, namelists, domain)
+    set_vertical_boundaries_of_field!(v, namelists, domain)
+    set_vertical_boundaries_of_field!(
+        w,
+        namelists,
+        domain;
+        mode = -,
+        staggered = true,
+    )
+    set_vertical_boundaries_of_field!(pip, namelists, domain)
 
     return
 end
@@ -204,12 +210,18 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
-    set_vertical_boundaries_of_field!(rho, namelists, domain, -)
-    set_vertical_boundaries_of_field!(rhop, namelists, domain, -)
-    set_vertical_boundaries_of_field!(u, namelists, domain, +)
-    set_vertical_boundaries_of_field!(v, namelists, domain, +)
-    set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
-    set_vertical_boundaries_of_field!(pip, namelists, domain, +)
+    set_vertical_boundaries_of_field!(rho, namelists, domain; mode = -)
+    set_vertical_boundaries_of_field!(rhop, namelists, domain; mode = -)
+    set_vertical_boundaries_of_field!(u, namelists, domain)
+    set_vertical_boundaries_of_field!(v, namelists, domain)
+    set_vertical_boundaries_of_field!(
+        w,
+        namelists,
+        domain;
+        mode = -,
+        staggered = true,
+    )
+    set_vertical_boundaries_of_field!(pip, namelists, domain)
 
     return
 end
@@ -222,13 +234,19 @@ function set_vertical_boundaries!(
     (; namelists, domain) = state
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 
-    set_vertical_boundaries_of_field!(rho, namelists, domain, -)
-    set_vertical_boundaries_of_field!(rhop, namelists, domain, -)
-    set_vertical_boundaries_of_field!(u, namelists, domain, +)
-    set_vertical_boundaries_of_field!(v, namelists, domain, +)
-    set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
-    set_vertical_boundaries_of_field!(pip, namelists, domain, +)
-    set_vertical_boundaries_of_field!(p, namelists, domain, +)
+    set_vertical_boundaries_of_field!(rho, namelists, domain; mode = -)
+    set_vertical_boundaries_of_field!(rhop, namelists, domain; mode = -)
+    set_vertical_boundaries_of_field!(u, namelists, domain)
+    set_vertical_boundaries_of_field!(v, namelists, domain)
+    set_vertical_boundaries_of_field!(
+        w,
+        namelists,
+        domain;
+        mode = -,
+        staggered = true,
+    )
+    set_vertical_boundaries_of_field!(pip, namelists, domain)
+    set_vertical_boundaries_of_field!(p, namelists, domain)
 
     return
 end
@@ -271,10 +289,36 @@ function set_vertical_boundaries!(
     return
 end
 
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Val{:Boussinesq},
+)
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    @dispatch_vertical_boundary_condition set_vertical_boundaries!(
+        state,
+        variables,
+        model,
+        Val(vertical_boundary_condition),
+    )
+    return
+end
+
+function set_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    model::Val{:Boussinesq},
+    vertical_boundary_condition::Val{:Periodic},
+)
+    return
+end
+
 @ivy function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Val{:Boussinesq},
+    vertical_boundary_condition::Val{:SolidWall},
 )
     (; namelists, domain, variables) = state
     (; z_size) = namelists.domain
@@ -368,8 +412,7 @@ function set_vertical_boundaries!(
         set_vertical_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
-            domain,
-            +;
+            domain;
             layers = (1, 1, 1),
         )
     end
@@ -389,8 +432,7 @@ function set_vertical_boundaries!(
         set_vertical_boundaries_of_field!(
             getfield(integrals, field),
             namelists,
-            domain,
-            +;
+            domain;
             layers = (1, 1, 1),
         )
     end
@@ -411,7 +453,6 @@ function set_vertical_boundaries!(
             getfield(tendencies, field),
             namelists,
             domain,
-            +,
         )
     end
 
@@ -431,7 +472,6 @@ function set_vertical_boundaries!(
             getfield(tendencies, field),
             namelists,
             domain,
-            +,
         )
     end
 

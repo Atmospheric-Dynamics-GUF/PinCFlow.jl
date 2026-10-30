@@ -109,8 +109,8 @@ function set_vertical_boundaries_of_field! end
 function set_vertical_boundaries_of_field!(
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
-    domain::Domain,
-    mode::Function;
+    domain::Domain;
+    mode::Function = +,
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
 )
@@ -120,8 +120,8 @@ function set_vertical_boundaries_of_field!(
         field,
         namelists,
         domain,
-        mode,
         Val(vertical_boundary_condition);
+        mode,
         layers,
         staggered,
     )
@@ -133,8 +133,8 @@ end
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
     domain::Domain,
-    mode::Function,
     vertical_boundary_condition::Val{:Periodic};
+    mode::Function = +,
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
 )
@@ -164,8 +164,8 @@ end
     field::AbstractArray{<:Real, 3},
     namelists::Namelists,
     domain::Domain,
-    mode::Function,
     vertical_boundary_condition::Val{:SolidWall};
+    mode::Function = +,
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
     staggered = false,
 )

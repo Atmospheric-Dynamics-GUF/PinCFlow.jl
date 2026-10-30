@@ -701,7 +701,7 @@ end
         upper_gradient = compute_pressure_gradient(state, pip, i, j, k, W())
         upper_force = compute_volume_force(state, i, j, k, W())
 
-        if (ko + k == k0 && vertical_boundary_condition === :SolidWall)
+        if ko + k == k0 && vertical_boundary_condition === :SolidWall
             lower_gradient = 0.0
             lower_force = 0.0
         elseif (
@@ -877,7 +877,7 @@ end
 
     kmin = k0
     kmax =
-        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
 
     for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
@@ -1030,7 +1030,7 @@ end
 
     kmin = k0
     kmax =
-        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
 
     for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
@@ -1091,7 +1091,7 @@ end
         dw .= 0.0
     end
 
-    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 : k0 - 1
     kmax =
         (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
         k1 - 1 : k1
@@ -1239,7 +1239,7 @@ end
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
 
-    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 : k0 - 1
     kmax =
         (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
         k1 - 1 : k1
@@ -1295,7 +1295,7 @@ end
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
-    kmin = (ko == 0 || vertical_boundary_condition === :Periodic) ? k0 : k0 - 1
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 : k0 - 1
     kmax =
         (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
         k1 - 1 : k1

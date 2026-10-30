@@ -615,7 +615,7 @@ end
 
     kmin = k0
     kmax =
-        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
 
     #-----------------------------------------
@@ -921,7 +921,7 @@ end
 
     kmin = k0
     kmax =
-        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
 
     #-----------------------------------------

@@ -743,7 +743,7 @@ initializes an unresolved gravity-wave packet (i.e. one that is parameterized by
 
 ![](examples/results/wkb_wave_packet.svg)
 
-## WKB wave packet with vertical periodic boundary conditions 
+## WKB wave packet in a vertically periodic domain
 
 The function 
 
@@ -759,9 +759,9 @@ function wkb_wave_vertical_periodicity(;
     plot_file::AbstractString = "wkb_wave_vertical_periodicity.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    x_size::Integer = 40,
+    x_size::Integer = 20,
     y_size::Integer = 1,
-    z_size::Integer = 40,
+    z_size::Integer = 20,
 )
     lx = 300.0e3
     ly = 10.0e3

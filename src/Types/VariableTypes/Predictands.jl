@@ -92,7 +92,7 @@ end
 
     (rho, rhop, u, v, w, pip) = (zeros(nxx, nyy, nzz) for i in 1:6)
 
-    for k in 1:nzz, j in 1:nyy, i in 1:nxx
+    for k in k0:k1, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
@@ -127,11 +127,11 @@ end
         f!(pip, namelists, domain)
     end
 
-    set_vertical_boundaries_of_field!(rhop, namelists, domain, +)
-    set_vertical_boundaries_of_field!(u, namelists, domain, +)
-    set_vertical_boundaries_of_field!(v, namelists, domain, +)
-    set_vertical_boundaries_of_field!(w, namelists, domain, -)
-    set_vertical_boundaries_of_field!(pip, namelists, domain, +)
+    set_vertical_boundaries_of_field!(rhop, namelists, domain; mode = -)
+    set_vertical_boundaries_of_field!(u, namelists, domain)
+    set_vertical_boundaries_of_field!(v, namelists, domain)
+    set_vertical_boundaries_of_field!(w, namelists, domain; mode = -)
+    set_vertical_boundaries_of_field!(pip, namelists, domain)
 
     if model !== :Boussinesq
         rho .= rhop
@@ -156,7 +156,13 @@ end
                 jac[:, :, k] .* w[:, :, k + 1]
             ) ./ (jac[:, :, k] .+ jac[:, :, k + 1])
     end
-    set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
+    set_vertical_boundaries_of_field!(
+        w,
+        namelists,
+        domain;
+        mode = -,
+        staggered = true,
+    )
 
     @dispatch_model p = set_p(Val(model), pbar)
 

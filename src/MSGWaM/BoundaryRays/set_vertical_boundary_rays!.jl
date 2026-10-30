@@ -45,6 +45,11 @@ function set_vertical_boundary_rays! end
 
 function set_vertical_boundary_rays!(state::State)
     (; vertical_boundary_condition) = state.namelists.domain
+    (; namelists, domain) = state
+    (; nray) = state.wkb
+
+    set_vertical_halos_of_field!(nray, namelists, domain; layers = (1, 1, 1))
+    set_vertical_halo_rays!(state)
 
     @dispatch_vertical_boundary_condition set_vertical_boundary_rays!(
         state,
@@ -62,29 +67,6 @@ end
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lz, zc) = state.grid
     (; nray, rays) = state.wkb
-
-    # Set ray-volume count.
-    set_vertical_boundaries_of_field!(
-        nray,
-        namelists,
-        domain,
-        +;
-        layers = (1, 1, 1),
-    )
-
-    if z_size > 1
-        set_vertical_halo_rays!(state)
-    else
-        for j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k0 - 1]
-                copy_rays!(rays, r => r, i => i, j => j, k1 => k0 - 1)
-            end
-
-            for r in 1:nray[i, j, k1 + 1]
-                copy_rays!(rays, r => r, i => i, j => j, k0 => k1 + 1)
-            end
-        end
-    end
 
     if ko == 0
         for k in (k0 - 1):k0, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
@@ -130,15 +112,6 @@ end
     (; nray, rays) = state.wkb
 
     # Set ray-volume count and ray-volumes properties.
-    if z_size > 1
-        set_vertical_halos_of_field!(
-            nray,
-            namelists,
-            domain;
-            layers = (1, 1, 1),
-        )
-        set_vertical_halo_rays!(state)
-    end
 
     # Reflect ray volumes at the lower boundary.
     if ko == 0
