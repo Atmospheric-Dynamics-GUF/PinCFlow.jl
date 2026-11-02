@@ -68,9 +68,13 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:tke`: Turbulent kinetic energy.
 
+  - `:tape`: Turbulent available potential energy.
+
   - `:shear_production`: Turbulent kinetic energy production due to wind shear.
 
-  - `:buoyancy_production`: Turbulent kinetic energy production/destruction due to buoyancy.
+  - `:buoyancy_production`: Turbulent energy production/destruction due to buoyancy.
+
+  - `:convective_production`: Turbulent available potential energy production due to convection.
 
   - `:gw_shear::A`: Shear of unresolved gravity waves.
   
@@ -401,6 +405,35 @@ function write_output end
                         jj,
                         kk,
                     ] .* uref .^ 2 ./ tref
+            end
+
+            if state.namelists.turbulence.turbulence_scheme === :TTEScheme
+                if :tape in output_variables
+                    HDF5.set_extent_dims(
+                        file["tape"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["tape"][iid, jjd, kkd, iout] =
+                        state.turbulence.turbulencepredictands.tape[
+                            ii,
+                            jj,
+                            kk,
+                        ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .*
+                        (lref .^ 2.0) ./ (tref .^ 2.0)
+                end
+
+                if :convective_production in output_variables
+                    HDF5.set_extent_dims(
+                        file["convective_production"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["convective_production"][iid, jjd, kkd, iout] =
+                        state.turbulence.turbulenceauxiliaries.convective_production[
+                            ii,
+                            jj,
+                            kk,
+                        ] .* uref .^ 2 ./ tref
+                end
             end
 
             # Write GW shear.

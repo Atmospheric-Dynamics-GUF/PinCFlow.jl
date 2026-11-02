@@ -367,6 +367,34 @@ function create_output(state::State, machine_start_time::DateTime)::Nothing
                 )
             end
 
+            if state.namelists.turbulence.turbulence_scheme === :TTEScheme
+                if :tape in output_variables
+                    create_dataset(
+                        file,
+                        "tape",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+
+                if :convective_production in output_variables
+                    create_dataset(
+                        file,
+                        "convective_production",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+            end
+
             # Create dataset for GW shear.
             if state.namelists.turbulence.gw_coupling &&
                wkb_mode !== :NoWKB &&
@@ -686,6 +714,26 @@ function create_output(state::State, machine_start_time::DateTime)::Nothing
                 attributes(file["buoyancy_production"])["label"] =
                     L"\mathcal{B}\ [\mathrm{m^2\ s^{-3}}]"
                 attributes(file["buoyancy_production"])["long_name"] = "buoyancy production"
+            end
+
+            if state.namelists.turbulence.turbulence_scheme === :TTEScheme
+                if :tape in output_variables
+                    attributes(file["tape"])["units"] = "m^2*s^-2"
+                    attributes(file["tape"])["label"] =
+                        L"e_\\mathrm{p}\ [\mathrm{m^2\ s^{-2}}]"
+                    attributes(
+                        file["tape"],
+                    )["long_name"] = "mass-specific turbulent available potential energy"
+                end
+
+                if :convective_production in output_variables
+                    attributes(file["convective_production"])["units"] = "m^2*s^-3"
+                    attributes(file["convective_production"])["label"] =
+                        L"\mathcal{C}\ [\mathrm{m^2\ s^{-3}}]"
+                    attributes(
+                        file["convective_production"],
+                    )["long_name"] = "convective production"
+                end
             end
 
             if wkb_mode !== :NoWKB && state.namelists.turbulence.gw_coupling
