@@ -154,7 +154,7 @@ function set_turbulence_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     vertical_boundary_condition::Val{:Periodic},
-)::Nothing 
+)::Nothing
     nothing
 end
 

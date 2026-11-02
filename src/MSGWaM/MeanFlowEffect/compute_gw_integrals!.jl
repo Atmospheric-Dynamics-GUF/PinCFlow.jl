@@ -110,8 +110,7 @@ end
     wkb_mode::Val{:MultiColumn},
 )::Nothing
     (; domain, grid) = state
-    (; x_size, y_size, z_size) =
-        state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
@@ -340,8 +339,7 @@ end
     wkb_mode::Val{:SingleColumn},
 )::Nothing
     (; domain, grid) = state
-    (; x_size, y_size, z_size) =
-        state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
