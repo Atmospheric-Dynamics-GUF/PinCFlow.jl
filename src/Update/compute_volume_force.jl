@@ -233,7 +233,7 @@ end
     variable::W,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; jac, met13, met23, met33) = state.grid
+    (; jac, met13, met23) = state.grid
     (; dudt, dvdt) = state.wkb.tendencies
 
     (
