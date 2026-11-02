@@ -50,18 +50,22 @@ function include_blocked_flow_drag! end
                 zctilde[i, j, k - 1]
             ) / jac[i, j, k] / dz
         if fraction > 0
-            kh = compute_slope(state, i, j)
+            (kh, lh) = compute_slope(state, i, j)
 
-            up = @fuse (
-                (u[i, j, k] + u[i - 1, j, k]) * kh[1] +
-                (v[i, j, k] + v[i, j - 1, k]) * kh[2]
-            ) / 2 * kh / (kh[1]^2 + kh[2]^2)
+            projection =
+                (
+                    (u[i, j, k] + u[i - 1, j, k]) * kh +
+                    (v[i, j, k] + v[i, j - 1, k]) * lh
+                ) / 2
+
+            up = projection * kh / (kh^2 + lh^2)
+            vp = projection * lh / (kh^2 + lh^2)
 
             drag =
                 -drag_coefficient *
                 (rho[i, j, k] + rhobar[i, j, k]) *
-                sqrt(kh[1]^2 + kh[2]^2) / (2 * pi) *
-                sqrt(up[1]^2 + up[2]^2) *
+                sqrt(kh^2 + lh^2) / (2 * pi) *
+                sqrt(up^2 + vp^2) *
                 up
 
             dudt[i, j, k] = fraction * drag[1] + (1 - fraction) * dudt[i, j, k]
