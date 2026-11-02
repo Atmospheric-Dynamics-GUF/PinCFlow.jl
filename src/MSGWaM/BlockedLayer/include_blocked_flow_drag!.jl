@@ -52,11 +52,10 @@ function include_blocked_flow_drag! end
         if fraction > 0
             kh = compute_slope(state, i, j)
 
-            @fuse up =
-                (
-                    (u[i, j, k] + u[i - 1, j, k]) * kh[1] +
-                    (v[i, j, k] + v[i, j - 1, k]) * kh[2]
-                ) / 2 * kh / (kh[1]^2 + kh[2]^2)
+            up = @fuse (
+                (u[i, j, k] + u[i - 1, j, k]) * kh[1] +
+                (v[i, j, k] + v[i, j - 1, k]) * kh[2]
+            ) / 2 * kh / (kh[1]^2 + kh[2]^2)
 
             drag =
                 -drag_coefficient *
