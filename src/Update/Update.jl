@@ -85,7 +85,7 @@ Singleton for the eddy diffusion coefficient for turbulent kinetic energy.
 """
 struct KEK end
 
-include("check_tke!.jl")
+include("check_turbulence!.jl")
 include("turbulence_diffusion_coefficient.jl")
 include("apply_lhs_sponge!.jl")
 include("compute_buoyancy_factor.jl")
@@ -119,7 +119,7 @@ export apply_lhs_sponge!,
     reset_thomas!,
     turbulent_diffusion!,
     turbulence_diffusion_coefficient,
-    check_tke!,
+    check_turbulence!,
     update!
 
 end

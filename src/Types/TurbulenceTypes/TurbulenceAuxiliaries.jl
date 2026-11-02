@@ -32,11 +32,22 @@ TurbulenceAuxiliaries(
 
 Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
 
+```julia
+TurbulenceAuxiliaries(
+    domain::Domain,
+    turbulence_scheme::Val{:TTEScheme},
+)::TurbulenceAuxiliaries
+```
+
+Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
+
 # Fields
 
   - `shear_production::A`: Contribution of turbulence production due to shear.
 
   - `buoyancy_production::A`: Contribution of turbulence production due to the buoyancy.
+
+  - `convective_production::A`: Contribution of turbulence production due to convection.
 
 # Arguments
 
@@ -49,6 +60,7 @@ Construct a `TurbulenceAuxiliaries` instance with zero-initialized arrays.
 struct TurbulenceAuxiliaries{A <: AbstractArray{<:AbstractFloat, 3}}
     shear_production::A
     buoyancy_production::A
+    convective_production::A
 end
 
 function TurbulenceAuxiliaries(
@@ -67,7 +79,7 @@ function TurbulenceAuxiliaries(
     domain::Domain,
     turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceAuxiliaries
-    TurbulenceAuxiliaries((zeros(0, 0, 0) for i in 1:2)...)
+    TurbulenceAuxiliaries((zeros(0, 0, 0) for i in 1:3)...)
 end
 
 function TurbulenceAuxiliaries(
@@ -76,5 +88,17 @@ function TurbulenceAuxiliaries(
 )::TurbulenceAuxiliaries
     (; nxx, nyy, nzz) = domain
 
-    TurbulenceAuxiliaries((zeros(nxx, nyy, nzz) for i in 1:2)...)
+    TurbulenceAuxiliaries(
+        (zeros(nxx, nyy, nzz) for i in 1:2)...,
+        zeros(0, 0, 0),
+    )
+end
+
+function TurbulenceAuxiliaries(
+    domain::Domain,
+    turbulence_scheme::Val{:TTEScheme},
+)::TurbulenceAuxiliaries
+    (; nxx, nyy, nzz) = domain
+
+    TurbulenceAuxiliaries((zeros(nxx, nyy, nzz) for i in 1:3)...)
 end

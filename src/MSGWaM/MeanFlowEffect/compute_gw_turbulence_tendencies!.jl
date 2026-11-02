@@ -28,7 +28,7 @@ compute_gw_turbulence_tendencies!(
     i::Integer,
     j::Integer,
     k::Integer,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
 ```
 
@@ -92,7 +92,7 @@ end
     i::Integer,
     j::Integer,
     k::Integer,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
     (; gw_shear) = state.turbulence.turbulencewkbintegrals
     (; dtkedt) = state.turbulence.turbulencewkbtendencies

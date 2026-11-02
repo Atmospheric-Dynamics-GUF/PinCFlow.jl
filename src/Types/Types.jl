@@ -126,6 +126,15 @@ struct TKE end
 
 """
 ```julia
+TAPE
+```
+
+Singleton that represents the turbulent available potential energy.
+"""
+struct TAPE end
+
+"""
+```julia
 Explicit
 ```
 
@@ -238,6 +247,7 @@ export Rho,
     Theta,
     Chi,
     TKE,
+    TAPE,
     Explicit,
     Implicit,
     X,

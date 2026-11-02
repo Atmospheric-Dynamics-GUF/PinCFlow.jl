@@ -13,6 +13,7 @@ TurbulenceNamelist(;
     tracer_coupling::Bool = true,
     gw_coupling::Bool = false,
     initial_tke::Function = (x, y, z) -> 5e-5,
+    initial_tape::Function = (x, y, z) -> 5e-5,
 )::TurbulenceNamelist
 ```
 
@@ -32,6 +33,8 @@ Construct a `TurbulenceNamelist` instance with the given keyword arguments as pr
 
   - `initial_tke::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to initialize the mass-specific turbulent kinetic energy.
 
+  - `initial_tape::FunctionWrapper{Float64, NTuple{3, Float64}}`: Function used to initialize the mass-specific turbulent available potential energy.
+
 !!! danger "Experimental"
     The gravity-wave coupling to turbulence is an experimental feature that hasn't been validated yet.
 """
@@ -42,6 +45,7 @@ struct TurbulenceNamelist
     tracer_coupling::Bool
     gw_coupling::Bool
     initial_tke::FunctionWrapper{Float64, NTuple{3, Float64}}
+    initial_tape::FunctionWrapper{Float64, NTuple{3, Float64}}
 end
 
 function TurbulenceNamelist(;
@@ -51,6 +55,7 @@ function TurbulenceNamelist(;
     tracer_coupling::Bool = true,
     gw_coupling::Bool = false,
     initial_tke::Function = (x, y, z) -> 5e-5,
+    initial_tape::Function = (x, y, z) -> 5e-5,
 )::TurbulenceNamelist
     TurbulenceNamelist(
         turbulence_scheme,
@@ -59,5 +64,6 @@ function TurbulenceNamelist(;
         tracer_coupling,
         gw_coupling,
         initial_tke,
+        initial_tape,
     )
 end

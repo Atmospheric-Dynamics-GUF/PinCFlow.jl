@@ -101,7 +101,7 @@ is solved using a Thomas tridiagonal solver, with ``\\tilde{\\mathcal{K}}_{e_\\m
 
 # See also
 
-  - [`PinCFlow.Update.check_tke!`](@ref)
+  - [`PinCFlow.Update.check_turbulence!`](@ref)
 
   - [`PinCFlow.Boundaries.set_boundaries!`](@ref)
 """
@@ -130,26 +130,26 @@ end
 function turbulence_integration!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
-    check_tke!(state)
+    check_turbulence!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
     turbulence_integration!(state, dt * 0.5, Dissipation())
 
-    check_tke!(state)
+    check_turbulence!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
     turbulence_integration!(state, dt, Advection())
 
     turbulence_integration!(state, dt, Diffusion())
 
-    check_tke!(state)
+    check_turbulence!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
     turbulence_integration!(state, dt * 0.5, Dissipation())
 
-    check_tke!(state)
+    check_turbulence!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
     nothing
@@ -198,7 +198,7 @@ end
 
         apply_lhs_sponge!(state, dt, stepfrac[rkstage] * dt, TKE())
 
-        check_tke!(state)
+        check_turbulence!(state)
         set_boundaries!(state, BoundaryPredictands(), TKE())
     end
 

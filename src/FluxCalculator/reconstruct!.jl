@@ -376,8 +376,10 @@ end
     (; k0, k1, nxx, nyy, nzz) = state.domain
     (; phi) = state.variables.auxiliaries
     (; pbar) = state.atmosphere
-    (; turbulencereconstructions, turbulencepredictands) = state.turbulence
+    (; tke, tape) = state.turbulence.turbulencepredictands
+    (; tketilde, tapetilde) = state.turbulence.turbulencereconstructions
     (; vertical_boundary_condition) = state.namelists.domain
+    (; turbulence_scheme) = state.namelists.turbulence
 
     if vertical_boundary_condition === :Periodic
         kmin = 1
@@ -387,19 +389,16 @@ end
         kmax = k1 + 1
     end
 
-    @dispatch_limiter_type for field in 1:fieldcount(TurbulencePredictands)
-        chi = getfield(turbulencepredictands, field)[:, :, :]
+    fields =
+        turbulence_scheme === :TTEScheme ?
+        ((tape, tapetilde), (tke, tketilde)) : ((tke, tketilde),)
+
+    @dispatch_limiter_type for (predictand, reconstruction) in fields
         for k in kmin:kmax, j in 1:nyy, i in 1:nxx
-            phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]
+            phi[i, j, k] = predictand[i, j, k] / pbar[i, j, k]
         end
-        apply_3d_muscl!(
-            phi,
-            getfield(turbulencereconstructions, field),
-            nxx,
-            nyy,
-            nzz,
-            Val(limiter_type),
-        )
+
+        apply_3d_muscl!(phi, reconstruction, nxx, nyy, nzz, Val(limiter_type))
     end
 
     nothing

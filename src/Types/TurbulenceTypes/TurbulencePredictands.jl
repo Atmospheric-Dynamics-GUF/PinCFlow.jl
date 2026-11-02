@@ -46,9 +46,25 @@ TurbulencePredictands(
 
 Construct a `TurbulencePredictands` instance with the turbulent kinetic energy initialized by the function `initial_tke` in `namelists.turbulence`. The turbulence field is multiplied by the density.
 
+```julia
+TurbulencePredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    turbulence_scheme::Val{:TTEScheme},
+    variables::Variables,
+)::TurbulencePredictands
+```
+
+Construct a `TurbulencePredictands` instance with the turbulent kinetic energy and turbulent available potential energy initialized by the functions `initial_tke` and `initial_tape` in `namelists.turbulence`, respectively. The turbulence fields are multiplied by the density.
+
 # Fields
 
   - `tke::A`: Non-dimensional turbulent kinetic energy.
+
+  - `tape::A`: Non-dimensional turbulent available potential energy.
 
 # Arguments
 
@@ -74,6 +90,7 @@ Construct a `TurbulencePredictands` instance with the turbulent kinetic energy i
 """
 struct TurbulencePredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     tke::A
+    tape::A
 end
 
 function TurbulencePredictands(
@@ -106,9 +123,7 @@ function TurbulencePredictands(
     turbulence_scheme::Val{:NoTurbulence},
     variables::Variables,
 )::TurbulencePredictands
-    tke = zeros(0, 0, 0)
-
-    TurbulencePredictands(tke)
+    TurbulencePredictands((zeros(0, 0, 0) for i in 1:2)...)
 end
 
 @ivy function TurbulencePredictands(
@@ -139,12 +154,57 @@ end
             (rho[i, j, k] + rhobar[i, j, k])
     end
 
-    for f! in
-        (set_zonal_boundaries_of_field!, set_meridional_boundaries_of_field!)
+    for f! in (
+        set_zonal_boundaries_of_field!,
+        set_meridional_boundaries_of_field!,
+        set_vertical_boundaries_of_field!,
+    )
         f!(tke, namelists, domain)
     end
 
-    set_vertical_boundaries_of_field!(tke, namelists, domain)
+    TurbulencePredictands(tke, zeros(0, 0, 0))
+end
 
-    TurbulencePredictands(tke)
+@ivy function TurbulencePredictands(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    atmosphere::Atmosphere,
+    grid::Grid,
+    turbulence_scheme::Val{:TTEScheme},
+    variables::Variables,
+)::TurbulencePredictands
+    (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
+    (; rhobar) = atmosphere
+    (; x, y, zc) = grid
+    (; rho) = variables.predictands
+    (; lref, tref) = constants
+    (; initial_tke, initial_tape) = namelists.turbulence
+
+    tke = zeros(nxx, nyy, nzz)
+    tape = zeros(nxx, nyy, nzz)
+
+    for k in k0:k1, j in j0:j1, i in i0:i1
+        xdim = x[i] * lref
+        ydim = y[j] * lref
+        zcdim = zc[i, j, k] * lref
+
+        tke[i, j, k] =
+            initial_tke(xdim, ydim, zcdim) * (tref^2.0) / (lref^2.0) *
+            (rho[i, j, k] + rhobar[i, j, k])
+        tape[i, j, k] =
+            initial_tape(xdim, ydim, zcdim) * (tref^2.0) / (lref^2.0) *
+            (rho[i, j, k] + rhobar[i, j, k])
+    end
+
+    for f! in (
+        set_zonal_boundaries_of_field!,
+        set_meridional_boundaries_of_field!,
+        set_vertical_boundaries_of_field!,
+    )
+        f!(tke, namelists, domain)
+        f!(tape, namelists, domain)
+    end
+
+    TurbulencePredictands(tke, tape)
 end

@@ -11,6 +11,8 @@ The parameter can take any of the following values:
 
   - `:TKEScheme`
 
+  - `:TTEScheme`
+
 # Arguments
 
   - `input`: Input expression with `Val` calls.
@@ -19,6 +21,6 @@ macro dispatch_turbulence_scheme end
 
 macro dispatch_turbulence_scheme(input::Expr)
     esc(quote
-        @dispatch (:NoTurbulence, :TKEScheme) $(input)
+        @dispatch (:NoTurbulence, :TKEScheme, :TTEScheme) $(input)
     end)
 end

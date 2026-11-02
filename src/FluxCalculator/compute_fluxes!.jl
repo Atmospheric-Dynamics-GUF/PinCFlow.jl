@@ -1802,13 +1802,19 @@ end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
-    (; turbulencereconstructions, turbulencefluxes) = state.turbulence
+    (; tketilde, tapetilde) = state.turbulence.turbulencereconstructions
+    (; phitke, phitape) = state.turbulence.turbulencefluxes
     (; u, v, w) = state.variables.predictands
+    (; turbulence_scheme) = state.namelists.turbulence
 
-    for field in 1:fieldcount(TurbulencePredictands)
-        chir = getfield(turbulencereconstructions, field)[2:end, :, :, 1, 1]
-        chil = getfield(turbulencereconstructions, field)[:, :, :, 1, 2]
-        fchi = getfield(turbulencefluxes, field)[:, :, :, 1]
+    fields =
+        turbulence_scheme === :TTEScheme ?
+        ((tapetilde, phitape), (tketilde, phitke)) : ((tketilde, phitke),)
+
+    for (reconstruction, flux) in fields
+        chir = reconstruction[2:end, :, :, 1, 1]
+        chil = reconstruction[:, :, :, 1, 2]
+        fchi = flux[:, :, :, 1]
         for k in k0:k1, j in j0:j1, i in (i0 - 1):i1
             pedger =
                 0.5 * (
@@ -1820,9 +1826,9 @@ end
             fchi[i, j, k] = compute_flux(usurf, chil[i, j, k], chir[i, j, k])
         end
 
-        chif = getfield(turbulencereconstructions, field)[:, 2:end, :, 2, 1]
-        chib = getfield(turbulencereconstructions, field)[:, :, :, 2, 2]
-        gchi = getfield(turbulencefluxes, field)[:, :, :, 2]
+        chif = reconstruction[:, 2:end, :, 2, 1]
+        chib = reconstruction[:, :, :, 2, 2]
+        gchi = flux[:, :, :, 2]
         for k in k0:k1, j in (j0 - 1):j1, i in i0:i1
             pedgef =
                 0.5 * (
@@ -1834,9 +1840,9 @@ end
             gchi[i, j, k] = compute_flux(vsurf, chib[i, j, k], chif[i, j, k])
         end
 
-        chiu = getfield(turbulencereconstructions, field)[:, :, 2:end, 3, 1]
-        chid = getfield(turbulencereconstructions, field)[:, :, :, 3, 2]
-        hchi = getfield(turbulencefluxes, field)[:, :, :, 3]
+        chiu = reconstruction[:, :, 2:end, 3, 1]
+        chid = reconstruction[:, :, :, 3, 2]
+        hchi = flux[:, :, :, 3]
         for k in (k0 - 1):k1, j in j0:j1, i in i0:i1
             pedgeu =
                 jac[i, j, k] *

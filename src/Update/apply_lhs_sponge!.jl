@@ -713,16 +713,22 @@ end
 )::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; alphar) = state.sponge
-    (; tke) = state.turbulence.turbulencepredictands
+    (; tke, tape) = state.turbulence.turbulencepredictands
     (; tkemin) = state.turbulence.turbulenceconstants
     (; rhobar) = state.atmosphere
+    (; turbulence_scheme) = state.namelists.turbulence
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        alpha = alphar[i, j, k]
-        tke_old = tke[i, j, k]
-        beta = 1.0 / (1.0 + alpha * dt)
-        tke_new = (1.0 - beta) * tkemin * rhobar[i, j, k] + beta * tke_old
-        tke[i, j, k] = tke_new
+    fields = turbulence_scheme === :TTEScheme ? (tape, tke) : (tke,)
+
+    for predictand in fields
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            alpha = alphar[i, j, k]
+            predictand_old = predictand[i, j, k]
+            beta = 1.0 / (1.0 + alpha * dt)
+            predictand_new =
+                (1.0 - beta) * tkemin * rhobar[i, j, k] + beta * predictand_old
+            predictand[i, j, k] = predictand_new
+        end
     end
 
     nothing

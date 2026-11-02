@@ -224,7 +224,7 @@ end
     if vertical_boundary_condition === :Periodic
         @warn "Input topographies and grid stretching are ignored for periodic vertical boundary conditions."
         met33 .= 1.0
-        
+
         jac .= 1.0
 
         # Compute the physical layers.

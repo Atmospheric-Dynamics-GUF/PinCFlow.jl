@@ -1592,29 +1592,74 @@ end
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
-    (; dtke) = state.turbulence.turbulenceincrements
-    (; phitke) = state.turbulence.turbulencefluxes
-    (; tke) = state.turbulence.turbulencepredictands
+    (; dtke, dtape) = state.turbulence.turbulenceincrements
+    (; phitke, phitape) = state.turbulence.turbulencefluxes
+    (; tke, tape) = state.turbulence.turbulencepredictands
+    (; turbulence_scheme) = state.namelists.turbulence
+
+    fields =
+        turbulence_scheme === :TTEScheme ?
+        ((dtape, phitape, tape, TAPE()), (dtke, phitke, tke, TKE())) :
+        ((dtke, phitke, tke, TKE()),)
+
+    for (increment, flux, predictand, variable) in fields
+        if m == 1
+            increment .= 0.0
+        end
+
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            fl = flux[i - 1, j, k, 1]
+            fr = flux[i, j, k, 1]
+            gb = flux[i, j - 1, k, 2]
+            gf = flux[i, j, k, 2]
+            hd = flux[i, j, k - 1, 3]
+            hu = flux[i, j, k, 3]
+
+            fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
+            fluxdiff /= jac[i, j, k]
+
+            f = -fluxdiff + compute_volume_force(state, i, j, k, variable)
+
+            increment[i, j, k] = dt * f + alphark[m] * increment[i, j, k]
+            predictand[i, j, k] += betark[m] * increment[i, j, k]
+        end
+    end
+
+    nothing
+end
+
+@ivy function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::TAPE,
+)::Nothing
+    (; i0, i1, j0, j1, k0, k1) = state.domain
+    (; dx, dy, dz, jac) = state.grid
+    (; alphark, betark) = state.time
+    (; dtape) = state.turbulence.turbulenceincrements
+    (; phitape) = state.turbulence.turbulencefluxes
+    (; tape) = state.turbulence.turbulencepredictands
 
     if m == 1
-        dtke .= 0.0
+        dtape .= 0.0
     end
 
     for k in k0:k1, j in j0:j1, i in i0:i1
-        fl = phitke[i - 1, j, k, 1]
-        fr = phitke[i, j, k, 1]
-        gb = phitke[i, j - 1, k, 2]
-        gf = phitke[i, j, k, 2]
-        hd = phitke[i, j, k - 1, 3]
-        hu = phitke[i, j, k, 3]
+        fl = phitape[i - 1, j, k, 1]
+        fr = phitape[i, j, k, 1]
+        gb = phitape[i, j - 1, k, 2]
+        gf = phitape[i, j, k, 2]
+        hd = phitape[i, j, k - 1, 3]
+        hu = phitape[i, j, k, 3]
 
         fluxdiff = (fr - fl) / dx + (gf - gb) / dy + (hu - hd) / dz
         fluxdiff /= jac[i, j, k]
 
-        f = -fluxdiff + compute_volume_force(state, i, j, k, TKE())
+        f = -fluxdiff + compute_volume_force(state, i, j, k, TAPE())
 
-        dtke[i, j, k] = dt * f + alphark[m] * dtke[i, j, k]
-        tke[i, j, k] += betark[m] * dtke[i, j, k]
+        dtape[i, j, k] = dt * f + alphark[m] * dtape[i, j, k]
+        tape[i, j, k] += betark[m] * dtape[i, j, k]
     end
 
     nothing

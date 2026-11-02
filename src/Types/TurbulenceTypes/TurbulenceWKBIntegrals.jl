@@ -18,7 +18,11 @@ Construct a `TurbulenceWKBIntegrals` instance by dispatching to the appropriate 
 TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
+    turbulence_scheme::Union{
+        Val{:NoTurbulence},
+        Val{:TKEScheme},
+        Val{:TTEScheme},
+    },
     wkb_mode::Union{
         Val{:NoWKB},
         Val{:SteadyState},
@@ -34,7 +38,7 @@ Construct a `TurbulenceWKBIntegrals` instance with zero-size arrays for non-WKB 
 TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TurbulenceWKBIntegrals
 ```
@@ -77,7 +81,11 @@ end
 function TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
-    turbulence_scheme::Union{Val{:NoTurbulence}, Val{:TKEScheme}},
+    turbulence_scheme::Union{
+        Val{:NoTurbulence},
+        Val{:TKEScheme},
+        Val{:TTEScheme},
+    },
     wkb_mode::Union{
         Val{:NoWKB},
         Val{:SteadyState},
@@ -91,7 +99,7 @@ end
 function TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TurbulenceWKBIntegrals
     (; nxx, nyy, nzz) = domain

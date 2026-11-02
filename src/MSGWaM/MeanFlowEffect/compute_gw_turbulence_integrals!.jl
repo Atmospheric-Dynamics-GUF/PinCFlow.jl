@@ -37,7 +37,7 @@ Return for configurations without turbulence parameterization.
 ```julia
 compute_gw_turbulence_integrals!(
     state::State,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
     fc::AbstractFloat,
     omir::AbstractFloat,
     kr::AbstractFloat,
@@ -131,7 +131,7 @@ end
 
 @ivy function compute_gw_turbulence_integrals!(
     state::State,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
     fc::AbstractFloat,
     omir::AbstractFloat,
     kr::AbstractFloat,

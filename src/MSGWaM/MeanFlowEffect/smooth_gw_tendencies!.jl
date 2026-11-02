@@ -163,7 +163,10 @@ smooth_gw_tendencies!(
 Return for configurations without turbulence parameterization.
 
 ```julia
-smooth_gw_tendencies!(state::State, turbulence_scheme::Val{:TKEScheme})::Nothing
+smooth_gw_tendencies!(
+    state::State,
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
+)::Nothing
 ```
 
 Apply smoothing to turbulent kinetic energy tendencies.
@@ -531,7 +534,7 @@ end
 
 function smooth_gw_tendencies!(
     state::State,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; filter_type) = state.namelists.wkb

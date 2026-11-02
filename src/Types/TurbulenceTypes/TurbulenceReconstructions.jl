@@ -34,9 +34,20 @@ TurbulenceReconstructions(
 
 Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
 
+```julia
+TurbulenceReconstructions(
+    domain::Domain,
+    turbulence_scheme::Val{:TTEScheme},
+)::TurbulenceReconstructions
+```
+
+Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
+
 # Fields
 
   - `tketilde::A`: Reconstructions of the non-dimensional turbulent kinetic energy.
+
+  - `tapetilde::A`: Reconstructions of the non-dimensional turbulent available potential energy.
 
 # Arguments
 
@@ -48,6 +59,7 @@ Construct a `TurbulenceReconstructions` instance with zero-initialized arrays.
 """
 struct TurbulenceReconstructions{A <: AbstractArray{<:AbstractFloat, 5}}
     tketilde::A
+    tapetilde::A
 end
 
 function TurbulenceReconstructions(
@@ -66,9 +78,7 @@ function TurbulenceReconstructions(
     domain::Domain,
     turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceReconstructions
-    tketilde = zeros(0, 0, 0, 0, 0)
-
-    TurbulenceReconstructions(tketilde)
+    TurbulenceReconstructions((zeros(0, 0, 0, 0, 0) for i in 1:2)...)
 end
 
 function TurbulenceReconstructions(
@@ -77,7 +87,14 @@ function TurbulenceReconstructions(
 )::TurbulenceReconstructions
     (; nxx, nyy, nzz) = domain
 
-    tketilde = zeros(nxx, nyy, nzz, 3, 2)
+    TurbulenceReconstructions(zeros(nxx, nyy, nzz, 3, 2), zeros(0, 0, 0, 0, 0))
+end
 
-    TurbulenceReconstructions(tketilde)
+function TurbulenceReconstructions(
+    domain::Domain,
+    turbulence_scheme::Val{:TTEScheme},
+)::TurbulenceReconstructions
+    (; nxx, nyy, nzz) = domain
+
+    TurbulenceReconstructions((zeros(nxx, nyy, nzz, 3, 2) for i in 1:2)...)
 end

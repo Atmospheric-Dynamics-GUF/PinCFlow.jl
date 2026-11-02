@@ -40,7 +40,7 @@ Return for configurations without turbulence parameterization.
 set_turbulence_zonal_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBIntegrals,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
 ```
 
@@ -50,7 +50,7 @@ Return for turbulence WKB integrals as these are not needed in halo/boundary cel
 set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
 ```
 
@@ -75,14 +75,13 @@ function set_turbulence_zonal_boundaries!(
     variables::BoundaryPredictands,
 )::Nothing
     (; namelists, domain) = state
-    (; turbulencepredictands) = state.turbulence
+    (; tke, tape) = state.turbulence.turbulencepredictands
+    (; turbulence_scheme) = state.namelists.turbulence
 
-    for field in fieldnames(TurbulencePredictands)
-        set_zonal_boundaries_of_field!(
-            getfield(turbulencepredictands, field),
-            namelists,
-            domain,
-        )
+    set_zonal_boundaries_of_field!(tke, namelists, domain)
+
+    if turbulence_scheme === :TTEScheme
+        set_zonal_boundaries_of_field!(tape, namelists, domain)
     end
 
     nothing
@@ -93,14 +92,13 @@ function set_turbulence_zonal_boundaries!(
     variables::BoundaryReconstructions,
 )::Nothing
     (; namelists, domain) = state
-    (; turbulencereconstructions) = state.turbulence
+    (; tketilde, tapetilde) = state.turbulence.turbulencereconstructions
+    (; turbulence_scheme) = state.namelists.turbulence
 
-    for field in fieldnames(TurbulenceReconstructions)
-        set_zonal_boundaries_of_field!(
-            getfield(turbulencereconstructions, field),
-            namelists,
-            domain,
-        )
+    set_zonal_boundaries_of_field!(tketilde, namelists, domain)
+
+    if turbulence_scheme === :TTEScheme
+        set_zonal_boundaries_of_field!(tapetilde, namelists, domain)
     end
 
     nothing
@@ -132,7 +130,7 @@ end
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
     nothing
 end
@@ -140,7 +138,7 @@ end
 function set_turbulence_zonal_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
     (; namelists, domain) = state
     (; turbulencewkbtendencies) = state.turbulence

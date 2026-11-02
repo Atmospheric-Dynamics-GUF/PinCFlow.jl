@@ -19,7 +19,7 @@ Return for configurations without turbulence parameterization.
 turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
 ```
 
@@ -257,7 +257,7 @@ is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \
 
 # See also
 
-  - [`PinCFlow.Update.check_tke!`](@ref)
+  - [`PinCFlow.Update.check_turbulence!`](@ref)
 
   - [`PinCFlow.Update.reset_thomas!`](@ref)
 
@@ -296,12 +296,12 @@ end
 function turbulent_diffusion!(
     state::State,
     dt::AbstractFloat,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
     (; momentum_coupling, entropy_coupling, tracer_coupling) =
         state.namelists.turbulence
 
-    check_tke!(state)
+    check_turbulence!(state)
     set_boundaries!(state, BoundaryPredictands(), TKE())
 
     if momentum_coupling

@@ -31,9 +31,20 @@ TurbulenceFluxes(
 
 Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
 
+```julia
+TurbulenceFluxes(
+    domain::Domain,
+    turbulence_scheme::Val{:TTEScheme},
+)::TurbulenceFluxes
+```
+
+Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
+
 # Fields
 
   - `phitke::A`: Fluxes of the turbulent kinetic energy.
+
+  - `phitape::A`: Fluxes of the turbulent available potential energy.
 
 # Arguments
 
@@ -45,6 +56,7 @@ Construct a `TurbulenceFluxes` instance with zero-initialized arrays.
 """
 struct TurbulenceFluxes{A <: AbstractArray{<:AbstractFloat, 4}}
     phitke::A
+    phitape::A
 end
 
 function TurbulenceFluxes(
@@ -62,7 +74,7 @@ function TurbulenceFluxes(
 )::TurbulenceFluxes
     phitke = zeros(0, 0, 0, 0)
 
-    TurbulenceFluxes(phitke)
+    TurbulenceFluxes((zeros(0, 0, 0, 0) for i in 1:2)...)
 end
 
 function TurbulenceFluxes(
@@ -71,7 +83,14 @@ function TurbulenceFluxes(
 )::TurbulenceFluxes
     (; nxx, nyy, nzz) = domain
 
-    phitke = zeros(nxx, nyy, nzz, 3)
+    TurbulenceFluxes(zeros(nxx, nyy, nzz, 3), zeros(0, 0, 0, 0))
+end
 
-    TurbulenceFluxes(phitke)
+function TurbulenceFluxes(
+    domain::Domain,
+    turbulence_scheme::Val{:TTEScheme},
+)::TurbulenceFluxes
+    (; nxx, nyy, nzz) = domain
+
+    TurbulenceFluxes((zeros(nxx, nyy, nzz, 3) for i in 1:2)...)
 end

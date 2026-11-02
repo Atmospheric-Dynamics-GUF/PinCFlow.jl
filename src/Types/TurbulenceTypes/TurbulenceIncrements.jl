@@ -29,6 +29,15 @@ TurbulenceIncrements(
 
 Construct a `TurbulenceIncrements` instance with zero-initialized arrays.
 
+```julia
+TurbulenceIncrements(
+    domain::Domain,
+    turbulence_scheme::Val{:TTEScheme},
+)::TurbulenceIncrements
+```
+
+Construct a `TurbulenceIncrements` instance with zero-initialized arrays.
+
 # Fields
 
   - `dtke::A`: Runge-Kutta update of the turbulent kinetic energy.
@@ -43,6 +52,7 @@ Construct a `TurbulenceIncrements` instance with zero-initialized arrays.
 """
 struct TurbulenceIncrements{A <: AbstractArray{<:AbstractFloat, 3}}
     dtke::A
+    dtape::A
 end
 
 function TurbulenceIncrements(
@@ -61,9 +71,7 @@ function TurbulenceIncrements(
     domain::Domain,
     turbulence_scheme::Val{:NoTurbulence},
 )::TurbulenceIncrements
-    dtke = zeros(0, 0, 0)
-
-    TurbulenceIncrements(dtke)
+    TurbulenceIncrements((zeros(0, 0, 0) for i in 1:2)...)
 end
 
 function TurbulenceIncrements(
@@ -72,7 +80,14 @@ function TurbulenceIncrements(
 )::TurbulenceIncrements
     (; nxx, nyy, nzz) = domain
 
-    dtke = zeros(nxx, nyy, nzz)
+    TurbulenceIncrements(zeros(nxx, nyy, nzz), zeros(0, 0, 0))
+end
 
-    TurbulenceIncrements(dtke)
+function TurbulenceIncrements(
+    domain::Domain,
+    turbulence_scheme::Val{:TTEScheme},
+)::TurbulenceIncrements
+    (; nxx, nyy, nzz) = domain
+
+    TurbulenceIncrements((zeros(nxx, nyy, nzz) for i in 1:2)...)
 end

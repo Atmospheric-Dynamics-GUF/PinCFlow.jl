@@ -8,7 +8,7 @@ Reset the gravity-wave shear and the turbulence tendencies to zero by dispatchin
 ```julia
 set_turbulence_fields_zero!(
     state::State,
-    turbulence_setup::Val{:Noturbulence},
+    turbulence_setup::Val{:NoTurbulence},
 )::Nothing
 ```
 
@@ -17,7 +17,7 @@ Return for configurations without turbulence parameterization.
 ```julia
 set_turbulence_fields_zero!(
     state::State,
-    turbulence_setup::Val{:turbulenceOn},
+    turbulence_setup::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
 ```
 
@@ -51,7 +51,7 @@ end
 
 function set_turbulence_fields_zero!(
     state::State,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
     (; turbulencewkbtendencies, turbulencewkbintegrals) = state.turbulence
 

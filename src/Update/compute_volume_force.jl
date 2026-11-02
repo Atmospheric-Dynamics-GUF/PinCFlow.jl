@@ -346,3 +346,33 @@ end
 
     dtkedt[i, j, k]
 end
+
+@ivy function compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::TAPE,
+)::AbstractFloat
+    (; convective_production) = state.turbulence.turbulenceauxiliaries
+    (; rhop, rho) = state.variables.predictands
+    (; rhobar, n2) = state.atmosphere
+    (; g_ndim) = state.constants
+    (; dz, jac) = state.grid
+
+    bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
+    bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
+
+    convective =
+        turbulence_diffusion_coefficient(state, i, j, k, KH()) * (bu - bd) /
+        (jac[i, j, k] * 2.0 * dz) / n2[i, j, k] *
+        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+
+    convective_production[i, j, k] = convective
+
+    buoyancy =
+        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
+        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+
+    (rho[i, j, k] + rhobar[i, j, k]) * (convective - buoyancy)
+end
