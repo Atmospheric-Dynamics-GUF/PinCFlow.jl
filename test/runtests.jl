@@ -6,6 +6,8 @@ using PinCFlow
 using Test
 using .TestTools
 
+using MacroTools: @capture, postwalk
+
 const update = "--update" in ARGS
 const keywords = (prepare_restart = true, visualize = false)
 
@@ -24,6 +26,7 @@ include("test_files.jl")
 
 include("test_ascii.jl")
 include("test_julia_validity.jl")
+include("test_type_checks.jl")
 
 @testset verbose = true "PinCFlow tests" begin
     @testset verbose = true "Examples" begin
@@ -42,6 +45,7 @@ include("test_julia_validity.jl")
 
         test_ascii()
         test_julia_validity()
+        test_type_checks()
 
         @testset "Aqua.jl" begin
             Aqua.test_all(PinCFlow)
