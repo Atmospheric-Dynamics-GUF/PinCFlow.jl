@@ -18,6 +18,7 @@ include("test_wave_packet.jl")
 include("test_wkb_mountain_wave.jl")
 include("test_wkb_wave_packet.jl")
 
+include("test_ascii.jl")
 include("test_files.jl")
 include("test_formatting.jl")
 
@@ -35,6 +36,8 @@ include("test_formatting.jl")
 
     @testset verbose = true "Code quality" begin
         test_formatting()
+
+        test_ascii()
 
         @testset "Aqua.jl" begin
             Aqua.test_all(PinCFlow)
