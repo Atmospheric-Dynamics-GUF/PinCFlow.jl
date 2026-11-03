@@ -27,6 +27,7 @@ include("test_files.jl")
 
 include("test_ascii.jl")
 include("test_julia_validity.jl")
+include("test_literal_checks.jl")
 include("test_long_named_function_definitions.jl")
 include("test_type_checks.jl")
 
@@ -47,6 +48,7 @@ include("test_type_checks.jl")
 
         test_ascii()
         test_julia_validity()
+        test_literal_checks()
         test_long_named_function_definitions()
         test_type_checks()
 
