@@ -237,16 +237,6 @@ end
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
 
-            apply_turbulent_damping!(
-                state,
-                r,
-                i,
-                j,
-                k,
-                zr,
-                stepfrac[rkstage] * dt,
-            )
-
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
             yr1 = yr - dyr / 2
@@ -276,7 +266,6 @@ end
                 error("Horizontal wavenumber is negative!")
             end
 
-            # Determine if horizontal propagation and refraction are allowed.
             multi_column = wkb_mode === Val(:MultiColumn)
             launch_layer = k == k0 - 1
             blocked_layer = blocking && zr1 < hb[i, j] + deltazb[i, j] / 2
@@ -287,19 +276,21 @@ end
             refraction =
                 zr > impact_altitude / lref && !launch_layer && !blocked_layer
 
-            # Compute intrinsic zonal group velocity.
-            if x_size > 1
-                cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
-            end
+            #-------------------------------
+            #      Turbulent damping
+            #-------------------------------
 
-            # Compute intrinsic meridional group velocity.
-            if y_size > 1
-                cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+            if !launch_layer && !blocked_layer
+                apply_turbulent_damping!(
+                    state,
+                    r,
+                    i,
+                    j,
+                    k,
+                    zr,
+                    stepfrac[rkstage] * dt,
+                )
             end
-
-            # Compute intrinsic vertical group velocities at the vertical edges.
-            cgirz1 = -mr * (omir1^2 - fc^2) / (omir1 * (khr^2 + mr^2))
-            cgirz2 = -mr * (omir2^2 - fc^2) / (omir2 * (khr^2 + mr^2))
 
             #-------------------------------
             #      Change of position
@@ -308,6 +299,8 @@ end
             # Update zonal position.
 
             if zonal_propagation
+                cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -332,6 +325,8 @@ end
             # Update meridional position.
 
             if meridional_propagation
+                cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -355,6 +350,9 @@ end
 
             # Update vertical position.
 
+            cgirz1 = -mr * (omir1^2 - fc^2) / (omir1 * (khr^2 + mr^2))
+            cgirz2 = -mr * (omir2^2 - fc^2) / (omir2 * (khr^2 + mr^2))
+
             cgrz1 = cgirz1
             cgrz2 = cgirz2
 
@@ -371,7 +369,7 @@ end
                 error("Rays travel too far in z!")
             end
 
-            # Refraction is only allowed above impact_altitude / lref.
+            # Refract.
 
             if refraction
 
@@ -461,19 +459,17 @@ end
 
                 rays.dmray[r, i, j, k] = azm / rays.dzray[r, i, j, k]
             end
-        end
-    end
 
-    #-------------------------------
-    #     Change of wave action
-    #-------------------------------
+            #-------------------------------
+            #       Rayleigh damping
+            #-------------------------------
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        for r in 1:nray[i, j, k]
-            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-            betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
-            rays.dens[r, i, j, k] *= betasponge
+            if !launch_layer && !blocked_layer
+                (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+                rays.dens[r, i, j, k] /=
+                    1 + alphasponge * stepfrac[rkstage] * dt
+            end
         end
     end
 
@@ -488,13 +484,14 @@ end
 )::Nothing
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
+    (; blocking, branch, use_saturation, saturation_threshold) =
+        state.namelists.wkb
     (; tref) = state.constants
     (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
-    (; dx, dy, dz, zctilde, zc, jac) = state.grid
+    (; dx, dy, dz, zctilde, zc, jac, hb) = state.grid
     (; rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
-    (; nray, rays) = state.wkb
+    (; nray, rays, deltazb) = state.wkb
 
     if rkstage != 1
         return nothing
@@ -590,36 +587,40 @@ end
             # Set the local vertical wavenumber.
             rays.m[r, i, j, k] = mr
 
-            # Set the local wave action density.
+            # Get the physical position and extents.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+            (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
 
-            apply_turbulent_damping!(
-                state,
-                r,
-                i,
-                j,
-                k,
-                zr,
-                jac[i, j, k] * dz / cgirz,
-            )
+            # Apply turbulent damping (explicit pseudo-time step) and Rayleigh
+            # damping (implicit vertical step).
+            if blocking && zr - dzr / 2 < hb[i, j] + deltazb[i, j] / 2
+                apply_turbulent_damping!(
+                    state,
+                    r,
+                    i,
+                    j,
+                    k,
+                    zr,
+                    jac[i, j, k] * dz / cgirz,
+                )
 
-            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-            rays.dens[r, i, j, k] =
-                1 / (
-                    1 +
-                    alphasponge / cgirz *
-                    (rays.z[r, i, j, k] - rays.z[r, i, j, kref])
-                ) *
-                cgirz0 *
-                rays.dens[r, i, j, kref] / cgirz
+                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+                rays.dens[r, i, j, k] =
+                    1 / (
+                        1 +
+                        alphasponge / cgirz *
+                        (rays.z[r, i, j, k] - rays.z[r, i, j, kref])
+                    ) *
+                    cgirz0 *
+                    rays.dens[r, i, j, kref] / cgirz
+            end
 
             # Cycle if the saturation scheme is turned off.
             if !use_saturation
                 continue
             end
 
-            # Get the ray volume extents.
-            (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
+            # Get the spectral extents.
             (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
 
             # Compute the phase space factor.
