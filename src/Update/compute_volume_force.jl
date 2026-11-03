@@ -363,16 +363,17 @@ end
     bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
 
+    dbdz = (bu - bd) / (jac[i, j, k] * 2.0 * dz)
+
     convective =
-        turbulence_diffusion_coefficient(state, i, j, k, KH()) * (bu - bd) /
-        (jac[i, j, k] * 2.0 * dz) / n2[i, j, k] *
-        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+        turbulence_diffusion_coefficient(state, i, j, k, KH()) * dbdz /
+        n2[i, j, k] * (n2[i, j, k] + dbdz)
 
     convective_production[i, j, k] = convective
 
     buoyancy =
         -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
-        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
+        (n2[i, j, k] + dbdz)
 
     (rho[i, j, k] + rhobar[i, j, k]) * (convective - buoyancy)
 end

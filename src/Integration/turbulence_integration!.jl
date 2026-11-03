@@ -210,73 +210,90 @@ end
     dt::AbstractFloat,
     process::Diffusion,
 )::Nothing
-    (; tke) = state.turbulence.turbulencepredictands
+    (; tke, tape) = state.turbulence.turbulencepredictands
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, dz) = state.grid
     (; ath, bth, cth, fth) = state.variables.auxiliaries
+    (; turbulence_scheme) = state.namelists.turbulence
 
     dtdz2 = dt / (2.0 * dz^2.0)
 
-    reset_thomas!(state)
+    fields = turbulence_scheme === :TTEScheme ? (tape, tke) : (tke,)
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        kekd =
-            (
-                jac[i, j, k - 1] * (
-                    turbulence_diffusion_coefficient(state, i, j, k, KEK()) /
-                    jac[i, j, k]
-                ) +
-                jac[i, j, k] * (
-                    turbulence_diffusion_coefficient(
-                        state,
-                        i,
-                        j,
-                        k - 1,
-                        KEK(),
-                    ) / jac[i, j, k - 1]
-                )
-            ) / (jac[i, j, k - 1] + jac[i, j, k])
-        keku =
-            (
-                jac[i, j, k + 1] * (
-                    turbulence_diffusion_coefficient(state, i, j, k, KEK()) /
-                    jac[i, j, k]
-                ) +
-                jac[i, j, k] * (
-                    turbulence_diffusion_coefficient(
-                        state,
-                        i,
-                        j,
-                        k + 1,
-                        KEK(),
-                    ) / jac[i, j, k + 1]
-                )
-            ) / (jac[i, j, k + 1] + jac[i, j, k])
+    for predictand in fields
+        reset_thomas!(state)
 
-        ith = i - i0 + 1
-        jth = j - j0 + 1
-        kth = k - k0 + 1
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            kekd =
+                (
+                    jac[i, j, k - 1] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k,
+                            KEK(),
+                        ) / jac[i, j, k]
+                    ) +
+                    jac[i, j, k] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k - 1,
+                            KEK(),
+                        ) / jac[i, j, k - 1]
+                    )
+                ) / (jac[i, j, k - 1] + jac[i, j, k])
+            keku =
+                (
+                    jac[i, j, k + 1] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k,
+                            KEK(),
+                        ) / jac[i, j, k]
+                    ) +
+                    jac[i, j, k] * (
+                        turbulence_diffusion_coefficient(
+                            state,
+                            i,
+                            j,
+                            k + 1,
+                            KEK(),
+                        ) / jac[i, j, k + 1]
+                    )
+                ) / (jac[i, j, k + 1] + jac[i, j, k])
 
-        ath[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kekd
-        bth[ith, jth, kth] =
-            1 + dtdz2 / jac[i, j, k] * keku + dtdz2 / jac[i, j, k] * kekd
-        cth[ith, jth, kth] = -dtdz2 / jac[i, j, k] * keku
+            ith = i - i0 + 1
+            jth = j - j0 + 1
+            kth = k - k0 + 1
 
-        fth[ith, jth, kth] =
-            (1 - dtdz2 / jac[i, j, k] * keku - dtdz2 / jac[i, j, k] * kekd) *
-            tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) +
-            dtdz2 / jac[i, j, k] * keku * tke[i, j, k + 1] /
-            (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
-            dtdz2 / jac[i, j, k] * kekd * tke[i, j, k - 1] /
-            (rho[i, j, k - 1] + rhobar[i, j, k - 1])
+            ath[ith, jth, kth] = -dtdz2 / jac[i, j, k] * kekd
+            bth[ith, jth, kth] =
+                1 + dtdz2 / jac[i, j, k] * keku + dtdz2 / jac[i, j, k] * kekd
+            cth[ith, jth, kth] = -dtdz2 / jac[i, j, k] * keku
+
+            fth[ith, jth, kth] =
+                (
+                    1 - dtdz2 / jac[i, j, k] * keku -
+                    dtdz2 / jac[i, j, k] * kekd
+                ) * predictand[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]) +
+                dtdz2 / jac[i, j, k] * keku * predictand[i, j, k + 1] /
+                (rho[i, j, k + 1] + rhobar[i, j, k + 1]) +
+                dtdz2 / jac[i, j, k] * kekd * predictand[i, j, k - 1] /
+                (rho[i, j, k - 1] + rhobar[i, j, k - 1])
+        end
+
+        thomas_algorithm!(state)
+
+        predictand[i0:i1, j0:j1, k0:k1] .=
+            fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
     end
-
-    thomas_algorithm!(state)
-
-    tke[i0:i1, j0:j1, k0:k1] .=
-        fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
-
+    
     nothing
 end
