@@ -18,9 +18,12 @@ include("test_wave_packet.jl")
 include("test_wkb_mountain_wave.jl")
 include("test_wkb_wave_packet.jl")
 
-include("test_ascii.jl")
-include("test_files.jl")
 include("test_formatting.jl")
+
+include("test_files.jl")
+
+include("test_ascii.jl")
+include("test_julia_validity.jl")
 
 @testset verbose = true "PinCFlow tests" begin
     @testset verbose = true "Examples" begin
@@ -38,6 +41,7 @@ include("test_formatting.jl")
         test_formatting()
 
         test_ascii()
+        test_julia_validity()
 
         @testset "Aqua.jl" begin
             Aqua.test_all(PinCFlow)
