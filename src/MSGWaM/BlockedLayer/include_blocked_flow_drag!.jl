@@ -25,6 +25,8 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 
 # See also
 
+  - [`PinCFlow.MSGWaM.BlockedLayer.blocked_fraction`](@ref)
+
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_slope`](@ref)
 """
 function include_blocked_flow_drag! end
@@ -32,10 +34,9 @@ function include_blocked_flow_drag! end
 @ivy function include_blocked_flow_drag!(state::State)::Nothing
     (; blocking, drag_coefficient) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; dz, jac, zctilde, hb, hw, kh, lh) = state.grid
+    (; hw, kh, lh) = state.grid
     (; rhobar) = state.atmosphere
     (; rho, u, v) = state.variables.predictands
-    (; deltazb) = state.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
 
     if !blocking
@@ -44,12 +45,9 @@ function include_blocked_flow_drag! end
 
     # Adjust the drag to account for blocking.
     for k in k0:k1, j in j0:j1, i in i0:i1
-        fraction =
-            (
-                min(hb[i, j] + deltazb[i, j] / 2, zctilde[i, j, k]) -
-                zctilde[i, j, k - 1]
-            ) / jac[i, j, k] / dz
-        if fraction > 0
+        bf = blocked_fraction(state, i, j, k)
+
+        if bf > 0
             (kh, lh) = compute_slope(state, i, j)
 
             projection =
@@ -69,9 +67,9 @@ function include_blocked_flow_drag! end
             dudtb = drag_factor * up
             dvdtb = drag_factor * vp
 
-            dudt[i, j, k] = fraction * dudtb + (1 - fraction) * dudt[i, j, k]
-            dvdt[i, j, k] = fraction * dvdtb + (1 - fraction) * dvdt[i, j, k]
-            dthetadt[i, j, k] = (1 - fraction) * dthetadt[i, j, k]
+            dudt[i, j, k] = bf * dudtb + (1 - bf) * dudt[i, j, k]
+            dvdt[i, j, k] = bf * dvdtb + (1 - bf) * dvdt[i, j, k]
+            dthetadt[i, j, k] = (1 - bf) * dthetadt[i, j, k]
         end
     end
 
