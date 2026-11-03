@@ -24,8 +24,11 @@ include("compute_elevation_difference.jl")
 include("compute_orographic_flow.jl")
 include("compute_slope.jl")
 include("include_blocked_flow_drag!.jl")
+include("replace_in_blocked_layer!.jl")
 
 export compute_blocked_layer!,
-    compute_orographic_flow, include_blocked_flow_drag!
+    compute_orographic_flow,
+    include_blocked_flow_drag!,
+    replace_in_blocked_layer!
 
 end
