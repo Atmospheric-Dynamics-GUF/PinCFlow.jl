@@ -5,7 +5,8 @@ function test_type_checks()
             path = abspath(joinpath(root, file))
             content = Meta.parseall(read(path, String))
             postwalk(content) do x
-                if @capture(x, (typeof(a_) <: b_) | (b_ >: typeof(a_)))
+                if @capture(x, typeof(a_) <: b_) ||
+                   @capture(x, b_ >: typeof(a_))
                     println("Bad type check")
                     println(x)
                     println("detected in $(path)!")
