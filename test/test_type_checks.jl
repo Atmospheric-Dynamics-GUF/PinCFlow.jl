@@ -6,9 +6,9 @@ function test_type_checks()
             content = Meta.parseall(read(path, String))
             postwalk(content) do x
                 if @capture(x, (typeof(a_) <: b_) || (b_ >: typeof(a_)))
-                    println("Bad type checks detected in the expression")
+                    println("Bad type check")
                     println(x)
-                    println("of the file $(path)!")
+                    println("detected in $(path)!")
                     println("")
                     count += 1
                 end
