@@ -1,6 +1,6 @@
 """
 ```julia
-TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}} <: AbstractWKBFields
 ```
 
 Integrals of gravity-wave induced tracer fluxes.
@@ -69,7 +69,8 @@ Construct a `TracerWKBIntegrals` instance with zero-initialized arrays if `state
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
-struct TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+struct TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}} <:
+       AbstractWKBFields
     uchi0::A
     vchi0::A
     wchi0::A

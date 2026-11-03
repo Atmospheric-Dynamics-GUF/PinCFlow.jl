@@ -1,6 +1,7 @@
 """
 ```julia
-TurbulenceWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+TurbulenceWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}} <:
+AbstractWKBFields
 ```
 
 Turbulence impact of unresolved gravity waves.
@@ -55,7 +56,8 @@ Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays if `
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
-struct TurbulenceWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+struct TurbulenceWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}} <:
+       AbstractWKBFields
     dtkedt::A
 end
 

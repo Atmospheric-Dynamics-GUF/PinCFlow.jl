@@ -1,6 +1,6 @@
 """
 ```julia
-WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}} <: AbstractWKBFields
 ```
 
 Gravity-wave drag and heating fields.
@@ -27,7 +27,8 @@ Construct a `WKBTendencies` instance, with arrays sized according to the given d
 
   - `nzz`: Number of subdomain grid points in ``\\hat{z}``-direction.
 """
-struct WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+struct WKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}} <:
+       AbstractWKBFields
     dudt::A
     dvdt::A
     dthetadt::A

@@ -20,6 +20,7 @@ module TracerTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
+using ..WKBTypes
 using ...Macros
 
 include("TracerPredictands.jl")

@@ -1,6 +1,6 @@
 """
 ```julia
-TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}} <: AbstractWKBFields
 ```
 
 Tracer impact of unresolved gravity waves.
@@ -65,7 +65,8 @@ Construct a `TracerWKBTendencies` instance with zero-initialized arrays if `stat
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
-struct TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
+struct TracerWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}} <:
+       AbstractWKBFields
     dchidt0::A
 end
 

@@ -1,6 +1,6 @@
 """
 ```julia
-WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}} <: AbstractWKBFields
 ```
 
 Integrals of ray-volume properties.
@@ -37,7 +37,7 @@ Construct a `WKBIntegrals` instance, with arrays sized according to the given di
 
   - `nzz`: Number of subdomain grid points in ``\\hat{z}``-direction.
 """
-struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+struct WKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}} <: AbstractWKBFields
     uu::A
     uv::A
     uw::A

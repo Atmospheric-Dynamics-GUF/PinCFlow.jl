@@ -225,7 +225,7 @@ export @dispatch_background,
     @dispatch_turbulence_scheme,
     @dispatch_wkb_mode
 
-export AbstractPredictand
+export AbstractPredictand, AbstractWKBFields
 
 export Rho,
     RhoP,

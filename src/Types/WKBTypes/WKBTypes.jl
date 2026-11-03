@@ -24,6 +24,15 @@ using ..FoundationalTypes
 using ..VariableTypes
 using ...Macros
 
+"""
+```julia
+AbstractWKBFields
+```
+
+Abstract type for WKB integral and tendency fields.
+"""
+abstract type AbstractWKBFields end
+
 include("WKBIntegrals.jl")
 include("WKBTendencies.jl")
 include("Rays.jl")
@@ -35,6 +44,8 @@ include("ElasticModeSelection.jl")
 include("WKB.jl")
 
 include("getproperty.jl")
+
+export AbstractWKBFields
 
 export WKBIntegrals,
     WKBTendencies, Rays, MergedRays, WKBIncrements, SurfaceIndices, WKB

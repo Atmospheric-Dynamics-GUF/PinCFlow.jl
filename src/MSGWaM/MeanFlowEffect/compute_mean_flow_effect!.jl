@@ -58,6 +58,8 @@ function compute_mean_flow_effect!(
 )::Nothing
     compute_gw_integrals!(state)
 
+    reset_fields_in_blocked_layer!(state, :integrals)
+
     set_boundaries!(state, BoundaryWKBIntegrals())
 
     compute_gw_tendencies!(state)
@@ -65,6 +67,8 @@ function compute_mean_flow_effect!(
     set_boundaries!(state, BoundaryWKBTendencies())
 
     smooth_gw_tendencies!(state)
+
+    reset_fields_in_blocked_layer!(state, :tendencies)
 
     include_blocked_flow_drag!(state)
 

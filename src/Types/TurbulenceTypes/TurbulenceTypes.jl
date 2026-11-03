@@ -20,6 +20,7 @@ module TurbulenceTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
+using ..WKBTypes
 using ...Macros
 
 include("TurbulencePredictands.jl")

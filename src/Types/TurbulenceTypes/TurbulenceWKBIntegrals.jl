@@ -1,6 +1,7 @@
 """
 ```julia
-TurbulenceWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+TurbulenceWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}} <:
+AbstractWKBFields
 ```
 
 Integrals of gravity-wave quantities that impact turbulence.
@@ -55,7 +56,8 @@ Construct a `TurbulenceWKBIntegrals` instance with zero-initialized arrays if `s
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
-struct TurbulenceWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
+struct TurbulenceWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}} <:
+       AbstractWKBFields
     gw_shear::A
 end
 
