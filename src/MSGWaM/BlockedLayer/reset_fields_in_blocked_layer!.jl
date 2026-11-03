@@ -5,7 +5,7 @@ reset_fields_in_blocked_layer!(state::State, choice::Symbol)::Nothing
 
 Below the upper edge of the blocked layer, set all WKB fields of the kind specified by `choice` (either `:integrals` or `:tendencies`) to zero.
 
-The fields in `state.wkb.integrals` are skipped, since they are taken care of in `include_blocked_flow_drag!`.
+The fields in `state.wkb.integrals` are skipped, since they are taken care of in `include_blocked_flow_drag!`. If `state.namelists.wkb.blocking` is set to `false`, this method returns early.
 
 ```julia
 reset_fields_in_blocked_layer!(state::State, fields::AbstractWKBFields)::Nothing
@@ -31,8 +31,11 @@ function reset_fields_in_blocked_layer! end
 
 function reset_fields_in_blocked_layer!(state::State, choice::Symbol)::Nothing
     (; wkb, tracer, turbulence) = state
+    (; blocking) = state.namelists.wkb
     (; tracer_setup) = state.namelists.tracer
     (; turbulence_scheme) = state.namelists.turbulence
+
+    !blocking && return nothing
 
     choice !== :tendencies && choice !== :integrals && error("Unknown choice!")
 
@@ -60,7 +63,7 @@ function reset_fields_in_blocked_layer!(
     for field_name in fieldnames(typeof(fields))
         field = getfield(fields, field_name)
         @fuse for k in k0:k1, j in j0:j1, i in i0:i1
-            field[ii, jj, kk] *= (1 - blocked_fraction(state, i, j, k))
+            field[i, j, k] *= (1 - blocked_fraction(state, i, j, k))
         end
     end
 
