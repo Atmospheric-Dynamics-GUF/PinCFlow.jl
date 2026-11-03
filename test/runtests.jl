@@ -2,11 +2,12 @@ include("TestTools/TestTools.jl")
 
 using Aqua
 using JuliaFormatter
+using MacroTools
 using PinCFlow
 using Test
 using .TestTools
 
-using MacroTools: @capture, postwalk
+using MacroTools: postwalk
 
 const update = "--update" in ARGS
 const keywords = (prepare_restart = true, visualize = false)
@@ -26,6 +27,7 @@ include("test_files.jl")
 
 include("test_ascii.jl")
 include("test_julia_validity.jl")
+include("test_long_named_function_definitions.jl")
 include("test_type_checks.jl")
 
 @testset verbose = true "PinCFlow tests" begin
@@ -45,6 +47,7 @@ include("test_type_checks.jl")
 
         test_ascii()
         test_julia_validity()
+        test_long_named_function_definitions()
         test_type_checks()
 
         @testset "Aqua.jl" begin
