@@ -19,16 +19,16 @@ using ..Interpolation
 using ...Macros
 using ...Types
 
+include("blocked_fraction.jl")
 include("compute_blocked_layer!.jl")
 include("compute_elevation_difference.jl")
 include("compute_orographic_flow.jl")
 include("compute_slope.jl")
 include("include_blocked_flow_drag!.jl")
-include("replace_in_blocked_layer!.jl")
 
-export compute_blocked_layer!,
+export blocked_fraction,
+    compute_blocked_layer!,
     compute_orographic_flow,
-    include_blocked_flow_drag!,
-    replace_in_blocked_layer!
+    include_blocked_flow_drag!
 
 end
