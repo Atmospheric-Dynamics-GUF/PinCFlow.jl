@@ -18,6 +18,7 @@ include("test_wave_packet.jl")
 include("test_wkb_mountain_wave.jl")
 include("test_wkb_wave_packet.jl")
 
+include("test_files.jl")
 include("test_formatting.jl")
 
 @testset verbose = true "PinCFlow tests" begin
