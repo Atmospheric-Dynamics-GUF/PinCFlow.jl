@@ -656,6 +656,9 @@ end
             diffusion = (m2b2 - saturation_threshold^2 * n2r^2) / (2 * m2b2k2)
         end
 
+        # Account for blocking.
+        diffusion *= (1 - blocked_fraction(state, i, j, k))
+
         # Reduce the wave action density.
         if saturation
             for r in 1:nray[i, j, k]
