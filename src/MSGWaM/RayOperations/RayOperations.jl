@@ -41,8 +41,6 @@ Module for various ray-volume operations needed throughout `PinCFlow.MSGWaM`.
 
   - [`PinCFlow.MSGWaM.RayOperations.get_surfaces`](@ref)
 
-  - [`PinCFlow.MSGWaM.RayOperations.merge_wave_action`](@ref)
-
   - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.update_merged_rays!`](@ref)
@@ -81,7 +79,6 @@ export check_rays,
     get_spectral_extent,
     get_spectral_position,
     get_surfaces,
-    merge_wave_action,
     remove_rays!,
     update_merged_rays!,
     compute_turbulent_velocity
