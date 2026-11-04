@@ -283,12 +283,33 @@ end
     variable::Chi,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
-        state.namelists.tracer
+    (;
+        leading_order_impact,
+        next_order_impact,
+        turbulence_wave_impact,
+        background_tracer_gradient,
+    ) = state.namelists.tracer
     (; dchidt0, dchidt1, dchidtq) = state.tracer.tracerwkbtendencies
-    (; model) = state.namelists.atmosphere
+    (; tracer_coupling, turbulence_scheme) = state.namelists.turbulence
+    (; lref) = state.constants
+    (; jac, dz) = state.grid
+    (; w) = state.variables.predictands
 
     impact = 0.0
+
+    impact -=
+        background_tracer_gradient * lref * (w[i, j, k - 1] + w[i, j, k]) / 2.0
+
+    if turbulence_scheme !== :NoTurbulence && tracer_coupling
+        impact +=
+            background_tracer_gradient *
+            lref *
+            (
+                turbulence_diffusion_coefficient(state, i, j, k + 1, KH()) -
+                turbulence_diffusion_coefficient(state, i, j, k - 1, KH()) /
+                (2.0 * jac[i, j, k] * dz)
+            )
+    end
 
     if leading_order_impact
         impact += dchidt0[i, j, k]

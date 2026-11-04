@@ -14,6 +14,7 @@ TracerNamelist(;
     initial_chi::Function = (x, y, z) -> 0.0,
     relaxed_chi::Function = (x, y, z, t, dt) -> 0.0,
     apply_lhs_sponge_to_tracer::Bool = true,
+    background_tracer_gradient::AbstractFloat = 1.0,
 )::TracerNamelist
 ```
 
@@ -34,6 +35,8 @@ Construct a `TracerNamelist` instance with the given keyword arguments as proper
   - `relaxed_chi::FunctionWrapper{Float64, NTuple{5, Float64}}`: Function used to compute the background tracer.
 
   - `apply_lhs_sponge_to_tracer::Bool`: Flag to relax the tracer fields to `relaxed_chi`.
+
+  - `background_tracer_gradient::AbstractFloat`: Vertical gradient of the large-scale tracer distribution.
 """
 struct TracerNamelist
     tracer_setup::Symbol
@@ -43,6 +46,7 @@ struct TracerNamelist
     initial_chi::FunctionWrapper{Float64, NTuple{3, Float64}}
     relaxed_chi::FunctionWrapper{Float64, NTuple{5, Float64}}
     apply_lhs_sponge_to_tracer::Bool
+    background_tracer_gradient::AbstractFloat
 end
 
 function TracerNamelist(;
@@ -53,6 +57,7 @@ function TracerNamelist(;
     initial_chi::Function = (x, y, z) -> 0.0,
     relaxed_chi::Function = (x, y, z, t, dt) -> 0.0,
     apply_lhs_sponge_to_tracer::Bool = true,
+    background_tracer_gradient::AbstractFloat = 1.0,
 )::TracerNamelist
     return TracerNamelist(
         tracer_setup,
@@ -62,5 +67,6 @@ function TracerNamelist(;
         initial_chi,
         relaxed_chi,
         apply_lhs_sponge_to_tracer,
+        background_tracer_gradient,
     )
 end

@@ -183,8 +183,12 @@ end
 )
     (; uchi0, vchi0, wchi0, qchi, uhat, vhat, what, bhat, pihat, chihat) =
         state.tracer.tracerwkbintegrals
-    (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
-        state.namelists.tracer
+    (;
+        leading_order_impact,
+        next_order_impact,
+        turbulence_wave_impact,
+        background_tracer_gradient,
+    ) = state.namelists.tracer
     (; chi) = state.tracer.tracerpredictands
     (; rho) = state.variables.predictands
     (; thetabar, rhobar) = state.atmosphere
@@ -210,7 +214,7 @@ end
         j,
         k,
     ) = parameters
-    (; kappa) = state.constants
+    (; kappa, lref) = state.constants
     (; lb) = state.turbulence.turbulenceconstants
 
     if (fc != 0.0 && leading_order_impact) ||
@@ -219,7 +223,9 @@ end
         chi ./= (rho .+ rhobar)
         dchidx = interpolate_scalar(state, xr, yr, zr, chi, DX())
         dchidy = interpolate_scalar(state, xr, yr, zr, chi, DY())
-        dchidz = interpolate_scalar(state, xr, yr, zr, chi, DZ())
+        dchidz =
+            interpolate_scalar(state, xr, yr, zr, chi, DZ()) +
+            background_tracer_gradient * lref
         chi .*= (rho .+ rhobar)
     end
 
