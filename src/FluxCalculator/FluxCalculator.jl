@@ -7,15 +7,21 @@ Module for flux calculation.
 
 Provides functions for MUSCL reconstruction and flux computation.
 
-# See also
+# Dependencies
+
+  - [`PinCFlow.Boundaries`](@ref)
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 
-  - [`PinCFlow.Boundaries`](@ref)
-
   - [`PinCFlow.Update`](@ref)
+
+# Exports
+
+  - [`PinCFlow.FluxCalculator.compute_fluxes!`](@ref)
+
+  - [`PinCFlow.FluxCalculator.reconstruct!`](@ref)
 """
 module FluxCalculator
 

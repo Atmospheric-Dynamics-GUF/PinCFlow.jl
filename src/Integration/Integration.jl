@@ -7,23 +7,27 @@ Module for integration of the full system.
 
 Provides helper functions for computing the time step, managing time levels and synchronizing fields, as well as the main function for running PinCFlow.jl.
 
-# See also
-
-  - [`PinCFlow.Macros`](@ref)
-
-  - [`PinCFlow.Types`](@ref)
+# Dependencies
 
   - [`PinCFlow.Boundaries`](@ref)
 
-  - [`PinCFlow.Update`](@ref)
-
-  - [`PinCFlow.PoissonSolver`](@ref)
-
   - [`PinCFlow.FluxCalculator`](@ref)
+
+  - [`PinCFlow.Macros`](@ref)
+
+  - [`PinCFlow.MSGWaM`](@ref)
 
   - [`PinCFlow.Output`](@ref)
 
-  - [`PinCFlow.MSGWaM`](@ref)
+  - [`PinCFlow.PoissonSolver`](@ref)
+
+  - [`PinCFlow.Types`](@ref)
+
+  - [`PinCFlow.Update`](@ref)
+
+# Exports
+
+  - [`PinCFlow.Integration.integrate`](@ref)
 """
 module Integration
 

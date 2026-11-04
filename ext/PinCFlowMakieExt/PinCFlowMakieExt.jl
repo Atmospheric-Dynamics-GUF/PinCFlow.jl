@@ -5,9 +5,17 @@ PinCFlowMakieExt
 
 Makie.jl extension (using the `CairoMakie` backend).
 
-# See also
+# Dependencies
 
   - [`PinCFlow.Macros`](@ref)
+
+# Imports
+
+  - [`PinCFlow.plot_output`](@ref)
+
+  - [`PinCFlow.set_visualization_theme!`](@ref)
+
+  - [`PinCFlow.symmetric_contours`](@ref)
 """
 module PinCFlowMakieExt
 

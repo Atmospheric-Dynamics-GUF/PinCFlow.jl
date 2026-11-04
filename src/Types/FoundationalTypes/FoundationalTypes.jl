@@ -5,11 +5,37 @@ FoundationalTypes
 
 Module that contains the composite types `Time`, `Constants`, `Domain`, `Grid`, `Atmosphere` and `Sponge`.
 
-# See also
+# Dependencies
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes`](@ref)
+
+# Exports
+
+  - [`PinCFlow.Types.FoundationalTypes.Atmosphere`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.Constants`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.Domain`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.Grid`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.Sponge`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.Time`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_meridional_halos_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_vertical_halos_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_halos_of_field!`](@ref)
 """
 module FoundationalTypes
 

@@ -7,13 +7,21 @@ Module for I/O of simulation data.
 
 Provides functions for writing the model state and initializing the model with data from a previous simulation.
 
-# See also
+# Dependencies
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.Update`](@ref)
+
+# Exports
+
+  - [`PinCFlow.Output.create_output`](@ref)
+
+  - [`PinCFlow.Output.read_input!`](@ref)
+
+  - [`PinCFlow.Output.write_output`](@ref)
 """
 module Output
 

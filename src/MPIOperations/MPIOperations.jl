@@ -8,11 +8,21 @@ Module for operations that require communication between MPI processes.
 Provides halo exchange functions for maintaining field continuity across
 process boundaries, as well as global reduction operations.
 
-# See also
+# Dependencies
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
+
+# Exports
+
+  - [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref)
+
+  - [`PinCFlow.MPIOperations.set_meridional_halos_of_field!`](@ref)
+
+  - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
+
+  - [`PinCFlow.MPIOperations.set_zonal_halos_of_field!`](@ref)
 """
 module MPIOperations
 

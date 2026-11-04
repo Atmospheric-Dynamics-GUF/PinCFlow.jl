@@ -5,17 +5,35 @@ Examples
 
 Module that defines PinCFlow.jl's example functions.
 
-# See also
+# Dependencies
 
   - [`PinCFlow.Examples.WavePacketTools`](@ref)
 
+  - [`PinCFlow.Integration`](@ref)
+
   - [`PinCFlow.Macros`](@ref)
+
+  - [`PinCFlow.PinCFlow`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 
-  - [`PinCFlow.Integration`](@ref)
+# Exports
 
-  - [`PinCFlow.PinCFlow`](@ref)
+  - [`PinCFlow.Examples.cold_bubble`](@ref)
+
+  - [`PinCFlow.Examples.hot_bubble`](@ref)
+
+  - [`PinCFlow.Examples.mountain_wave`](@ref)
+
+  - [`PinCFlow.Examples.periodic_hill`](@ref)
+
+  - [`PinCFlow.Examples.vortex`](@ref)
+
+  - [`PinCFlow.Examples.wave_packet`](@ref)
+
+  - [`PinCFlow.Examples.wkb_mountain_wave`](@ref)
+
+  - [`PinCFlow.Examples.wkb_wave_packet`](@ref)
 """
 module Examples
 

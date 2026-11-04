@@ -7,17 +7,27 @@ Module for enforcing boundary conditions for ray volumes.
 
 Provides functions for configurations that are serial or parallel in any dimension of physical space. Assumes periodicity in the horizontal and solid-wall boundaries in the vertical.
 
-# See also
-
-  - [`PinCFlow.Macros`](@ref)
-
-  - [`PinCFlow.Types`](@ref)
-
-  - [`PinCFlow.MPIOperations`](@ref)
+# Dependencies
 
   - [`PinCFlow.Boundaries`](@ref)
 
+  - [`PinCFlow.Macros`](@ref)
+
+  - [`PinCFlow.MPIOperations`](@ref)
+
   - [`PinCFlow.MSGWaM.RayOperations`](@ref)
+
+  - [`PinCFlow.Types`](@ref)
+
+# Exports
+
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_boundary_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_boundary_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
 """
 module BoundaryRays
 

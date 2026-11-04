@@ -5,13 +5,31 @@ VariableTypes
 
 Module for composite types needed for the integration in time.
 
-# See also
+# Dependencies
+
+  - [`PinCFlow.Types.FoundationalTypes`](@ref)
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes`](@ref)
 
-  - [`PinCFlow.Types.FoundationalTypes`](@ref)
+# Exports
+
+  - [`PinCFlow.Types.VariableTypes.Auxiliaries`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.Backups`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.Fluxes`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.Increments`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.Predictands`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.Reconstructions`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.StressTensor`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.Variables`](@ref)
 """
 module VariableTypes
 
