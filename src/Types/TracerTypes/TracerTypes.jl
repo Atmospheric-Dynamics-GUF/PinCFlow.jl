@@ -5,7 +5,7 @@ TracerTypes
 
 Module for composite types needed for tracer transport.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

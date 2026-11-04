@@ -5,7 +5,7 @@ MSGWaM
 
 3D transient implementation of MS-GWaM.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.MSGWaM.BoundaryRays`](@ref)
 

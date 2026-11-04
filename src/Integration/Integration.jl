@@ -7,7 +7,7 @@ Module for integration of the full system.
 
 Provides helper functions for computing the time step, managing time levels and synchronizing fields, as well as the main function for running PinCFlow.jl.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Boundaries`](@ref)
 

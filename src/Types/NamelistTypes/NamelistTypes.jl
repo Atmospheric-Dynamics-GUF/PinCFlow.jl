@@ -7,7 +7,7 @@ Module that contains all namelist types.
 
 Provides constructors that allow setting only specific parameters and using default values for the rest.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

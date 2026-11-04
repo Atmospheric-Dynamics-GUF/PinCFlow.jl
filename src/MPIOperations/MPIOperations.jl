@@ -8,7 +8,7 @@ Module for operations that require communication between MPI processes.
 Provides halo exchange functions for maintaining field continuity across
 process boundaries, as well as global reduction operations.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

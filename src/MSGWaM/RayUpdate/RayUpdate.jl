@@ -7,7 +7,7 @@ Module for the integration of the ray equations.
 
 In addition to ray-volume initialization and propagation, functions for tracking ray volumes on the model grid and controlling their count, as well as a saturation scheme for capturing wave breaking, are provided.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

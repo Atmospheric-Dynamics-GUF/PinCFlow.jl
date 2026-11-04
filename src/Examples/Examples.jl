@@ -5,7 +5,7 @@ Examples
 
 Module that defines PinCFlow.jl's example functions.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Examples.WavePacketTools`](@ref)
 

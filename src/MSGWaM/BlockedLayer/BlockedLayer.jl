@@ -5,7 +5,7 @@ BlockedLayer
 
 Module for the blocked-layer scheme.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

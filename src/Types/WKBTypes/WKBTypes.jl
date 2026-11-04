@@ -5,7 +5,7 @@ WKBTypes
 
 Module that contains a collection of types for WKB ray tracing calculations including ray data structures, surface indices, integrals, tendencies, and increments.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

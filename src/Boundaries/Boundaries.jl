@@ -7,7 +7,7 @@ Module for enforcing boundary conditions for different variable types and field 
 
 Handles periodic boundaries in the horizontal and solid-wall boundaries in the vertical, as well as MPI communication in all dimensions.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

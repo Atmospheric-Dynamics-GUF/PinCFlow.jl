@@ -5,7 +5,7 @@ RaySources
 
 Module for ray-volume sources.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

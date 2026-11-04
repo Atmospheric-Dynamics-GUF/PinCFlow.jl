@@ -5,7 +5,7 @@ Types
 
 Module for the construction of a single composite type that contains all information on the current model state.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Types.FoundationalTypes`](@ref)
 

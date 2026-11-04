@@ -7,7 +7,7 @@ Module for flux calculation.
 
 Provides functions for MUSCL reconstruction and flux computation.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Boundaries`](@ref)
 

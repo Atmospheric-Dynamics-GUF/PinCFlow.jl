@@ -5,7 +5,7 @@ VariableTypes
 
 Module for composite types needed for the integration in time.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Types.FoundationalTypes`](@ref)
 

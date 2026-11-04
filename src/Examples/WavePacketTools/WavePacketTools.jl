@@ -5,7 +5,7 @@ WavePacketTools
 
 Module that defines helper functions for setting up the wave-packet and WKB-wave-packet example simulations.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

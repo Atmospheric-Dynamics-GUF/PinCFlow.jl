@@ -5,7 +5,7 @@ FoundationalTypes
 
 Module that contains the composite types `Time`, `Constants`, `Domain`, `Grid`, `Atmosphere` and `Sponge`.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

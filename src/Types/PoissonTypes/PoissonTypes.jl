@@ -5,7 +5,7 @@ PoissonTypes
 
 Module for composite types used by the Poisson solver.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

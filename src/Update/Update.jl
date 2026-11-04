@@ -7,7 +7,7 @@ Module for integrating the prognostic equations.
 
 Provides functions for updating the prognostic variables at the various stages of the semi-implicit time scheme.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Boundaries`](@ref)
 

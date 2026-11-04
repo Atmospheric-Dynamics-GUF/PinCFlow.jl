@@ -5,7 +5,7 @@ RayOperations
 
 Module for various ray-volume operations needed throughout `PinCFlow.MSGWaM`.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 

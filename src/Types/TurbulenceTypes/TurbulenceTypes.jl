@@ -5,7 +5,7 @@ TurbulenceTypes
 
 Module for composite types needed for turbulence parameterization.
 
-# Dependencies
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 
