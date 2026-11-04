@@ -74,7 +74,7 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `dmr_factor::Float64`: Relative initial ray-volume extent in ``m``.
 
-  - `vertical_multiplication_factor::Integer`: Factor that controls the size of the ray-volume arrays by acccounting for ray-volume multiplication in the vertical.
+  - `vertical_multiplication_factor::Integer`: Factor that controls the size of the ray-volume arrays by accounting for ray-volume multiplication in the vertical.
 
   - `branch::Int`: Frequency branch.
 
