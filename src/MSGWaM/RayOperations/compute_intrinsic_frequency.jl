@@ -31,7 +31,7 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray volume
 
   - `k`: Vertical grid-cell index.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 """

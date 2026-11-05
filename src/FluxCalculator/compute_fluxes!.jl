@@ -339,7 +339,7 @@ The computation is analogous to that of the density fluxes.
 
   - `tracer_setup`: General tracer-transport configuration.
 
-# See also
+# Calls
 
   - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
 

@@ -28,7 +28,7 @@ is solved for ``s``. The Exner-pressure differences are then given by ``\\Delta 
 
   - `tolref`: Reference tolerance for convergence criterion.
 
-# See also
+# Calls
 
   - [`PinCFlow.PoissonSolver.compute_operator!`](@ref)
 

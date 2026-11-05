@@ -62,7 +62,7 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 
   - `direction`: Shift direction.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
 

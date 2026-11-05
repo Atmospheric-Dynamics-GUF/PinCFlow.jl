@@ -66,7 +66,7 @@ The splitting is analogous to that in ``\\hat{x}`` and ``\\hat{y}``.
 
   - `axis`: Axis perpendicular to the split.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 

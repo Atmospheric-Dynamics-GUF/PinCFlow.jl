@@ -17,7 +17,7 @@ Return the squared buoyancy frequency of `state` at ``\\left(x, y, z\\right)``.
 
   - `z`: Vertical position.
 
-# See also
+# Calls
 
   - [`PinCFlow.Examples.WavePacketTools.ijk`](@ref)
 """

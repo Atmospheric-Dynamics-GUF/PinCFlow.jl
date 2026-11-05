@@ -192,7 +192,7 @@ Return for configurations without tracer transport.
 
   - `tracer_setup`: General tracer-transport configuration.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!`](@ref)
 """

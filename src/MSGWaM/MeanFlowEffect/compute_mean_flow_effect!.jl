@@ -28,17 +28,21 @@ This method first computes several spectral integrals (using `compute_gw_integra
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
 
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref)
+  - [`PinCFlow.Boundaries.BoundaryWKBIntegrals`](@ref)
+
+  - [`PinCFlow.Boundaries.BoundaryWKBTendencies`](@ref)
 
   - [`PinCFlow.Boundaries.set_boundaries!`](@ref)
+
+  - [`PinCFlow.MSGWaM.BlockedLayer.include_blocked_flow_drag!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tendencies!`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.smooth_gw_tendencies!`](@ref)
-
-  - [`PinCFlow.MSGWaM.BlockedLayer.include_blocked_flow_drag!`](@ref)
 """
 function compute_mean_flow_effect! end
 

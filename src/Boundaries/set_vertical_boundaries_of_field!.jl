@@ -43,7 +43,7 @@ This method is applied to reconstruction arrays. Vertical boundary conditions ar
 
   - `staggered`: A switch for whether or not the field is on the staggered vertical grid.
 
-# See also
+# Calls
 
   - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """

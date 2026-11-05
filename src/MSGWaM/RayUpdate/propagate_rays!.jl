@@ -142,7 +142,7 @@ If `rkstage != 1`, this method returns immediately.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
 

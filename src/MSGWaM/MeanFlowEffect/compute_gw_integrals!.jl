@@ -83,7 +83,7 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 

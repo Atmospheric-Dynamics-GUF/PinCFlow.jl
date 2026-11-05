@@ -46,7 +46,7 @@ For `state.namelists.wkb.elastic_mode_selection == true`, `apply_elastic_mode_se
 
   - `state`: Model state.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_orographic_flow`](@ref)
 

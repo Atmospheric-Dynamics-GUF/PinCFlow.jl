@@ -255,7 +255,7 @@ is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \
 
   - `tracer_setup`: General tracer-transport configuration.
 
-# See also
+# Calls
 
   - [`PinCFlow.Update.check_tke!`](@ref)
 

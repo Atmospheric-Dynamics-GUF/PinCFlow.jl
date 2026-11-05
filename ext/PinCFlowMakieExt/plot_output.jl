@@ -57,7 +57,7 @@ Create contour plots of the dataset `variable` in `data`, display it and save it
 
   - `z_tick_format`: Format string for the ticks of the ``z``-axis.
 
-# See also
+# Calls
 
   - [`PinCFlow.set_visualization_theme!`](@ref)
 

@@ -166,7 +166,7 @@ This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` tha
 
   - `phitype`: Mean-flow quantity to interpolate.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
 

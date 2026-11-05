@@ -23,7 +23,7 @@ Plot the snapshot specified by `field` in the row `row` of the figure `figure`.
 
   - `row`: Row of `figure` to add the plot to.
 
-# See also
+# Calls
 
   - [`PinCFlowMakieExt.add_scatter_plot!`](@ref)
 

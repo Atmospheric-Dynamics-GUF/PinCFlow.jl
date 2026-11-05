@@ -115,7 +115,7 @@ Enforce zonal boundary conditions for WKB tendencies needed in `:MultiColumn` co
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
 
   - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
 """

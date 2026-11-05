@@ -43,7 +43,7 @@ is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the
 
   - `k`: Vertical grid-cell index.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 

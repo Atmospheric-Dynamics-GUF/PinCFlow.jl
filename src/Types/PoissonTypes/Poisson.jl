@@ -35,15 +35,15 @@ Create a `Poisson` instance with an initialized Poisson-solver workspace, sized 
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-# See also
-
-  - [`PinCFlow.Types.PoissonTypes.Tensor`](@ref)
-
-  - [`PinCFlow.Types.PoissonTypes.Operator`](@ref)
+# Calls
 
   - [`PinCFlow.Types.PoissonTypes.BiCGSTAB`](@ref)
 
   - [`PinCFlow.Types.PoissonTypes.Correction`](@ref)
+
+  - [`PinCFlow.Types.PoissonTypes.Operator`](@ref)
+
+  - [`PinCFlow.Types.PoissonTypes.Tensor`](@ref)
 """
 struct Poisson{
     A <: AbstractArray{<:AbstractFloat, 3},

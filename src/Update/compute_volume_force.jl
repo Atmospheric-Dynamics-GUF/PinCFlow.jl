@@ -159,7 +159,7 @@ Return the turbulence impact of the gravity-wave shear.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
 
   - [`PinCFlow.Update.conductive_heating`](@ref)
 

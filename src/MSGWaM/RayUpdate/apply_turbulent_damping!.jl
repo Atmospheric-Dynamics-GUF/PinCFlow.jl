@@ -53,7 +53,7 @@ and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence
 
   - `dt`: Time step.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 

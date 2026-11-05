@@ -95,7 +95,7 @@ Similar to the density, the turbulent kinetic energy is divided by ``P`` before 
 
   - `tracer_setup`: General tracer-transport configuration.
 
-# See also
+# Calls
 
   - [`PinCFlow.FluxCalculator.apply_3d_muscl!`](@ref)
 

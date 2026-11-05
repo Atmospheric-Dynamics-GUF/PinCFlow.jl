@@ -125,7 +125,7 @@ Minimum layer depth:
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-# See also
+# Calls
 
   - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
 

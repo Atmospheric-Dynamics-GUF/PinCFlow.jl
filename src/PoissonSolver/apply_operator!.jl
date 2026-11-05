@@ -35,11 +35,11 @@ Before the operator is applied, the boundary/halo values of `sin` are set, in th
 
   - `state`: Model state.
 
-# See also
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+# Calls
 
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
 
   - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 """

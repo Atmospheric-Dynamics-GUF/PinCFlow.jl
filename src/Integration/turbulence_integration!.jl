@@ -99,7 +99,7 @@ is solved using a Thomas tridiagonal solver, with ``\\tilde{\\mathcal{K}}_{e_\\m
 
   - `process`: Terms in the prognostic equations.
 
-# See also
+# Calls
 
   - [`PinCFlow.Update.check_tke!`](@ref)
 

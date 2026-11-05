@@ -11,7 +11,7 @@ This method first enforces zonal boundary conditions for `state.wkb.nray` (by ap
 
   - `state`: Model state.
 
-# See also
+# Calls
 
   - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
 

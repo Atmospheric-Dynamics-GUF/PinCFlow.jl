@@ -70,7 +70,7 @@ This method is used to compute the properties of merged ray volumes. It is calle
 
   - `omegar`: Intrinsic frequency of the old ray volume.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_wave_action_integral`](@ref)
 """

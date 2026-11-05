@@ -115,7 +115,7 @@ Enforce meridional boundary conditions for WKB tendencies needed in `:MultiColum
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
 
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 """

@@ -54,7 +54,7 @@ where ``F^P`` is the diabatic heating, as computed by `compute_volume_force`, an
 
   - `model`: Dynamic equations.
 
-# See also
+# Calls
 
   - [`PinCFlow.Update.compute_volume_force`](@ref)
 """

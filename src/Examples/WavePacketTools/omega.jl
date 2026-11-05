@@ -27,7 +27,7 @@ where ``\\boldsymbol{k} = \\left(k, l, m\\right)^\\mathrm{T}`` and ``f`` are tak
 
   - `z`: Vertical position.
 
-# See also
+# Calls
 
   - [`PinCFlow.Examples.WavePacketTools.n2`](@ref)
 """
