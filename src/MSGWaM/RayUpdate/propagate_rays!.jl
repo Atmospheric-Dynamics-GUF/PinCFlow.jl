@@ -191,7 +191,8 @@ end
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )::Nothing
-    (; branch, impact_altitude, blocking) = state.namelists.wkb
+    (; branch, impact_altitude, blocking, check_propagation) =
+        state.namelists.wkb
     (; x_size, y_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
@@ -324,10 +325,12 @@ end
                 cgx_max[] = max(cgx_max[], abs(cgrx1), abs(cgrx2))
             end
 
-            if abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
-               abs(rays.dxray[r, i, j, k] - dxr) > stepfrac[rkstage] * dx
+            check_propagation &&
+                (
+                    abs(rays.x[r, i, j, k] - xr) > stepfrac[rkstage] * dx ||
+                    abs(rays.dxray[r, i, j, k] - dxr) > stepfrac[rkstage] * dx
+                ) &&
                 error("Rays travel too far in x!")
-            end
 
             # Update meridional position.
 
@@ -348,10 +351,12 @@ end
                 cgy_max[] = max(cgy_max[], abs(cgry1), abs(cgry2))
             end
 
-            if abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
-               abs(rays.dyray[r, i, j, k] - dyr) > stepfrac[rkstage] * dy
+            check_propagation &&
+                (
+                    abs(rays.y[r, i, j, k] - yr) > stepfrac[rkstage] * dy ||
+                    abs(rays.dyray[r, i, j, k] - dyr) > stepfrac[rkstage] * dy
+                ) &&
                 error("Rays travel too far in y!")
-            end
 
             # Update vertical position.
 
@@ -366,10 +371,13 @@ end
 
             cgz_max[] = max(cgz_max[], abs(cgrz1), abs(cgrz2))
 
-            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
-               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
+            check_propagation &&
+                (
+                    abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
+                    abs(rays.dzray[r, i, j, k] - dzr) >
+                    stepfrac[rkstage] * dzcmin
+                ) &&
                 error("Rays travel too far in z!")
-            end
 
             # Refraction is only allowed above impact_altitude / lref.
 
