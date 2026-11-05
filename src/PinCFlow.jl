@@ -31,19 +31,17 @@ Main module of PinCFlow.jl.
 
   - [`PinCFlow.Types.NamelistTypes.SpongeNamelist`](@ref)
 
-  - [`PinCFlow.Types.State`](@ref)
-
   - [`PinCFlow.Types.NamelistTypes.TracerNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.TurbulenceNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
 
+  - [`PinCFlow.Types.State`](@ref)
+
   - [`PinCFlow.Examples.cold_bubble`](@ref)
 
   - [`PinCFlow.Examples.hot_bubble`](@ref)
-
-  - [`PinCFlow.Integration.integrate`](@ref)
 
   - [`PinCFlow.Examples.mountain_wave`](@ref)
 
@@ -56,6 +54,8 @@ Main module of PinCFlow.jl.
   - [`PinCFlow.Examples.wkb_mountain_wave`](@ref)
 
   - [`PinCFlow.Examples.wkb_wave_packet`](@ref)
+
+  - [`PinCFlow.Integration.integrate`](@ref)
 """
 module PinCFlow
 
