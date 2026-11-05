@@ -92,7 +92,7 @@ end
     i::Integer,
     j::Integer,
     k::Integer,
-    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
+    turbulence_scheme::Val{:TKEScheme},
 )::Nothing
     (; gw_shear) = state.turbulence.turbulencewkbintegrals
     (; dtkedt) = state.turbulence.turbulencewkbtendencies
@@ -105,6 +105,32 @@ end
     dtkedt[i, j, k] =
         turbulence_diffusion_coefficient(state, i, j, k, KM()) *
         gw_shear[i, j, k]
+
+    nothing
+end
+
+@ivy function compute_gw_turbulence_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    turbulence_scheme::Val{:TTEScheme},
+)::Nothing
+    (; gw_shear, gw_convective) = state.turbulence.turbulencewkbintegrals
+    (; dtkedt, dtapedt) = state.turbulence.turbulencewkbtendencies
+    (; gw_coupling) = state.namelists.turbulence
+
+    if !gw_coupling
+        return nothing
+    end
+
+    dtkedt[i, j, k] =
+        turbulence_diffusion_coefficient(state, i, j, k, KM()) *
+        gw_shear[i, j, k]
+
+    dtapedt[i, j, k] =
+        turbulence_diffusion_coefficient(state, i, j, k, KH()) *
+        gw_convective[i, j, k]
 
     nothing
 end

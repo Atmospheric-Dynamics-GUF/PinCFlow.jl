@@ -47,7 +47,9 @@ Construct a `TurbulenceWKBIntegrals` instance with zero-initialized arrays if `s
 
 # Fields
 
-  - `gw_shear::A`: Gravity-wave shear field.
+  - `gw_shear::A`: Turbulence production due to gravity-wave shear.
+
+  - `gw_convective::A`: Turbulence production due to gravity-wave convection.
 
 # Arguments
 
@@ -61,6 +63,7 @@ Construct a `TurbulenceWKBIntegrals` instance with zero-initialized arrays if `s
 """
 struct TurbulenceWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
     gw_shear::A
+    gw_convective::A
 end
 
 function TurbulenceWKBIntegrals(
@@ -93,21 +96,37 @@ function TurbulenceWKBIntegrals(
         Val{:MultiColumn},
     },
 )::TurbulenceWKBIntegrals
-    TurbulenceWKBIntegrals(zeros(0, 0, 0))
+    TurbulenceWKBIntegrals((zeros(0, 0, 0) for i in 1:2)...)
 end
 
 function TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
-    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
+    turbulence_scheme::Val{:TKEScheme},
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TurbulenceWKBIntegrals
     (; nxx, nyy, nzz) = domain
     (; gw_coupling) = namelists.turbulence
 
     if gw_coupling
-        TurbulenceWKBIntegrals(zeros(nxx, nyy, nzz))
+        TurbulenceWKBIntegrals(zeros(nxx, nyy, nzz), zeros(0, 0, 0))
     else
-        TurbulenceWKBIntegrals(zeros(0, 0, 0))
+        TurbulenceWKBIntegrals((zeros(0, 0, 0) for i in 1:2)...)
+    end
+end
+
+function TurbulenceWKBIntegrals(
+    namelists::Namelists,
+    domain::Domain,
+    turbulence_scheme::Val{:TTEScheme},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+)::TurbulenceWKBIntegrals
+    (; nxx, nyy, nzz) = domain
+    (; gw_coupling) = namelists.turbulence
+
+    if gw_coupling
+        TurbulenceWKBIntegrals((zeros(nxx, nyy, nzz) for i in 1:2)...)
+    else
+        TurbulenceWKBIntegrals((zeros(0, 0, 0) for i in 1:2)...)
     end
 end

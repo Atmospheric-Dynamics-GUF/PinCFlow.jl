@@ -434,6 +434,33 @@ function write_output end
                             kk,
                         ] .* uref .^ 2 ./ tref
                 end
+
+                if state.namelists.turbulence.gw_coupling && wkb_mode !== :NoWKB
+                    if :dtapedt in output_variables
+                        HDF5.set_extent_dims(
+                            file["dtapedt"],
+                            (x_size, y_size, z_size, iout),
+                        )
+                        file["dtapedt"][iid, jjd, kkd, iout] =
+                            state.turbulence.turbulencewkbtendencies.dtapedt[
+                                ii,
+                                jj,
+                                kk,
+                            ] .* uref .^ 2 ./ tref
+                    end
+                    if :gw_convective in output_variables
+                        HDF5.set_extent_dims(
+                            file["gw_convective"],
+                            (x_size, y_size, z_size, iout),
+                        )
+                        file["gw_convective"][iid, jjd, kkd, iout] =
+                            state.turbulence.turbulencewkbintegrals.gw_convective[
+                                ii,
+                                jj,
+                                kk,
+                            ] ./ tref .^ 2
+                    end
+                end
             end
 
             # Write GW shear.

@@ -297,34 +297,25 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_gw_turbulence_integrals!(
-                            state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            iray,
-                            jray,
-                            kray,
+                        parameters = (
+                            fc = fc,
+                            omir = omir,
+                            kr = kr,
+                            lr = lr,
+                            mr = mr,
+                            wadr = wadr,
+                            i = iray,
+                            j = jray,
+                            k = kray,
+                            n2r = n2r,
+                            xr = xr,
+                            yr = yr,
+                            zr = zr,
                         )
 
-                        compute_gw_tracer_integrals!(
-                            state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            xr,
-                            yr,
-                            zr,
-                            iray,
-                            jray,
-                            kray,
-                        )
+                        compute_gw_turbulence_integrals!(state, parameters)
+
+                        compute_gw_tracer_integrals!(state, parameters)
                     end
                 end
             end
@@ -492,34 +483,25 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
-                        compute_gw_turbulence_integrals!(
-                            state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            iray,
-                            jray,
-                            kray,
+                        parameters = (
+                            fc = fc,
+                            omir = omir,
+                            kr = kr,
+                            lr = lr,
+                            mr = mr,
+                            wadr = wadr,
+                            i = iray,
+                            j = jray,
+                            k = kray,
+                            n2r = n2r,
+                            xr = xr,
+                            yr = yr,
+                            zr = zr,
                         )
 
-                        compute_gw_tracer_integrals!(
-                            state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            xr,
-                            yr,
-                            zr,
-                            iray,
-                            jray,
-                            kray,
-                        )
+                        compute_gw_turbulence_integrals!(state, parameters)
+
+                        compute_gw_tracer_integrals!(state, parameters)
                     end
                 end
             end
@@ -637,34 +619,25 @@ end
 
                         integrals.vw[iray, jray, kray] += wadr * lr * cgirz
 
-                        compute_gw_turbulence_integrals!(
-                            state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            iray,
-                            jray,
-                            kray,
+                        parameters = (
+                            fc = fc,
+                            omir = omir,
+                            kr = kr,
+                            lr = lr,
+                            mr = mr,
+                            wadr = wadr,
+                            i = iray,
+                            j = jray,
+                            k = kray,
+                            n2r = n2r,
+                            xr = xr,
+                            yr = yr,
+                            zr = zr,
                         )
 
-                        compute_gw_tracer_integrals!(
-                            state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            xr,
-                            yr,
-                            zr,
-                            iray,
-                            jray,
-                            kray,
-                        )
+                        compute_gw_turbulence_integrals!(state, parameters)
+
+                        compute_gw_tracer_integrals!(state, parameters)
                     end
                 end
             end

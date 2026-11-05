@@ -17,7 +17,7 @@ compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, Chi, TKE},
+    variable::Union{U, V, W, Chi, TKE, TAPE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
 ```
@@ -193,7 +193,7 @@ function compute_volume_force(
     i::Integer,
     j::Integer,
     k::Integer,
-    variable::Union{U, V, W, Chi, TKE},
+    variable::Union{U, V, W, Chi, TKE, TAPE},
     wkb_mode::Val{:NoWKB},
 )::AbstractFloat
     0.0
@@ -315,21 +315,23 @@ end
 
     shear_production[i, j, k] = shear
 
+    bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
+    bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
+
+    dbdz = (bu - bd) / (jac[i, j, k] * 2.0 * dz)
+
+    buoyancy =
+        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
+        (n2[i, j, k] + dbdz)
+
+    buoyancy_production[i, j, k] = buoyancy
+
     if gw_coupling
         @dispatch_wkb_mode dtkedt =
             compute_volume_force(state, i, j, k, variable, Val(wkb_mode))
     else
         dtkedt = 0.0
     end
-
-    bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
-    bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
-
-    buoyancy =
-        -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
-        (n2[i, j, k] + (bu - bd) / (jac[i, j, k] * 2.0 * dz))
-
-    buoyancy_production[i, j, k] = buoyancy
 
     (rho[i, j, k] + rhobar[i, j, k]) * (shear + buoyancy + dtkedt)
 end
@@ -359,6 +361,8 @@ end
     (; rhobar, n2) = state.atmosphere
     (; g_ndim) = state.constants
     (; dz, jac) = state.grid
+    (; wkb_mode) = state.namelists.wkb
+    (; gw_coupling) = state.namelists.turbulence
 
     bu = -g_ndim * rhop[i, j, k + 1] / (rho[i, j, k + 1] + rhobar[i, j, k + 1])
     bd = -g_ndim * rhop[i, j, k - 1] / (rho[i, j, k - 1] + rhobar[i, j, k - 1])
@@ -375,5 +379,25 @@ end
         -turbulence_diffusion_coefficient(state, i, j, k, KH()) *
         (n2[i, j, k] + dbdz)
 
-    (rho[i, j, k] + rhobar[i, j, k]) * (convective - buoyancy)
+    if gw_coupling
+        @dispatch_wkb_mode dtapedt =
+            compute_volume_force(state, i, j, k, variable, Val(wkb_mode))
+    else
+        dtapedt = 0.0
+    end
+
+    (rho[i, j, k] + rhobar[i, j, k]) * (convective - buoyancy + dtapedt)
+end
+
+@ivy function compute_volume_force(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    variable::TAPE,
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+)::AbstractFloat
+    (; dtapedt) = state.turbulence.turbulencewkbtendencies
+
+    dtapedt[i, j, k]
 end

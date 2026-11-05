@@ -393,6 +393,33 @@ function create_output(state::State, machine_start_time::DateTime)::Nothing
                         chunk = (cx, cy, cz, ct),
                     )
                 end
+
+                if state.namelists.turbulence.gw_coupling && wkb_mode !== :NoWKB
+                    if :dtapedt in output_variables
+                        create_dataset(
+                            file,
+                            "dtapedt",
+                            datatype(Float32),
+                            dataspace(
+                                (x_size, y_size, z_size, 0),
+                                (x_size, y_size, z_size, -1),
+                            );
+                            chunk = (cx, cy, cz, ct),
+                        )
+                    end
+                    if :gw_convective in output_variables
+                        create_dataset(
+                            file,
+                            "gw_convective",
+                            datatype(Float32),
+                            dataspace(
+                                (x_size, y_size, z_size, 0),
+                                (x_size, y_size, z_size, -1),
+                            );
+                            chunk = (cx, cy, cz, ct),
+                        )
+                    end
+                end
             end
 
             # Create dataset for GW shear.

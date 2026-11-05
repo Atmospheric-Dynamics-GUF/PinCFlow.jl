@@ -47,7 +47,9 @@ Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays if `
 
 # Fields
 
-  - `dtkedt::A`: Turbulence impact of unresolved gravity waves.
+  - `dtkedt::A`: Turbulent kinetic energy impact of unresolved gravity waves.
+
+  - `dtapedt::A`: Turbulent available potential energy impact of unresolved gravity waves.
 
 # Arguments
 
@@ -61,6 +63,7 @@ Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays if `
 """
 struct TurbulenceWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
     dtkedt::A
+    dtapedt::A
 end
 
 function TurbulenceWKBTendencies(
@@ -93,21 +96,37 @@ function TurbulenceWKBTendencies(
         Val{:MultiColumn},
     },
 )::TurbulenceWKBTendencies
-    TurbulenceWKBTendencies(zeros(0, 0, 0))
+    TurbulenceWKBTendencies((zeros(0, 0, 0) for i in 1:2)...)
 end
 
 function TurbulenceWKBTendencies(
     namelists::Namelists,
     domain::Domain,
-    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
+    turbulence_scheme::Val{:TKEScheme},
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::TurbulenceWKBTendencies
     (; nxx, nyy, nzz) = domain
     (; gw_coupling) = namelists.turbulence
 
     if gw_coupling
-        TurbulenceWKBTendencies(zeros(nxx, nyy, nzz))
+        TurbulenceWKBTendencies(zeros(nxx, nyy, nzz), zeros(0, 0, 0))
     else
-        TurbulenceWKBTendencies(zeros(0, 0, 0))
+        TurbulenceWKBTendencies((zeros(0, 0, 0) for i in 1:2)...)
+    end
+end
+
+function TurbulenceWKBTendencies(
+    namelists::Namelists,
+    domain::Domain,
+    turbulence_scheme::Val{:TTEScheme},
+    wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
+)::TurbulenceWKBTendencies
+    (; nxx, nyy, nzz) = domain
+    (; gw_coupling) = namelists.turbulence
+
+    if gw_coupling
+        TurbulenceWKBTendencies((zeros(nxx, nyy, nzz) for i in 1:2)...)
+    else
+        TurbulenceWKBTendencies((zeros(0, 0, 0) for i in 1:2)...)
     end
 end
