@@ -25,9 +25,9 @@ Plot the snapshot specified by `field` in the row `row` of the figure `figure`.
 
 # Calls
 
-  - [`PinCFlowMakieExt.add_scatter_plot!`](@ref)
-
   - [`PinCFlowMakieExt.add_contour_plot!`](@ref)
+
+  - [`PinCFlowMakieExt.add_scatter_plot!`](@ref)
 """
 function plot_snapshot! end
 
