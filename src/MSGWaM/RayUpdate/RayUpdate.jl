@@ -9,8 +9,6 @@ In addition to ray-volume initialization and propagation, functions for tracking
 
 # Scopes
 
-  - [`PinCFlow.Macros`](@ref)
-
   - [`PinCFlow.MSGWaM.BoundaryRays`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation`](@ref)
@@ -18,6 +16,8 @@ In addition to ray-volume initialization and propagation, functions for tracking
   - [`PinCFlow.MSGWaM.RayOperations`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources`](@ref)
+
+  - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 

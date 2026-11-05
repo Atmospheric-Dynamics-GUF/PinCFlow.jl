@@ -7,11 +7,11 @@ Module for ray-volume sources.
 
 # Scopes
 
-  - [`PinCFlow.Macros`](@ref)
-
   - [`PinCFlow.MSGWaM.BlockedLayer`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations`](@ref)
+
+  - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 

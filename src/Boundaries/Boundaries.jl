@@ -9,9 +9,9 @@ Handles periodic boundaries in the horizontal and solid-wall boundaries in the v
 
 # Scopes
 
-  - [`PinCFlow.Macros`](@ref)
-
   - [`PinCFlow.MPIOperations`](@ref)
+
+  - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 

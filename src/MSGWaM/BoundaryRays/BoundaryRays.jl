@@ -11,11 +11,11 @@ Provides functions for configurations that are serial or parallel in any dimensi
 
   - [`PinCFlow.Boundaries`](@ref)
 
-  - [`PinCFlow.Macros`](@ref)
-
   - [`PinCFlow.MPIOperations`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations`](@ref)
+
+  - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 

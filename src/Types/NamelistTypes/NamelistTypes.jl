@@ -13,6 +13,26 @@ Provides constructors that allow setting only specific parameters and using defa
 
 # Exports
 
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_background`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_filter_order`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_filter_type`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_limiter_type`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_merge_mode`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_model`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_orographic_flow`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_tracer_setup`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_turbulence_scheme`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_wkb_mode`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
@@ -34,26 +54,6 @@ Provides constructors that allow setting only specific parameters and using defa
   - [`PinCFlow.Types.NamelistTypes.TurbulenceNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_background`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_filter_order`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_filter_type`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_limiter_type`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_merge_mode`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_model`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_orographic_flow`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_tracer_setup`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_turbulence_scheme`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_wkb_mode`](@ref)
 """
 module NamelistTypes
 

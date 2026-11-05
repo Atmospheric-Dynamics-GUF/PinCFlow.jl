@@ -7,9 +7,9 @@ Module for composite types needed for the integration in time.
 
 # Scopes
 
-  - [`PinCFlow.Types.FoundationalTypes`](@ref)
-
   - [`PinCFlow.Macros`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes`](@ref)
 

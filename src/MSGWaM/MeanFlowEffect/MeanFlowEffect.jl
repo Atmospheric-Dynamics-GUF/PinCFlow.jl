@@ -11,15 +11,15 @@ Provides functions that compute mean-flow tendencies by integrating ray-volume p
 
   - [`PinCFlow.Boundaries`](@ref)
 
-  - [`PinCFlow.Macros`](@ref)
-
   - [`PinCFlow.MSGWaM.BlockedLayer`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation`](@ref)
 
-  - [`PinCFlow.MSGWaM.RayUpdate`](@ref)
+  - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
+
+  - [`PinCFlow.Update`](@ref)
 
 # Exports
 

@@ -7,13 +7,31 @@ Main module of PinCFlow.jl.
 
 # Scopes
 
-  - [`PinCFlow.Types`](@ref)
+  - [`PinCFlow.Examples`](@ref)
 
   - [`PinCFlow.Integration`](@ref)
 
-  - [`PinCFlow.Examples`](@ref)
+  - [`PinCFlow.Types`](@ref)
 
 # Exports
+
+  - [`PinCFlow.Examples.cold_bubble`](@ref)
+
+  - [`PinCFlow.Examples.hot_bubble`](@ref)
+
+  - [`PinCFlow.Examples.mountain_wave`](@ref)
+
+  - [`PinCFlow.Examples.periodic_hill`](@ref)
+
+  - [`PinCFlow.Examples.vortex`](@ref)
+
+  - [`PinCFlow.Examples.wave_packet`](@ref)
+
+  - [`PinCFlow.Examples.wkb_mountain_wave`](@ref)
+
+  - [`PinCFlow.Examples.wkb_wave_packet`](@ref)
+
+  - [`PinCFlow.Integration.integrate`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
 
@@ -39,23 +57,11 @@ Main module of PinCFlow.jl.
 
   - [`PinCFlow.Types.State`](@ref)
 
-  - [`PinCFlow.Examples.cold_bubble`](@ref)
+  - [`PinCFlow.plot_output`](@ref)
 
-  - [`PinCFlow.Examples.hot_bubble`](@ref)
+  - [`PinCFlow.set_visualization_theme!`](@ref)
 
-  - [`PinCFlow.Examples.mountain_wave`](@ref)
-
-  - [`PinCFlow.Examples.periodic_hill`](@ref)
-
-  - [`PinCFlow.Examples.vortex`](@ref)
-
-  - [`PinCFlow.Examples.wave_packet`](@ref)
-
-  - [`PinCFlow.Examples.wkb_mountain_wave`](@ref)
-
-  - [`PinCFlow.Examples.wkb_wave_packet`](@ref)
-
-  - [`PinCFlow.Integration.integrate`](@ref)
+  - [`PinCFlow.symmetric_contours`](@ref)
 """
 module PinCFlow
 

@@ -11,9 +11,9 @@ Provides the functions needed to solve the Poisson equation of the semi-implicit
 
   - [`PinCFlow.Boundaries`](@ref)
 
-  - [`PinCFlow.Macros`](@ref)
-
   - [`PinCFlow.MPIOperations`](@ref)
+
+  - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 

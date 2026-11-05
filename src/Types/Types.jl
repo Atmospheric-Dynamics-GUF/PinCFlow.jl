@@ -35,6 +35,26 @@ Module for the construction of a single composite type that contains all informa
 
   - [`PinCFlow.Types.Implicit`](@ref)
 
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_background`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_filter_order`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_filter_type`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_limiter_type`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_merge_mode`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_model`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_orographic_flow`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_tracer_setup`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_turbulence_scheme`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.@dispatch_wkb_mode`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
@@ -67,9 +87,9 @@ Module for the construction of a single composite type that contains all informa
 
   - [`PinCFlow.Types.State`](@ref)
 
-  - [`PinCFlow.Types.Theta`](@ref)
-
   - [`PinCFlow.Types.TKE`](@ref)
+
+  - [`PinCFlow.Types.Theta`](@ref)
 
   - [`PinCFlow.Types.TracerTypes.TracerFluxes`](@ref)
 
@@ -117,35 +137,15 @@ Module for the construction of a single composite type that contains all informa
 
   - [`PinCFlow.Types.X`](@ref)
 
-  - [`PinCFlow.Types.XZ`](@ref)
-
   - [`PinCFlow.Types.XYZ`](@ref)
+
+  - [`PinCFlow.Types.XZ`](@ref)
 
   - [`PinCFlow.Types.Y`](@ref)
 
   - [`PinCFlow.Types.YZ`](@ref)
 
   - [`PinCFlow.Types.Z`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_background`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_filter_order`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_filter_type`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_limiter_type`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_merge_mode`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_model`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_orographic_flow`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_tracer_setup`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_turbulence_scheme`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.@dispatch_wkb_mode`](@ref)
 """
 module Types
 

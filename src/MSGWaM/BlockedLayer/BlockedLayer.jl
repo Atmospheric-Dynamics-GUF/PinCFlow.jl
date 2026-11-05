@@ -7,9 +7,9 @@ Module for the blocked-layer scheme.
 
 # Scopes
 
-  - [`PinCFlow.Macros`](@ref)
-
   - [`PinCFlow.MSGWaM.Interpolation`](@ref)
+
+  - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 

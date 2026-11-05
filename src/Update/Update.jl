@@ -35,8 +35,6 @@ Provides functions for updating the prognostic variables at the various stages o
 
   - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
 
-  - [`PinCFlow.Update.conductive_heating`](@ref)
-
   - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
 
   - [`PinCFlow.Update.compute_pressure_gradient`](@ref)
@@ -48,6 +46,8 @@ Provides functions for updating the prognostic variables at the various stages o
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 
   - [`PinCFlow.Update.compute_volume_force`](@ref)
+
+  - [`PinCFlow.Update.conductive_heating`](@ref)
 
   - [`PinCFlow.Update.reset_thomas!`](@ref)
 

@@ -7,13 +7,13 @@ Module that defines PinCFlow.jl's example functions.
 
 # Scopes
 
+  - [`PinCFlow`](@ref)
+
   - [`PinCFlow.Examples.WavePacketTools`](@ref)
 
   - [`PinCFlow.Integration`](@ref)
 
   - [`PinCFlow.Macros`](@ref)
-
-  - [`PinCFlow.PinCFlow`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 

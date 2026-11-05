@@ -9,13 +9,15 @@ Provides helper functions for computing the time step, managing time levels and 
 
 # Scopes
 
+  - [`PinCFlow`](@ref)
+
   - [`PinCFlow.Boundaries`](@ref)
 
   - [`PinCFlow.FluxCalculator`](@ref)
 
-  - [`PinCFlow.Macros`](@ref)
-
   - [`PinCFlow.MSGWaM`](@ref)
+
+  - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Output`](@ref)
 
