@@ -4,6 +4,10 @@ TestTools
 ```
 
 Module that provides convenience functions for testing.
+
+# Exports
+
+  - [`TestTools.test_example`](@ref)
 """
 module TestTools
 

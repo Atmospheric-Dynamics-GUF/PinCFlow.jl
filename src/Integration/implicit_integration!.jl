@@ -31,6 +31,32 @@ Perform an implicit Euler step on the right-hand sides of the prognostic equatio
   - `iout`: Output counter.
 
   - `machine_start_time`: Wall-clock start time.
+
+# Calls
+
+  - [`PinCFlow.Boundaries.BoundaryPredictands`](@ref)
+
+  - [`PinCFlow.Boundaries.set_boundaries!`](@ref)
+
+  - [`PinCFlow.Integration.modify_compressible_wind!`](@ref)
+
+  - [`PinCFlow.Integration.save_backups!`](@ref)
+
+  - [`PinCFlow.Output.write_output`](@ref)
+
+  - [`PinCFlow.PoissonSolver.apply_corrector!`](@ref)
+
+  - [`PinCFlow.Types.Implicit`](@ref)
+
+  - [`PinCFlow.Types.RhoP`](@ref)
+
+  - [`PinCFlow.Types.U`](@ref)
+
+  - [`PinCFlow.Types.V`](@ref)
+
+  - [`PinCFlow.Types.W`](@ref)
+
+  - [`PinCFlow.Update.update!`](@ref)
 """
 function implicit_integration! end
 

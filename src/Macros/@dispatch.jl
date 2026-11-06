@@ -13,7 +13,7 @@ The scope in which this macro is to be applied must include the argument of the 
 
   - `input`: Input object.
 
-# See also
+# Calls
 
   - [`PinCFlow.Macros.find_argument`](@ref)
 

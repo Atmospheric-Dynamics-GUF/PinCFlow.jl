@@ -47,13 +47,13 @@ The predictands are initialized with the corresponding functions in `namelists.a
 
   - `grid`: Collection of parameters and fields that describe the grid.
 
-# See also
-
-  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+# Calls
 
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
 
   - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
 
   - [`PinCFlow.Types.VariableTypes.set_p`](@ref)
 """

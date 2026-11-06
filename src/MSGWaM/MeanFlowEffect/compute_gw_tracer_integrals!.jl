@@ -71,9 +71,9 @@ The zonal, meridional, and vertical fluxes are given by
 \\end{align*}
 ```
 
-with flux contributions given by 
+with flux contributions given by
 
-```math 
+```math
 \\begin{align*}
 \\frac{\\bar{\\rho}}{2} \\Re \\left(u_{\\mathrm{w}, r}\\chi^*_{\\mathrm{w}, r}\\right) & = \\frac{f}{\\hat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r - m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r\\right], \\\\
 \\frac{\\bar{\\rho}}{2} \\Re \\left(v_{\\mathrm{w}, r} \\chi^*_{\\mathrm{w}, r}\\right) & = \\frac{f}{\\hat{\\omega}_{r}} \\frac{m_r}{\\left|\\boldsymbol{k}_{r}\\right|^2} \\mathcal{A}_r \\left[m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r - k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r\\right], \\\\
@@ -111,7 +111,13 @@ with flux contributions given by
 
   - `k`: Vertical grid-cell index.
 
-# See also
+# Calls
+
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDX`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDY`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDZ`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 """

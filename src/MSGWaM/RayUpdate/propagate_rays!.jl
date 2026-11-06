@@ -142,27 +142,49 @@ If `rkstage != 1`, this method returns immediately.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
 
-  - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.DN2DZ`](@ref)
 
-  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_position`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.DUDX`](@ref)
 
-  - [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.DUDY`](@ref)
 
-  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.DUDZ`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.DVDX`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DVDY`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DVDZ`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.N2`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
 
-  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_position`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_surfaces`](@ref)
+
+  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
+
   - [`PinCFlow.MSGWaM.RayUpdate.apply_turbulent_damping!`](@ref)
+
+  - [`PinCFlow.Types.U`](@ref)
+
+  - [`PinCFlow.Types.V`](@ref)
 """
 function propagate_rays! end
 

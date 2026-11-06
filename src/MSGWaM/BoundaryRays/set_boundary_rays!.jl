@@ -36,13 +36,13 @@ Zonal (meridional) boundary conditions are only enforced if `state.namelists.dom
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
-
-  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
+# Calls
 
   - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
 
   - [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_boundary_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
 """
 function set_boundary_rays! end
 

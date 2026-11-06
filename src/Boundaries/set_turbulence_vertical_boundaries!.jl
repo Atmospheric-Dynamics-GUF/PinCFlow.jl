@@ -73,7 +73,7 @@ Enforce vertical boundary conditions for turbulence WKB tendencies.
 
   - `turbulence_scheme`: General turbulence parameterization configuration.
 
-# See also
+# Calls
 
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """

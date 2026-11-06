@@ -5,15 +5,31 @@ TracerTypes
 
 Module for composite types needed for tracer transport.
 
-# See also
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 
-  - [`PinCFlow.Types.NamelistTypes`](@ref)
-
   - [`PinCFlow.Types.FoundationalTypes`](@ref)
 
+  - [`PinCFlow.Types.NamelistTypes`](@ref)
+
   - [`PinCFlow.Types.VariableTypes`](@ref)
+
+# Exports
+
+  - [`PinCFlow.Types.TracerTypes.Tracer`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes.TracerFluxes`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes.TracerIncrements`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes.TracerPredictands`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes.TracerReconstructions`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes.TracerWKBIntegrals`](@ref)
+
+  - [`PinCFlow.Types.TracerTypes.TracerWKBTendencies`](@ref)
 """
 module TracerTypes
 

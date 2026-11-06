@@ -9,7 +9,7 @@ Return `x` with all slices turned into views and all bounds checks turned off.
 
   - `x`: Input object.
 
-# See also
+# Calls
 
   - [`PinCFlow.Macros.ivy`](@ref)
 """

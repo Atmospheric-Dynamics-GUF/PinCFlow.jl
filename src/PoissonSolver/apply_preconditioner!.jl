@@ -31,7 +31,9 @@ where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\hat{x}\\right)
 
   - `state`: Model state.
 
-# See also
+# Calls
+
+  - [`PinCFlow.PoissonSolver.Horizontal`](@ref)
 
   - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
 

@@ -22,6 +22,22 @@ Run the hot-bubble example simulation.
 # Keywords
 
 The keywords are analogous to those of `cold_bubble`.
+
+# Calls
+
+  - [`PinCFlow.Integration.integrate`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.Namelists`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
+
+  - [`PinCFlow.plot_output`](@ref)
 """
 function hot_bubble end
 

@@ -37,7 +37,7 @@ The individual stability criteria are as follows.
 
   - `state`: Model state.
 
-# See also
+# Calls
 
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """

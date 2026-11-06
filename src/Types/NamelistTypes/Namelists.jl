@@ -55,27 +55,27 @@ Construct a `Namelists` instance with the given keyword arguments as properties.
 
   - `turbulence::K`: Namelist for parameters configuring turbulence parameterization.
 
-# See also
-
-  - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
-
-  - [`PinCFlow.Types.NamelistTypes.PoissonNamelist`](@ref)
+# Calls
 
   - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
 
+  - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
+
   - [`PinCFlow.Types.NamelistTypes.GridNamelist`](@ref)
 
-  - [`PinCFlow.Types.NamelistTypes.SpongeNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
 
-  - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
+  - [`PinCFlow.Types.NamelistTypes.PoissonNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.SpongeNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.TracerNamelist`](@ref)
 
   - [`PinCFlow.Types.NamelistTypes.TurbulenceNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
 """
 struct Namelists{
     A <: DomainNamelist,

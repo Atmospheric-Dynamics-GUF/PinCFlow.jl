@@ -22,6 +22,38 @@ Run the wave-packet example simulation.
 # Keywords
 
 The keywords are analogous to those of `cold_bubble`.
+
+# Calls
+
+  - [`PinCFlow.Examples.WavePacketTools.bhat`](@ref)
+
+  - [`PinCFlow.Examples.WavePacketTools.phi`](@ref)
+
+  - [`PinCFlow.Examples.WavePacketTools.pihat`](@ref)
+
+  - [`PinCFlow.Examples.WavePacketTools.thetabar`](@ref)
+
+  - [`PinCFlow.Examples.WavePacketTools.uhat`](@ref)
+
+  - [`PinCFlow.Examples.WavePacketTools.vhat`](@ref)
+
+  - [`PinCFlow.Examples.WavePacketTools.what`](@ref)
+
+  - [`PinCFlow.Integration.integrate`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.GridNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.Namelists`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
+
+  - [`PinCFlow.Types.State`](@ref)
+
+  - [`PinCFlow.plot_output`](@ref)
 """
 function wave_packet end
 

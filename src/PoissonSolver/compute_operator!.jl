@@ -31,7 +31,9 @@ where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt
 
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
-# See also
+# Calls
+
+  - [`PinCFlow.Types.W`](@ref)
 
   - [`PinCFlow.Update.compute_buoyancy_factor`](@ref)
 """
