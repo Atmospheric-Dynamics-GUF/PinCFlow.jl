@@ -27,7 +27,7 @@ where ``\\hat{\\omega}``, ``N^2`` and ``b_\\mathrm{w}`` are calculated with `ome
 
   - `z`: Vertical position.
 
-# See also
+# Calls
 
   - [`PinCFlow.Examples.WavePacketTools.bhat`](@ref)
 

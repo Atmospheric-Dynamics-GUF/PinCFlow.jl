@@ -66,7 +66,7 @@ Construct a `TurbulencePredictands` instance with the turbulent kinetic energy i
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 
-# See also
+# Calls
 
   - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
 

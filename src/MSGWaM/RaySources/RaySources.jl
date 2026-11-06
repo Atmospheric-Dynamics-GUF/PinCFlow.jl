@@ -5,15 +5,21 @@ RaySources
 
 Module for ray-volume sources.
 
-# See also
+# Scopes
+
+  - [`PinCFlow.MSGWaM.BlockedLayer`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations`](@ref)
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 
-  - [`PinCFlow.MSGWaM.BlockedLayer`](@ref)
+# Exports
 
-  - [`PinCFlow.MSGWaM.RayOperations`](@ref)
+  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
 """
 module RaySources
 

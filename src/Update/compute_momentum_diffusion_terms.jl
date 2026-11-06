@@ -165,6 +165,10 @@ Compute and return the diffusive vertical momentum fluxes in ``\\hat{z}``-direct
   - `variable`: Wind direction.
 
   - `direction`: Direction of the flux.
+
+# Calls
+
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """
 function compute_momentum_diffusion_terms end
 

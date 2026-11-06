@@ -48,25 +48,25 @@ Enforce vertical boundary conditions for turbulence flux fields (horizontal boun
 
   - `turbulence`: Enforce boundary conditions for turbulence fields.
 
-# See also
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries!`](@ref)
+# Calls
 
   - [`PinCFlow.Boundaries.set_meridional_boundaries!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_vertical_boundaries!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_tracer_zonal_boundaries!`](@ref)
 
   - [`PinCFlow.Boundaries.set_tracer_meridional_boundaries!`](@ref)
 
   - [`PinCFlow.Boundaries.set_tracer_vertical_boundaries!`](@ref)
 
-  - [`PinCFlow.Boundaries.set_turbulence_zonal_boundaries!`](@ref)
+  - [`PinCFlow.Boundaries.set_tracer_zonal_boundaries!`](@ref)
 
   - [`PinCFlow.Boundaries.set_turbulence_meridional_boundaries!`](@ref)
 
   - [`PinCFlow.Boundaries.set_turbulence_vertical_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_turbulence_zonal_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries!`](@ref)
 """
 function set_boundaries! end
 

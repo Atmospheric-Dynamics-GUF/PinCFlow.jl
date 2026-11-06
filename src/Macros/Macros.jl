@@ -4,8 +4,16 @@ Macros
 ```
 
 Module that contains PinCFlow.jl's convenience macros.
+
+# Exports
+
+  - [`PinCFlow.Macros.@dispatch`](@ref)
+
+  - [`PinCFlow.Macros.@ivy`](@ref)
 """
 module Macros
+
+using MacroTools: isdef, longdef
 
 include("find_argument.jl")
 include("ivy.jl")

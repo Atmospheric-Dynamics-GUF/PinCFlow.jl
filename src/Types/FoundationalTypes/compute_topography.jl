@@ -70,11 +70,11 @@ The arrays representing the unresolved spectrum are set to have the size `(0, 0,
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
-
-  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+# Calls
 
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
 """
 function compute_topography end
 

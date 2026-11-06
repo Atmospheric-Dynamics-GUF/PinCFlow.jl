@@ -22,7 +22,7 @@ This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` tha
 
   - `state`: Model state.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
 

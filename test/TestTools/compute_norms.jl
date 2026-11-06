@@ -8,7 +8,10 @@ Return a `NamedTuple` of ``L_2`` norms and a `NamedTuple` of ``L_\\infty`` norms
 function compute_norms end
 
 function compute_norms()::NTuple{2, NamedTuple}
-    file = [name for name in readdir(".") if endswith(name, ".h5")][1]
+    file = [
+        name for
+        name in readdir(joinpath(@__DIR__, "..")) if endswith(name, ".h5")
+    ][1]
 
     (l2, linf) = h5open(file, "r") do data
         l2 = NamedTuple(

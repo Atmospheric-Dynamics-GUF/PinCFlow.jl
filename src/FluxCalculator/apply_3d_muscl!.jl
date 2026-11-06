@@ -26,7 +26,7 @@ Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for r
 
   - `limiter_type`: Type of flux limiter to use.
 
-# See also
+# Calls
 
   - [`PinCFlow.FluxCalculator.apply_1d_muscl!`](@ref)
 """

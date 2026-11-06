@@ -255,21 +255,37 @@ is solved using a Thomas tridiagonal solver, with ``\\mathcal{K}_\\mathrm{H} = \
 
   - `tracer_setup`: General tracer-transport configuration.
 
-# See also
+# Calls
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.Chi`](@ref)
+
+  - [`PinCFlow.Types.Theta`](@ref)
+
+  - [`PinCFlow.Types.U`](@ref)
+
+  - [`PinCFlow.Types.V`](@ref)
+
+  - [`PinCFlow.Types.W`](@ref)
+
+  - [`PinCFlow.Update.KH`](@ref)
+
+  - [`PinCFlow.Update.KM`](@ref)
 
   - [`PinCFlow.Update.check_tke!`](@ref)
+
+  - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 
   - [`PinCFlow.Update.reset_thomas!`](@ref)
 
   - [`PinCFlow.Update.thomas_algorithm!`](@ref)
 
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 """
 function turbulent_diffusion! end
 

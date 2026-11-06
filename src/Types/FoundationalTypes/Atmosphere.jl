@@ -227,7 +227,7 @@ and ``p_0``, ``T_0``, ``z_{\\mathrm{TP}}``, ``\\Gamma_{\\mathrm{TS}}``, ``\\Gamm
 
   - `background`: Atmospheric background.
 
-# See also
+# Calls
 
   - [`PinCFlow.Types.FoundationalTypes.compute_n2!`](@ref)
 """

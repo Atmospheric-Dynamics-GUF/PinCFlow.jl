@@ -33,7 +33,7 @@ where ``\\boldsymbol{k} = \\left(k, l, m\\right)^\\mathrm{T}`` is taken from `pa
 
   - `z`: Vertical position.
 
-# See also
+# Calls
 
   - [`PinCFlow.Examples.WavePacketTools.bhat`](@ref)
 

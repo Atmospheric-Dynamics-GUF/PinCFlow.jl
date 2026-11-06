@@ -83,19 +83,23 @@ This method computes the sums ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
-
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.N2`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 
-  - [`PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_fields_zero!`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_integrals!`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_turbulence_integrals!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_horizontal_cell_indices`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.set_tracer_fields_zero!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.set_turbulence_fields_zero!`](@ref)
 """
 function compute_gw_integrals! end
 

@@ -40,9 +40,9 @@ Construct a `Turbulence` instance, with array dimensions, initial values, and co
   - `turbulencefluxes::E`: Fluxes of the turbulence variables.
 
   - `turbulenceconstants::F`: Constants used for the turbulence parameterization.
-  
+
   - `turbulencewkbintegrals::G`: Integrals of gravity-wave quantities that impact turbulence.
-  
+
   - `turbulencewkbtendencies::H`: Turbulence impact of unresolved gravity waves.
 
 # Arguments
@@ -59,24 +59,23 @@ Construct a `Turbulence` instance, with array dimensions, initial values, and co
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 
-# See also
-
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulencePredictands`](@ref)
-
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceIncrements`](@ref)
+# Calls
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceAuxiliaries`](@ref)
 
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceReconstructions`](@ref)
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceConstants`](@ref)
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceFluxes`](@ref)
 
-  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceConstants`](@ref)
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceIncrements`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulencePredictands`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceReconstructions`](@ref)
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceWKBIntegrals`](@ref)
 
   - [`PinCFlow.Types.TurbulenceTypes.TurbulenceWKBTendencies`](@ref)
-
 """
 struct Turbulence{
     A <: TurbulencePredictands,

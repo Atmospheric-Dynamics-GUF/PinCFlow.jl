@@ -5,7 +5,7 @@ PinCFlowMakieExt
 
 Makie.jl extension (using the `CairoMakie` backend).
 
-# See also
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 """

@@ -22,6 +22,32 @@ Run the WKB-wave-packet example simulation.
 # Keywords
 
 The keywords are analogous to those of `cold_bubble`.
+
+# Calls
+
+  - [`PinCFlow.Examples.WavePacketTools.omega`](@ref)
+
+  - [`PinCFlow.Examples.WavePacketTools.wave_action_density`](@ref)
+
+  - [`PinCFlow.Integration.integrate`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.GridNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.Namelists`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.TracerNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
+
+  - [`PinCFlow.Types.State`](@ref)
+
+  - [`PinCFlow.plot_output`](@ref)
 """
 function wkb_wave_packet end
 

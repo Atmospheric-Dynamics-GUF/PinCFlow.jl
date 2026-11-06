@@ -125,13 +125,13 @@ Minimum layer depth:
 
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
 
-# See also
+# Calls
 
   - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
 
-  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
-
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
 """
 struct Grid{
     A <: AbstractFloat,
