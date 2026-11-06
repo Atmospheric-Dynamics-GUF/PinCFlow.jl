@@ -161,9 +161,19 @@ Return the turbulence impact of the gravity-wave shear.
 
 # Calls
 
-  - [`PinCFlow.Update.conductive_heating`](@ref)
+  - [`PinCFlow.Types.U`](@ref)
+
+  - [`PinCFlow.Types.V`](@ref)
+
+  - [`PinCFlow.Types.Z`](@ref)
+
+  - [`PinCFlow.Update.KH`](@ref)
+
+  - [`PinCFlow.Update.KM`](@ref)
 
   - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
+
+  - [`PinCFlow.Update.conductive_heating`](@ref)
 
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
 """

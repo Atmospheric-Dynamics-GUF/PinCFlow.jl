@@ -68,9 +68,15 @@ The splitting is analogous to that in ``\\hat{x}`` and ``\\hat{y}``.
 
 # Calls
 
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.Types.X`](@ref)
+
+  - [`PinCFlow.Types.Y`](@ref)
+
+  - [`PinCFlow.Types.Z`](@ref)
 """
 function split_rays! end
 

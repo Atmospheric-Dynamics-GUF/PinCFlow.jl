@@ -48,9 +48,9 @@ For `state.namelists.wkb.elastic_mode_selection == true`, `apply_elastic_mode_se
 
 # Calls
 
-  - [`PinCFlow.MSGWaM.BlockedLayer.compute_orographic_flow`](@ref)
-
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_blocked_layer!`](@ref)
+
+  - [`PinCFlow.MSGWaM.BlockedLayer.compute_orographic_flow`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources.apply_elastic_mode_selection!`](@ref)
 """

@@ -56,6 +56,8 @@ where ``F^P`` is the diabatic heating, as computed by `compute_volume_force`, an
 
 # Calls
 
+  - [`PinCFlow.Types.P`](@ref)
+
   - [`PinCFlow.Update.compute_volume_force`](@ref)
 """
 function compute_lhs! end

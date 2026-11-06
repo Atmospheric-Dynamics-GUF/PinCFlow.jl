@@ -33,6 +33,8 @@ where the Exner-pressure differences are given by ``\\Delta \\pi = \\left(\\sqrt
 
 # Calls
 
+  - [`PinCFlow.Types.W`](@ref)
+
   - [`PinCFlow.Update.compute_buoyancy_factor`](@ref)
 """
 function compute_operator! end

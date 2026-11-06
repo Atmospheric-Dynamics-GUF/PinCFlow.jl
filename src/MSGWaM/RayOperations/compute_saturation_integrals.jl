@@ -45,11 +45,13 @@ is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the
 
 # Calls
 
+  - [`PinCFlow.MSGWaM.Interpolation.N2`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 
-  - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
-
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
 """
 function compute_saturation_integrals end
 

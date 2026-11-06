@@ -168,13 +168,31 @@ This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` tha
 
 # Calls
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDX`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDY`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDZ`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DUDX`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DUDY`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DUDZ`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DVDX`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DVDY`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DVDZ`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.compute_derivatives`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
 function interpolate_mean_flow end
 

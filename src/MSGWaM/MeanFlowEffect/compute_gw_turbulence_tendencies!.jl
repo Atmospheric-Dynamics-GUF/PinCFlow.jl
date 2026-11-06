@@ -54,6 +54,8 @@ where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum (
 
 # Calls
 
+  - [`PinCFlow.Update.KM`](@ref)
+
   - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
 """
 function compute_gw_turbulence_tendencies! end

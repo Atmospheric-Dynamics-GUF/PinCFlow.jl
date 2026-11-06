@@ -113,6 +113,12 @@ with flux contributions given by
 
 # Calls
 
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDX`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDY`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDZ`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 """
 function compute_gw_tracer_integrals! end

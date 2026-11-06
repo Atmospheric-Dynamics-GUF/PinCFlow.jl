@@ -64,19 +64,25 @@ Ray volumes in halo cells are treated in the same way as in the methods for shif
 
 # Calls
 
-  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
-
   - [`PinCFlow.MSGWaM.BoundaryRays.set_meridional_boundary_rays!`](@ref)
 
   - [`PinCFlow.MSGWaM.BoundaryRays.set_vertical_boundary_rays!`](@ref)
 
-  - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_zonal_boundary_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.check_rays`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
+
+  - [`PinCFlow.Types.X`](@ref)
+
+  - [`PinCFlow.Types.Y`](@ref)
+
+  - [`PinCFlow.Types.Z`](@ref)
 """
 function shift_rays! end
 

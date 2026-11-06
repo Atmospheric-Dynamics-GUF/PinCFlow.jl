@@ -129,9 +129,9 @@ Minimum layer depth:
 
   - [`PinCFlow.Types.FoundationalTypes.compute_topography`](@ref)
 
-  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
-
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
 """
 struct Grid{
     A <: AbstractFloat,

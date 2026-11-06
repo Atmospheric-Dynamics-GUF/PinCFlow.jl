@@ -55,6 +55,8 @@ and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence
 
 # Calls
 
+  - [`PinCFlow.MSGWaM.Interpolation.N2`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_turbulent_velocity`](@ref)

@@ -33,6 +33,8 @@ where ``\\Delta \\eta = \\Delta \\tau / 2 \\left[\\left(\\Delta \\hat{x}\\right)
 
 # Calls
 
+  - [`PinCFlow.PoissonSolver.Horizontal`](@ref)
+
   - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
 
   - [`PinCFlow.Update.reset_thomas!`](@ref)

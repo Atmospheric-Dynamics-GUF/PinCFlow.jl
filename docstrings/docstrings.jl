@@ -1,7 +1,7 @@
 using CairoMakie
 using PinCFlow
 
-using .Meta: parseall
+using .Meta: parse, parseall
 using MacroTools: postwalk
 using REPL: moduleusings
 
@@ -62,44 +62,56 @@ for (folder, module_name) in (("src", "PinCFlow"), ("ext", "PinCFlowMakieExt"))
                 lists = [sort(collect(calls))]
             end
 
-            for arg in content_expression.args
-                if arg isa Expr &&
-                   arg.head === :macrocall &&
-                   arg.args[1] isa GlobalRef &&
-                   arg.args[1].mod === Core &&
-                   arg.args[1].name === Symbol("@doc")
-                    old_docstring = arg.args[3]
+            (x, start, stop) = (nothing, 1, 1)
+            while stop < length(content_string)
+                start = stop
+                (x, stop) = parse(content_string, start)
 
-                    for (list_name, list) in zip(list_names, lists)
-                        if length(list) > 0
-                            pattern = Regex("\n+# $list_name(\n+[^#\n].+)*\n+")
+                x isa Expr &&
+                    x.head === :macrocall &&
+                    x.args[1] isa GlobalRef &&
+                    x.args[1].mod === Core &&
+                    x.args[1].name === Symbol("@doc") &&
+                    break
+            end
+            (x, stop) = parse(content_string, start; greedy = false)
+            stop -= 1
 
-                            section =
-                                "\n\n# $list_name\n\n" *
-                                join(
-                                    ("  - [`$item`](@ref)" for item in list),
-                                    "\n\n",
-                                ) *
-                                "\n\n"
+            !(x isa String) && continue
 
-                            new_docstring =
-                                rstrip(
-                                    occursin(pattern, old_docstring) ?
-                                    replace(old_docstring, pattern => section) :
-                                    rstrip(old_docstring, '\n') * section,
-                                    '\n',
-                                ) * "\n"
+            for (list_name, list) in zip(list_names, lists)
+                (prefix, docstring) =
+                    split(content_string[start:stop], r"\"+"; limit = 2)
+                docstring = rstrip(docstring, '"')
 
-                            content_string = replace(
-                                content_string,
-                                old_docstring => new_docstring,
-                            )
-                            old_docstring = new_docstring
+                if length(list) > 0
+                    pattern = Regex("\n+# $list_name(\n+[^#\n].+)*\n+")
 
-                            open(path, "w") do io
-                                write(io, content_string)
-                            end
-                        end
+                    section =
+                        "\n\n# $list_name\n\n" *
+                        join(("  - [`$item`](@ref)" for item in list), "\n\n") *
+                        "\n\n"
+
+                    docstring =
+                        "\"\"\"\n" *
+                        strip(
+                            occursin(pattern, docstring) ?
+                            replace(docstring, pattern => section) :
+                            rstrip(docstring, '\n') * section,
+                            '\n',
+                        ) *
+                        "\n\"\"\""
+
+                    content_string =
+                        content_string[1:(start - 1)] *
+                        prefix *
+                        docstring *
+                        content_string[(stop + 1):end]
+
+                    stop = start - 1 + length(prefix) + length(docstring)
+
+                    open(path, "w") do io
+                        write(io, content_string)
                     end
                 end
             end

@@ -72,9 +72,9 @@ The arrays representing the unresolved spectrum are set to have the size `(0, 0,
 
 # Calls
 
-  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
-
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
 """
 function compute_topography end
 

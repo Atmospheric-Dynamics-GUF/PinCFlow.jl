@@ -85,6 +85,14 @@ and turbulence mixing lengths ``l_d``, ``l_v``, and ``l_b`` stored in `state.tur
   - `omir`: Intrinsic frequency ``\\hat{\\omega}_r``.
 
   - `phi`: Gravity wave phase ``\\phi``.
+
+# Calls
+
+  - [`PinCFlow.MSGWaM.Interpolation.N2`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
 """
 function compute_turbulent_velocity end
 

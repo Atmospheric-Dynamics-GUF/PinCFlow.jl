@@ -33,6 +33,8 @@ where ``N_r^2`` is the squared buoyancy frequency interpolated to the ray volume
 
 # Calls
 
+  - [`PinCFlow.MSGWaM.Interpolation.N2`](@ref)
+
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 """
 function compute_intrinsic_frequency end

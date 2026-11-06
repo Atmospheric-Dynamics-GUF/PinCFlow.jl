@@ -343,9 +343,27 @@ The computation is analogous to that of the density fluxes.
 
   - [`PinCFlow.FluxCalculator.compute_flux`](@ref)
 
-  - [`PinCFlow.Update.compute_stress_tensor!`](@ref)
+  - [`PinCFlow.Types.P`](@ref)
 
-  - [`PinCFlow.Update.conductive_heating`](@ref)
+  - [`PinCFlow.Types.Rho`](@ref)
+
+  - [`PinCFlow.Types.RhoP`](@ref)
+
+  - [`PinCFlow.Types.U`](@ref)
+
+  - [`PinCFlow.Types.V`](@ref)
+
+  - [`PinCFlow.Types.W`](@ref)
+
+  - [`PinCFlow.Types.X`](@ref)
+
+  - [`PinCFlow.Types.Y`](@ref)
+
+  - [`PinCFlow.Types.Z`](@ref)
+
+  - [`PinCFlow.Update.compute_momentum_diffusion_terms`](@ref)
+
+  - [`PinCFlow.Update.compute_stress_tensor!`](@ref)
 """
 function compute_fluxes! end
 

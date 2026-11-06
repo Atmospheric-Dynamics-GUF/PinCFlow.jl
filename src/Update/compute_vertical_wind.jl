@@ -22,6 +22,8 @@ Compute and return the Cartesian vertical wind at the grid point ``\\left(i, j, 
 
 # Calls
 
+  - [`PinCFlow.Update.Cartesian`](@ref)
+
   - [`PinCFlow.Update.transform`](@ref)
 """
 function compute_vertical_wind end

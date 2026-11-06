@@ -33,9 +33,9 @@ This method first determines the two points in ``z + J \\Delta \\hat{z} / 2`` th
 
 # Calls
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
-
   - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
 """
 function interpolate_stratification end
 

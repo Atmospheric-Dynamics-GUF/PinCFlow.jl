@@ -42,6 +42,22 @@ Run the cold-bubble example simulation.
   - `y_size`: Number of grid points in ``\\hat{y}``.
 
   - `z_size`: Number of grid points in ``\\hat{z}``.
+
+# Calls
+
+  - [`PinCFlow.Integration.integrate`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.Namelists`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
+
+  - [`PinCFlow.plot_output`](@ref)
 """
 function cold_bubble end
 
