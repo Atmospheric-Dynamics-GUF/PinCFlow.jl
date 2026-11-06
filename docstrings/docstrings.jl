@@ -19,14 +19,16 @@ for (folder, module_name) in (("src", "PinCFlow"), ("ext", "PinCFlowMakieExt"))
                 x
             end
 
-            parent_name = replace(
-                module_name * rsplit(dirname(path), "/$folder")[end],
-                "/" => ".",
+            location = eval(
+                parse(
+                    replace(
+                        module_name * rsplit(dirname(path), "/$folder")[end],
+                        "/" => ".",
+                    ),
+                ),
             )
-            object_name = basename(path)[1:(end - 3)]
-
-            parent = eval(Meta.parse(parent_name))
-            object = getproperty(parent, Symbol(object_name))
+            object = getproperty(location, Symbol(basename(path)[1:(end - 3)]))
+            parent = parentmodule(object)
 
             if module_file
                 scopes = sort([
@@ -35,7 +37,7 @@ for (folder, module_name) in (("src", "PinCFlow"), ("ext", "PinCFlowMakieExt"))
                 ])
                 exports = sort([
                     "$(parentmodule(getproperty(object, name))).$name" for
-                    name in names(object) if "$name" != object_name
+                    name in names(object) if name !== nameof(object)
                 ])
                 list_names = ["Scopes", "Exports"]
                 lists = [scopes, exports]
@@ -46,7 +48,7 @@ for (folder, module_name) in (("src", "PinCFlow"), ("ext", "PinCFlowMakieExt"))
                         x.head === :call &&
                         x.args[1] isa Symbol &&
                         try
-                            call = Core.eval(parent, x.args[1])
+                            call = Core.eval(location, x.args[1])
                             parent_module = parentmodule(call)
                             startswith("$parent_module", "PinCFlow") &&
                                 call !== object &&
@@ -79,7 +81,7 @@ for (folder, module_name) in (("src", "PinCFlow"), ("ext", "PinCFlowMakieExt"))
 
             !(x isa String) && continue
 
-            print("Updating the docstring of $parent_name.$object_name...")
+            print("Updating the docstring of $parent.$(nameof(object))...")
 
             for (list_name, list) in zip(list_names, lists)
                 (prefix, docstring) =
