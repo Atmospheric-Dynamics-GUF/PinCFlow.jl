@@ -1,7 +1,9 @@
 function test_files(test_function::Function)
-    for (root, directories, files) in walkdir(joinpath(@__DIR__, "../src"))
-        for file in files
-            test_function(root, file)
+    for folder in (joinpath(@__DIR__, "../src"), joinpath(@__DIR__, "../ext"))
+        for (root, directories, files) in walkdir(folder)
+            for file in files
+                test_function(root, file)
+            end
         end
     end
 
