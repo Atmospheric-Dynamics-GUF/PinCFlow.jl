@@ -79,6 +79,8 @@ for (folder, module_name) in (("src", "PinCFlow"), ("ext", "PinCFlowMakieExt"))
 
             !(x isa String) && continue
 
+            print("Updating the docstring of $parent_name.$object_name...")
+
             for (list_name, list) in zip(list_names, lists)
                 (prefix, docstring) =
                     split(content_string[start:stop], r"\"+"; limit = 2)
@@ -115,6 +117,8 @@ for (folder, module_name) in (("src", "PinCFlow"), ("ext", "PinCFlowMakieExt"))
                     end
                 end
             end
+
+            println("done.")
         end
     end
 end
