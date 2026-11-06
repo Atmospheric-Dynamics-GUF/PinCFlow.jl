@@ -94,7 +94,7 @@ All output variables are re-dimensionalized with the scale parameters stored in 
 
   - `machine_start_time`: Wall-clock start time.
 
-# See also
+# Calls
 
   - [`PinCFlow.Update.compute_vertical_wind`](@ref)
 """

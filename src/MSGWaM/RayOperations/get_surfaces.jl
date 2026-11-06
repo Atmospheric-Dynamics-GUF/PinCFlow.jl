@@ -22,6 +22,12 @@ Compute phase-space surface areas of the ray volume specified by ``\\left(r, i, 
   - `j`: Meridional grid-cell index.
 
   - `k`: Vertical grid-cell index.
+
+# Calls
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
 """
 function get_surfaces end
 

@@ -49,7 +49,7 @@ Halo exchange is used in the same manner as in the methods for matrices and 3D a
 
   - `layers`: The number of boundary layers in each dimension. Use `-1` for the default values from `namelists`.
 
-# See also
+# Calls
 
   - [`PinCFlow.MPIOperations.set_zonal_halos_of_field!`](@ref)
 """

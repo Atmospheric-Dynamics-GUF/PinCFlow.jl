@@ -27,7 +27,7 @@ where ``\\kappa`` and ``R`` are taken from `state.constants` and ``m`` from `par
 
   - `z`: Vertical position.
 
-# See also
+# Calls
 
   - [`PinCFlow.Examples.WavePacketTools.bhat`](@ref)
 

@@ -52,7 +52,7 @@ Return the averages of ``\\left(\\bar{\\rho}, N^2, u_{\\mathrm{b}}, v_{\\mathrm{
 
   - `j`: Meridional grid index.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
 

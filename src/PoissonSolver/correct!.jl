@@ -155,13 +155,23 @@ Update the Exner-pressure fluctuations with the differences obtained from the so
 
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
-# See also
+# Calls
 
-  - [`PinCFlow.Update.compute_pressure_gradient`](@ref)
+  - [`PinCFlow.Types.PiP`](@ref)
+
+  - [`PinCFlow.Types.RhoP`](@ref)
+
+  - [`PinCFlow.Types.U`](@ref)
+
+  - [`PinCFlow.Types.V`](@ref)
+
+  - [`PinCFlow.Types.W`](@ref)
+
+  - [`PinCFlow.Update.compute_buoyancy_factor`](@ref)
 
   - [`PinCFlow.Update.compute_compressible_wind_factor`](@ref)
 
-  - [`PinCFlow.Update.compute_buoyancy_factor`](@ref)
+  - [`PinCFlow.Update.compute_pressure_gradient`](@ref)
 """
 function correct! end
 

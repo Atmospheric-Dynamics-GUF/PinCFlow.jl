@@ -7,17 +7,21 @@ Module for solving the Poisson equation and performing a corrector step.
 
 Provides the functions needed to solve the Poisson equation of the semi-implicit time scheme, using a preconditioned BiCGSTAB algorithm, and correcting the Exner-pressure, momentum and density fluctuations accordingly.
 
-# See also
+# Scopes
+
+  - [`PinCFlow.Boundaries`](@ref)
+
+  - [`PinCFlow.MPIOperations`](@ref)
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 
-  - [`PinCFlow.MPIOperations`](@ref)
-
-  - [`PinCFlow.Boundaries`](@ref)
-
   - [`PinCFlow.Update`](@ref)
+
+# Exports
+
+  - [`PinCFlow.PoissonSolver.apply_corrector!`](@ref)
 """
 module PoissonSolver
 

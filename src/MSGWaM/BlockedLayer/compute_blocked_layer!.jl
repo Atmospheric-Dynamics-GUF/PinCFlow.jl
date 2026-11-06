@@ -40,7 +40,7 @@ with ``B`` regulating how much of the blocked layer contributes to the amplitude
 
   - `j`: Meridional grid index.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_elevation_difference`](@ref)
 

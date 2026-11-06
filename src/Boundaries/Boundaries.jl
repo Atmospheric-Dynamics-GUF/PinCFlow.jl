@@ -7,13 +7,39 @@ Module for enforcing boundary conditions for different variable types and field 
 
 Handles periodic boundaries in the horizontal and solid-wall boundaries in the vertical, as well as MPI communication in all dimensions.
 
-# See also
+# Scopes
+
+  - [`PinCFlow.MPIOperations`](@ref)
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 
-  - [`PinCFlow.MPIOperations`](@ref)
+# Exports
+
+  - [`PinCFlow.Boundaries.BoundaryFluxes`](@ref)
+
+  - [`PinCFlow.Boundaries.BoundaryPredictands`](@ref)
+
+  - [`PinCFlow.Boundaries.BoundaryReconstructions`](@ref)
+
+  - [`PinCFlow.Boundaries.BoundaryWKBIntegrals`](@ref)
+
+  - [`PinCFlow.Boundaries.BoundaryWKBTendencies`](@ref)
+
+  - [`PinCFlow.Boundaries.set_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
 """
 module Boundaries
 

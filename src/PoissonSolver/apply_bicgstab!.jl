@@ -11,13 +11,15 @@ Solve the Poisson equation using a preconditioned BiCGSTAB algorithm and return 
 
   - `tolref`: Reference tolerance for convergence criterion.
 
-# See also
+# Calls
+
+  - [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref)
+
+  - [`PinCFlow.PoissonSolver.Total`](@ref)
 
   - [`PinCFlow.PoissonSolver.apply_operator!`](@ref)
 
   - [`PinCFlow.PoissonSolver.apply_preconditioner!`](@ref)
-
-  - [`PinCFlow.MPIOperations.compute_global_dot_product`](@ref)
 """
 function apply_bicgstab! end
 

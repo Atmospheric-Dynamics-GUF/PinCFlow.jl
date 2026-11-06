@@ -5,13 +5,31 @@ MSGWaM
 
 3D transient implementation of MS-GWaM.
 
-# See also
+# Scopes
 
   - [`PinCFlow.MSGWaM.BoundaryRays`](@ref)
 
+  - [`PinCFlow.MSGWaM.MeanFlowEffect`](@ref)
+
   - [`PinCFlow.MSGWaM.RayUpdate`](@ref)
 
-  - [`PinCFlow.MSGWaM.MeanFlowEffect`](@ref)
+# Exports
+
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_boundary_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_mean_flow_effect!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.apply_saturation_scheme!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.initialize_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.propagate_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.shift_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.split_rays!`](@ref)
 
 # External links
 

@@ -11,7 +11,7 @@ This method first enforces meridional boundary conditions for `state.wkb.nray` (
 
   - `state`: Model state.
 
-# See also
+# Calls
 
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 

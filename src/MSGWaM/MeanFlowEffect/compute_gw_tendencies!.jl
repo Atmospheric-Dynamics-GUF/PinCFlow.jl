@@ -29,7 +29,7 @@ Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
 
   - `state::State`: Model state.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_tracer_tendencies!`](@ref)
 

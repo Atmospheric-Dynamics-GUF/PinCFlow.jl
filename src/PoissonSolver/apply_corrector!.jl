@@ -19,19 +19,19 @@ The left-hand side and the linear operator of the discrete Poisson equation are 
 
   - `rayleigh_factor`: Factor by which the Rayleigh-damping coefficient is multiplied.
 
-# See also
-
-  - [`PinCFlow.PoissonSolver.compute_lhs!`](@ref)
-
-  - [`PinCFlow.PoissonSolver.solve_poisson!`](@ref)
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+# Calls
 
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
 
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
 
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.PoissonSolver.compute_lhs!`](@ref)
+
   - [`PinCFlow.PoissonSolver.correct!`](@ref)
+
+  - [`PinCFlow.PoissonSolver.solve_poisson!`](@ref)
 """
 function apply_corrector! end
 

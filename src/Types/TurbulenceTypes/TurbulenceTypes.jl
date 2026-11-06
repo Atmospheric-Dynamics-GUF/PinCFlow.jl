@@ -5,15 +5,35 @@ TurbulenceTypes
 
 Module for composite types needed for turbulence parameterization.
 
-# See also
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 
-  - [`PinCFlow.Types.NamelistTypes`](@ref)
-
   - [`PinCFlow.Types.FoundationalTypes`](@ref)
 
+  - [`PinCFlow.Types.NamelistTypes`](@ref)
+
   - [`PinCFlow.Types.VariableTypes`](@ref)
+
+# Exports
+
+  - [`PinCFlow.Types.TurbulenceTypes.Turbulence`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceAuxiliaries`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceConstants`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceFluxes`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceIncrements`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulencePredictands`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceReconstructions`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceWKBIntegrals`](@ref)
+
+  - [`PinCFlow.Types.TurbulenceTypes.TurbulenceWKBTendencies`](@ref)
 """
 module TurbulenceTypes
 

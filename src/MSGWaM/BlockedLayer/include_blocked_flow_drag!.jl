@@ -23,7 +23,7 @@ is the projection of ``\\boldsymbol{u}_\\mathrm{b}`` onto ``\\boldsymbol{k}_h``.
 
   - `state`: Model state.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_slope`](@ref)
 """
