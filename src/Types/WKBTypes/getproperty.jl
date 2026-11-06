@@ -1,3 +1,21 @@
+"""
+```julia
+getproperty(
+    rays::Rays,
+    name::Symbol,
+)::AbstractArray{<:AbstractFloat}
+```
+
+Return the the view on `rays.data` that represents the property indicated by `name`.
+
+# Arguments
+
+  - `rays`: Ray-volume data.
+
+  - `name`: Ray-volume property.
+"""
+getproperty
+
 @ivy @inline function getproperty(
     rays::Rays,
     name::Symbol,
