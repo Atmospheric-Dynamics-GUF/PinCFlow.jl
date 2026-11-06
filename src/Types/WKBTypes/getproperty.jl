@@ -1,9 +1,6 @@
 """
 ```julia
-getproperty(
-    rays::Rays,
-    name::Symbol,
-)::AbstractArray{<:AbstractFloat}
+getproperty(rays::Rays, name::Symbol)::AbstractArray{<:AbstractFloat}
 ```
 
 Return the the view on `rays.data` that represents the property indicated by `name`.
