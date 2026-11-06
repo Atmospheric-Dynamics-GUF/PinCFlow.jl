@@ -90,17 +90,15 @@ for (folder, module_name) in (("src", "PinCFlow"), ("ext", "PinCFlowMakieExt"))
                                     '\n',
                                 ) * "\n"
 
-                            open(path, "w") do io
-                                write(
-                                    io,
-                                    replace(
-                                        content_string,
-                                        old_docstring => new_docstring,
-                                    ),
-                                )
-                            end
+                            content_string = replace(
+                                content_string,
+                                old_docstring => new_docstring,
+                            )
+                            old_docstring = new_docstring
 
-                            # old_docstring = new_docstring
+                            open(path, "w") do io
+                                write(io, content_string)
+                            end
                         end
                     end
                 end
