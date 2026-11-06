@@ -1,13 +1,15 @@
 include("TestTools/TestTools.jl")
 
+using .TestTools
 using Aqua
 using JuliaFormatter
 using MacroTools
 using PinCFlow
 using Test
-using .TestTools
 
+using .Meta: parse, parseall
 using MacroTools: postwalk
+using REPL: moduleusings
 
 const update = "--update" in ARGS
 const keywords = (prepare_restart = true, visualize = false)
@@ -26,6 +28,7 @@ include("test_formatting.jl")
 include("test_files.jl")
 
 include("test_ascii.jl")
+include("test_docstrings.jl")
 include("test_julia_validity.jl")
 include("test_literal_checks.jl")
 include("test_long_named_function_definitions.jl")
@@ -47,6 +50,7 @@ include("test_type_checks.jl")
         test_formatting()
 
         test_ascii()
+        test_docstrings()
         test_julia_validity()
         test_literal_checks()
         test_long_named_function_definitions()

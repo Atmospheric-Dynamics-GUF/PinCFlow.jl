@@ -34,6 +34,7 @@ MPI = "0.20.25"
 MPICH_jll = "4.3.1"
 MacroTools = "0.5.16"
 PrecompileTools = "1.2.1"
+REPL = "1.10.11"
 Test = "1.10.11"
 julia = "1.10.11"
 
@@ -41,7 +42,8 @@ julia = "1.10.11"
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+REPL = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Aqua", "JuliaFormatter", "LinearAlgebra", "Test"]
+test = ["Aqua", "JuliaFormatter", "LinearAlgebra", "REPL", "Test"]
