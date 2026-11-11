@@ -115,7 +115,7 @@ end
         mr^4 * wadr / rhobar[i, j, k] * (fc^2 + omir^2) /
         (omir * (kr^2 + lr^2 + mr^2))
 
-    (q0r, q1r, q2r) = compute_turbulent_velocity(state, rr, ii, jj, kk)
+    (q1r, q2r) = compute_turbulent_velocity(state, rr, ii, jj, kk)
 
     bamp =
         sqrt(
@@ -130,10 +130,6 @@ end
         1im / mr / n2r * (omir^2 - n2r) / (omir^2 - fc^2) *
         (lr * omir - 1im * kr * fc) *
         bamp
-
-    shearq0[i, j, k] +=
-        lv * real(q0r) * mr^4 * wadr / rhobar[i, j, k] * (fc^2 + omir^2) /
-        (omir * (kr^2 + lr^2 + mr^2))
 
     shearq2[i, j, k] -=
         lv * mr^2 / 4 * real(conj(q2r) * (uamp * uamp + vamp * vamp)) * factor
