@@ -225,16 +225,29 @@ function set_turbulence_vertical_boundaries!(
 )::Nothing
     (; namelists, domain) = state
     (; gw_coupling) = namelists.turbulence
-    (; dtkedt, dtapedt) = state.turbulence.turbulencewkbtendencies
+    (;
+        dtkedt0,
+        shearq0,
+        shearq2,
+        dtapedt0,
+        convectiveq1,
+        convectiveq2,
+        buoyancyq1,
+    ) = state.turbulence.turbulencewkbtendencies
 
     if !gw_coupling
         return nothing
     end
 
-    set_vertical_boundaries_of_field!(dtkedt, namelists, domain)
+    set_vertical_boundaries_of_field!(dtkedt0, namelists, domain)
+    set_vertical_boundaries_of_field!(shearq0, namelists, domain)
+    set_vertical_boundaries_of_field!(shearq2, namelists, domain)
+    set_vertical_boundaries_of_field!(buoyancyq1, namelists, domain)
 
     if turbulence_scheme === Val(:TTEScheme)
-        set_vertical_boundaries_of_field!(dtapedt, namelists, domain)
+        set_vertical_boundaries_of_field!(dtapedt0, namelists, domain)
+        set_vertical_boundaries_of_field!(convectiveq1, namelists, domain)
+        set_vertical_boundaries_of_field!(convectiveq2, namelists, domain)
     end
     nothing
 end

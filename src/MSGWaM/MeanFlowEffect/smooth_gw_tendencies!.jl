@@ -534,45 +534,69 @@ end
 
 function smooth_gw_tendencies!(
     state::State,
-    turbulence_scheme::Val{:TKEScheme},
+    turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; filter_type) = state.namelists.wkb
-    (; dtkedt) = state.turbulence.turbulencewkbtendencies
+    (;
+        dtkedt0,
+        dtapedt0,
+        shearq0,
+        shearq2,
+        convectiveq1,
+        convectiveq2,
+        buoyancyq1,
+    ) = state.turbulence.turbulencewkbtendencies
+    (; gw_shear, gw_convective) = state.turbulence.turbulencewkbintegrals
 
     @dispatch_filter_type if x_size == y_size == 1
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), Z())
+        smooth_gw_tendencies!(dtkedt0, state, Val(filter_type), Z())
+        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), Z())
+        smooth_gw_tendencies!(shearq0, state, Val(filter_type), Z())
+        smooth_gw_tendencies!(shearq2, state, Val(filter_type), Z())
+        smooth_gw_tendencies!(buoyancyq1, state, Val(filter_type), Z())
     elseif x_size == 1
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), YZ())
+        smooth_gw_tendencies!(dtkedt0, state, Val(filter_type), YZ())
+        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), YZ())
+        smooth_gw_tendencies!(shearq0, state, Val(filter_type), YZ())
+        smooth_gw_tendencies!(shearq2, state, Val(filter_type), YZ())
+        smooth_gw_tendencies!(buoyancyq1, state, Val(filter_type), YZ())
     elseif y_size == 1
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XZ())
+        smooth_gw_tendencies!(dtkedt0, state, Val(filter_type), XZ())
+        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), XZ())
+        smooth_gw_tendencies!(shearq0, state, Val(filter_type), XZ())
+        smooth_gw_tendencies!(shearq2, state, Val(filter_type), XZ())
+        smooth_gw_tendencies!(buoyancyq1, state, Val(filter_type), XZ())
     else
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XYZ())
+        smooth_gw_tendencies!(dtkedt0, state, Val(filter_type), XYZ())
+        smooth_gw_tendencies!(gw_shear, state, Val(filter_type), XYZ())
+        smooth_gw_tendencies!(shearq0, state, Val(filter_type), XYZ())
+        smooth_gw_tendencies!(shearq2, state, Val(filter_type), XYZ())
+        smooth_gw_tendencies!(buoyancyq1, state, Val(filter_type), XYZ())
     end
 
-    nothing
-end
-
-function smooth_gw_tendencies!(
-    state::State,
-    turbulence_scheme::Val{:TTEScheme},
-)::Nothing
-    (; x_size, y_size) = state.namelists.domain
-    (; filter_type) = state.namelists.wkb
-    (; dtkedt, dtapedt) = state.turbulence.turbulencewkbtendencies
-
-    @dispatch_filter_type if x_size == y_size == 1
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), Z())
-        smooth_gw_tendencies!(dtapedt, state, Val(filter_type), Z())
-    elseif x_size == 1
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), YZ())
-        smooth_gw_tendencies!(dtapedt, state, Val(filter_type), YZ())
-    elseif y_size == 1
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XZ())
-        smooth_gw_tendencies!(dtapedt, state, Val(filter_type), XZ())
-    else
-        smooth_gw_tendencies!(dtkedt, state, Val(filter_type), XYZ())
-        smooth_gw_tendencies!(dtapedt, state, Val(filter_type), XYZ())
+    if turbulence_scheme === Val(:TTEScheme)
+        @dispatch_filter_type if x_size == y_size == 1
+            smooth_gw_tendencies!(dtapedt0, state, Val(filter_type), Z())
+            smooth_gw_tendencies!(gw_convective, state, Val(filter_type), Z())
+            smooth_gw_tendencies!(convectiveq1, state, Val(filter_type), Z())
+            smooth_gw_tendencies!(convectiveq2, state, Val(filter_type), Z())
+        elseif x_size == 1
+            smooth_gw_tendencies!(dtapedt0, state, Val(filter_type), YZ())
+            smooth_gw_tendencies!(gw_convective, state, Val(filter_type), YZ())
+            smooth_gw_tendencies!(convectiveq1, state, Val(filter_type), YZ())
+            smooth_gw_tendencies!(convectiveq2, state, Val(filter_type), YZ())
+        elseif y_size == 1
+            smooth_gw_tendencies!(dtapedt0, state, Val(filter_type), XZ())
+            smooth_gw_tendencies!(gw_convective, state, Val(filter_type), XZ())
+            smooth_gw_tendencies!(convectiveq1, state, Val(filter_type), XZ())
+            smooth_gw_tendencies!(convectiveq2, state, Val(filter_type), XZ())
+        else
+            smooth_gw_tendencies!(dtapedt0, state, Val(filter_type), XYZ())
+            smooth_gw_tendencies!(gw_convective, state, Val(filter_type), XYZ())
+            smooth_gw_tendencies!(convectiveq1, state, Val(filter_type), XYZ())
+            smooth_gw_tendencies!(convectiveq2, state, Val(filter_type), XYZ())
+        end
     end
 
     nothing

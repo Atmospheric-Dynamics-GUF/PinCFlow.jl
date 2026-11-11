@@ -141,17 +141,30 @@ function set_turbulence_meridional_boundaries!(
     turbulence_scheme::Union{Val{:TKEScheme}, Val{:TTEScheme}},
 )::Nothing
     (; namelists, domain) = state
-    (; dtkedt, dtapedt) = state.turbulence.turbulencewkbtendencies
+    (;
+        dtkedt0,
+        shearq0,
+        shearq2,
+        dtapedt0,
+        convectiveq1,
+        convectiveq2,
+        buoyancyq1,
+    ) = state.turbulence.turbulencewkbtendencies
     (; gw_coupling) = state.namelists.turbulence
 
     if !gw_coupling
         return nothing
     end
 
-    set_meridional_boundaries_of_field!(dtkedt, namelists, domain)
+    set_meridional_boundaries_of_field!(dtkedt0, namelists, domain)
+    set_meridional_boundaries_of_field!(shearq0, namelists, domain)
+    set_meridional_boundaries_of_field!(shearq2, namelists, domain)
+    set_meridional_boundaries_of_field!(buoyancyq1, namelists, domain)
 
     if turbulence_scheme === Val(:TTEScheme)
-        set_meridional_boundaries_of_field!(dtapedt, namelists, domain)
+        set_meridional_boundaries_of_field!(dtapedt0, namelists, domain)
+        set_meridional_boundaries_of_field!(convectiveq1, namelists, domain)
+        set_meridional_boundaries_of_field!(convectiveq2, namelists, domain)
     end
     nothing
 end

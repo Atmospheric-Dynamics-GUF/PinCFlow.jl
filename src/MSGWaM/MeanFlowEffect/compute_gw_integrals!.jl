@@ -173,8 +173,12 @@ end
                     )
 
                     fcpspx = dkr * dxi / dx
+                    dklm = dkr
+                    factor = dxi / dx
                 else
                     fcpspx = 1.0
+                    dklm = 1.0
+                    factor = 1.0
                 end
 
                 for jray in jmin:jmax
@@ -185,8 +189,12 @@ end
                         )
 
                         fcpspy = dlr * dyi / dy
+                        dklm *= dlr
+                        factor *= dyi / dy
                     else
                         fcpspy = 1.0
+                        dklm *= 1.0
+                        factor *= 1.0
                     end
 
                     kmin = max(
@@ -226,6 +234,8 @@ end
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
 
                         fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
+                        dklm *= dmr
+                        factor *= dzi / jac[iray, jray, kray] / dz
 
                         wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
@@ -311,6 +321,13 @@ end
                             xr = xr,
                             yr = yr,
                             zr = zr,
+                            rr = r,
+                            ii = i,
+                            jj = j,
+                            kk = k,
+                            dens = rays.dens[r, i, j, k],
+                            dklm = dklm,
+                            factor = factor,
                         )
 
                         compute_gw_turbulence_integrals!(state, parameters)

@@ -78,7 +78,7 @@ The list of available output variables (as specified in `state.namelists.output.
 
   - `:gw_shear::A`: Shear of unresolved gravity waves.
   
-  - `:dtkedt::A`: Turbulence impact of unresolved gravity waves.
+  - `:dtkedt0::A`: Turbulence impact of unresolved gravity waves.
 
   - `:launch_mode_count`: Numbers of modes selected by the elastic-mode-selection algorithm.
 
@@ -436,13 +436,37 @@ function write_output end
                 end
 
                 if state.namelists.turbulence.gw_coupling && wkb_mode !== :NoWKB
-                    if :dtapedt in output_variables
+                    if :dtapedt0 in output_variables
                         HDF5.set_extent_dims(
-                            file["dtapedt"],
+                            file["dtapedt0"],
                             (x_size, y_size, z_size, iout),
                         )
-                        file["dtapedt"][iid, jjd, kkd, iout] =
-                            state.turbulence.turbulencewkbtendencies.dtapedt[
+                        file["dtapedt0"][iid, jjd, kkd, iout] =
+                            state.turbulence.turbulencewkbtendencies.dtapedt0[
+                                ii,
+                                jj,
+                                kk,
+                            ] .* uref .^ 2 ./ tref
+                    end
+                    if :convectiveq1 in output_variables
+                        HDF5.set_extent_dims(
+                            file["convectiveq1"],
+                            (x_size, y_size, z_size, iout),
+                        )
+                        file["convectiveq1"][iid, jjd, kkd, iout] =
+                            state.turbulence.turbulencewkbtendencies.convectiveq1[
+                                ii,
+                                jj,
+                                kk,
+                            ] .* uref .^ 2 ./ tref
+                    end
+                    if :convectiveq2 in output_variables
+                        HDF5.set_extent_dims(
+                            file["convectiveq2"],
+                            (x_size, y_size, z_size, iout),
+                        )
+                        file["convectiveq2"][iid, jjd, kkd, iout] =
+                            state.turbulence.turbulencewkbtendencies.convectiveq2[
                                 ii,
                                 jj,
                                 kk,
@@ -480,19 +504,43 @@ function write_output end
             end
 
             # Write turbulence tendencies.
-            if state.namelists.turbulence.gw_coupling &&
-               wkb_mode !== :NoWKB &&
-               :dtkedt in output_variables
-                HDF5.set_extent_dims(
-                    file["dtkedt"],
-                    (x_size, y_size, z_size, iout),
-                )
-                file["dtkedt"][iid, jjd, kkd, iout] =
-                    state.turbulence.turbulencewkbtendencies.dtkedt[
-                        ii,
-                        jj,
-                        kk,
-                    ] .* uref .^ 2 ./ tref
+            if state.namelists.turbulence.gw_coupling && wkb_mode !== :NoWKB
+                if :dtkedt0 in output_variables
+                    HDF5.set_extent_dims(
+                        file["dtkedt0"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["dtkedt0"][iid, jjd, kkd, iout] =
+                        state.turbulence.turbulencewkbtendencies.dtkedt0[
+                            ii,
+                            jj,
+                            kk,
+                        ] .* uref .^ 2 ./ tref
+                end
+                if :shearq2 in output_variables
+                    HDF5.set_extent_dims(
+                        file["shearq2"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["shearq2"][iid, jjd, kkd, iout] =
+                        state.turbulence.turbulencewkbtendencies.shearq2[
+                            ii,
+                            jj,
+                            kk,
+                        ] .* uref .^ 2 ./ tref
+                end
+                if :buoyancyq1 in output_variables
+                    HDF5.set_extent_dims(
+                        file["buoyancyq1"],
+                        (x_size, y_size, z_size, iout),
+                    )
+                    file["buoyancyq1"][iid, jjd, kkd, iout] =
+                        state.turbulence.turbulencewkbtendencies.buoyancyq1[
+                            ii,
+                            jj,
+                            kk,
+                        ] .* uref .^ 2 ./ tref
+                end
             end
         end
 

@@ -395,10 +395,34 @@ function create_output(state::State, machine_start_time::DateTime)::Nothing
                 end
 
                 if state.namelists.turbulence.gw_coupling && wkb_mode !== :NoWKB
-                    if :dtapedt in output_variables
+                    if :dtapedt0 in output_variables
                         create_dataset(
                             file,
-                            "dtapedt",
+                            "dtapedt0",
+                            datatype(Float32),
+                            dataspace(
+                                (x_size, y_size, z_size, 0),
+                                (x_size, y_size, z_size, -1),
+                            );
+                            chunk = (cx, cy, cz, ct),
+                        )
+                    end
+                    if :convectiveq1 in output_variables
+                        create_dataset(
+                            file,
+                            "convectiveq1",
+                            datatype(Float32),
+                            dataspace(
+                                (x_size, y_size, z_size, 0),
+                                (x_size, y_size, z_size, -1),
+                            );
+                            chunk = (cx, cy, cz, ct),
+                        )
+                    end
+                    if :convectiveq2 in output_variables
+                        create_dataset(
+                            file,
+                            "convectiveq2",
                             datatype(Float32),
                             dataspace(
                                 (x_size, y_size, z_size, 0),
@@ -439,19 +463,43 @@ function create_output(state::State, machine_start_time::DateTime)::Nothing
             end
 
             # Create dataset for turbulence tendencies.
-            if state.namelists.turbulence.gw_coupling &&
-               wkb_mode !== :NoWKB &&
-               :dtkedt in output_variables
-                create_dataset(
-                    file,
-                    "dtkedt",
-                    datatype(Float32),
-                    dataspace(
-                        (x_size, y_size, z_size, 0),
-                        (x_size, y_size, z_size, -1),
-                    );
-                    chunk = (cx, cy, cz, ct),
-                )
+            if state.namelists.turbulence.gw_coupling && wkb_mode !== :NoWKB
+                if :dtkedt0 in output_variables
+                    create_dataset(
+                        file,
+                        "dtkedt0",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+                if :shearq2 in output_variables
+                    create_dataset(
+                        file,
+                        "shearq2",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
+                if :buoyancyq1 in output_variables
+                    create_dataset(
+                        file,
+                        "buoyancyq1",
+                        datatype(Float32),
+                        dataspace(
+                            (x_size, y_size, z_size, 0),
+                            (x_size, y_size, z_size, -1),
+                        );
+                        chunk = (cx, cy, cz, ct),
+                    )
+                end
             end
         end
 
@@ -771,13 +819,31 @@ function create_output(state::State, machine_start_time::DateTime)::Nothing
                     attributes(file["gw_shear"])["long_name"] = "gravity-wave shear"
                 end
 
-                if :dtkedt in output_variables
-                    attributes(file["dtkedt"])["units"] = "m^2*s^-3"
-                    attributes(file["dtkedt"])["label"] =
+                if :dtkedt0 in output_variables
+                    attributes(file["dtkedt0"])["units"] = "m^2*s^-3"
+                    attributes(file["dtkedt0"])["label"] =
                         L"\left(\frac{\partial e_\mathrm{k}}{\partial t}\right)_\mathrm{w}"
                     attributes(
-                        file["dtkedt"],
-                    )["long_name"] = "turbulent kinetic energy GW forcing"
+                        file["dtkedt0"],
+                    )["long_name"] = "turbulent kinetic energy GW-shear forcing"
+                end
+
+                if :shearq2 in output_variables
+                    attributes(file["shearq2"])["units"] = "m^2*s^-3"
+                    attributes(file["shearq2"])["label"] =
+                        L"\left(\frac{\partial e_\mathrm{k}}{\partial t}\right)_\mathrm{w}"
+                    attributes(
+                        file["shearq2"],
+                    )["long_name"] = "turbulent kinetic energy GW-shear forcing"
+                end
+
+                if :buoyancyq1 in output_variables
+                    attributes(file["buoyancyq1"])["units"] = "m^2*s^-3"
+                    attributes(file["buoyancyq1"])["label"] =
+                        L"\left(\frac{\partial e_\mathrm{k}}{\partial t}\right)_\mathrm{w}"
+                    attributes(
+                        file["buoyancyq1"],
+                    )["long_name"] = "turbulent kinetic energy GW-buoyancy forcing"
                 end
             end
         end

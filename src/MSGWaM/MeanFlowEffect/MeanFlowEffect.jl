@@ -24,6 +24,7 @@ Provides functions that compute mean-flow tendencies by integrating ray-volume p
 module MeanFlowEffect
 
 using ..BlockedLayer
+using ..RayOperations
 using ..Interpolation
 using ...Update
 using ...Macros

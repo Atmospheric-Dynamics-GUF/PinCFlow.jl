@@ -131,7 +131,7 @@ function compute_turbulent_velocity end
     phi = 0.0
     q1r = 0.0
     q2r = 0.0
-    while phi <= 2 * pi
+    while phi < 2 * pi
         qtilde = compute_turbulent_velocity(
             state,
             rhob,
@@ -164,7 +164,7 @@ function compute_turbulent_velocity(
     omir::AbstractFloat,
     phi::AbstractFloat,
 )::AbstractFloat
-    (; ld, lv, lb) = state.turbulence.turbulenceconstants
+    (; ld, lv, lb, tkemin) = state.turbulence.turbulenceconstants
 
     uhat2 =
         2 * mr^2 * wadr * (omir^2 + fc^2) / rhob / omir / (kr^2 + lr^2 + mr^2)
@@ -179,7 +179,7 @@ function compute_turbulent_velocity(
     sterm = mr^2 / 2 * (uhat2 - real(u01u01 * exp(2im * phi)))
     bterm = n2r + real(1im * mr * bhat * exp(1im * phi))
 
-    qtilde = sqrt(max(0, ld * (lv * sterm - lb * bterm)))
+    qtilde = sqrt(max(2 * tkemin, ld * (lv * sterm - lb * bterm)))
 
     qtilde
 end

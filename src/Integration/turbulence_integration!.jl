@@ -160,11 +160,21 @@ end
     dt::AbstractFloat,
     process::Dissipation,
 )::Nothing
-    (; tke) = state.turbulence.turbulencepredictands
+    (; tke, tape) = state.turbulence.turbulencepredictands
     (; ld) = state.turbulence.turbulenceconstants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; rho) = state.variables.predictands
+    (; turbulence_scheme) = state.namelists.turbulence
+
+    if turbulence_scheme === :TTEScheme
+        for k in k0:k1, j in j0:j1, i in i0:i1
+            tape[i, j, k] *= exp(
+                -2 * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k])) /
+                ld * dt,
+            )
+        end
+    end
 
     for k in k0:k1, j in j0:j1, i in i0:i1
         tke[i, j, k] =
@@ -294,6 +304,6 @@ end
         predictand[i0:i1, j0:j1, k0:k1] .=
             fth .* (rho[i0:i1, j0:j1, k0:k1] .+ rhobar[i0:i1, j0:j1, k0:k1])
     end
-    
+
     nothing
 end

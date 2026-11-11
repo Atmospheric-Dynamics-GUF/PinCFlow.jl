@@ -344,9 +344,17 @@ end
     variable::TKE,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; dtkedt) = state.turbulence.turbulencewkbtendencies
+    (; dtkedt0, shearq0, shearq2, buoyancyq1) =
+        state.turbulence.turbulencewkbtendencies
+    (; gw_shear) = state.turbulence.turbulencewkbintegrals
 
-    dtkedt[i, j, k]
+    dtkedt =
+        turbulence_diffusion_coefficient(state, i, j, k, KM()) *
+        gw_shear[i, j, k]
+
+    dtkedt0[i, j, k] = dtkedt
+
+    dtkedt + shearq2[i, j, k] + buoyancyq1[i, j, k]
 end
 
 @ivy function compute_volume_force(
@@ -397,7 +405,15 @@ end
     variable::TAPE,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
 )::AbstractFloat
-    (; dtapedt) = state.turbulence.turbulencewkbtendencies
+    (; dtapedt0, convectiveq1, convectiveq2, buoyancyq1) =
+        state.turbulence.turbulencewkbtendencies
+    (; gw_convective) = state.turbulence.turbulencewkbintegrals
 
-    dtapedt[i, j, k]
+    dtapedt =
+        turbulence_diffusion_coefficient(state, i, j, k, KH()) *
+        gw_convective[i, j, k]
+
+    dtapedt0[i, j, k] = dtapedt
+
+    dtapedt + convectiveq1[i, j, k] + convectiveq2[i, j, k] - buoyancyq1[i, j, k]
 end

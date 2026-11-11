@@ -47,9 +47,9 @@ Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays if `
 
 # Fields
 
-  - `dtkedt::A`: Turbulent kinetic energy impact of unresolved gravity waves.
+  - `dtkedt0::A`: Turbulent kinetic energy impact of unresolved gravity waves.
 
-  - `dtapedt::A`: Turbulent available potential energy impact of unresolved gravity waves.
+  - `dtapedt0::A`: Turbulent available potential energy impact of unresolved gravity waves.
 
 # Arguments
 
@@ -62,8 +62,13 @@ Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays if `
   - `wkb_mode`: Approximations used by MS-GWaM.
 """
 struct TurbulenceWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
-    dtkedt::A
-    dtapedt::A
+    dtkedt0::A
+    shearq0::A
+    shearq2::A
+    buoyancyq1::A
+    dtapedt0::A
+    convectiveq1::A
+    convectiveq2::A
 end
 
 function TurbulenceWKBTendencies(
@@ -96,7 +101,7 @@ function TurbulenceWKBTendencies(
         Val{:MultiColumn},
     },
 )::TurbulenceWKBTendencies
-    TurbulenceWKBTendencies((zeros(0, 0, 0) for i in 1:2)...)
+    TurbulenceWKBTendencies((zeros(0, 0, 0) for i in 1:7)...)
 end
 
 function TurbulenceWKBTendencies(
@@ -109,9 +114,12 @@ function TurbulenceWKBTendencies(
     (; gw_coupling) = namelists.turbulence
 
     if gw_coupling
-        TurbulenceWKBTendencies(zeros(nxx, nyy, nzz), zeros(0, 0, 0))
+        TurbulenceWKBTendencies(
+            (zeros(nxx, nyy, nzz) for i in 1:4)...,
+            (zeros(0, 0, 0) for i in 1:3)...,
+        )
     else
-        TurbulenceWKBTendencies((zeros(0, 0, 0) for i in 1:2)...)
+        TurbulenceWKBTendencies((zeros(0, 0, 0) for i in 1:7)...)
     end
 end
 
@@ -125,8 +133,8 @@ function TurbulenceWKBTendencies(
     (; gw_coupling) = namelists.turbulence
 
     if gw_coupling
-        TurbulenceWKBTendencies((zeros(nxx, nyy, nzz) for i in 1:2)...)
+        TurbulenceWKBTendencies((zeros(nxx, nyy, nzz) for i in 1:7)...)
     else
-        TurbulenceWKBTendencies((zeros(0, 0, 0) for i in 1:2)...)
+        TurbulenceWKBTendencies((zeros(0, 0, 0) for i in 1:7)...)
     end
 end
