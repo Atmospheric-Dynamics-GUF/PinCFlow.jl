@@ -95,6 +95,6 @@ export cold_bubble,
     wkb_wave_packet,
     wkb_wave_vertical_periodicity
 
-export boussinesq_periodic, wkb_boussinesq_periodic
+export boussinesq_periodic, wkb_boussinesq_periodic, linear_tracer
 
 end

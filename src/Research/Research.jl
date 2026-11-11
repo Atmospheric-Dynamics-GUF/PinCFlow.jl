@@ -12,7 +12,8 @@ using ..PinCFlow
 
 include("boussinesq_periodic.jl")
 include("wkb_boussinesq_periodic.jl")
+include("linear_tracer.jl")
 
-export boussinesq_periodic, wkb_boussinesq_periodic
+export boussinesq_periodic, wkb_boussinesq_periodic, linear_tracer
 
 end

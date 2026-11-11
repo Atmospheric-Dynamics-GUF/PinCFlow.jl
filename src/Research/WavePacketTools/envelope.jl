@@ -1,22 +1,19 @@
 # src/Examples/WavePacketTools/envelope.jl
 
 function envelope(parameters::NamedTuple, x::Real, y::Real, z::Real)::Real
-    (; lx) = parameters
+    (; rx, ry, rz, x0, y0, z0) = parameters
 
-    return cos(2 * pi * x / lx) * 0.15 + (1 - 0.15)
+    envel = 1.0
 
-    # return (3 + cos(pi * (z - lz / 2) / lz)) / 4 * 
-    #     (3 + cos(pi * (x - lx) / lx)) / 4
+    if rx != 0.0
+        envel *= exp(-(x - x0)^2 / 2 / rx^2)
+    end
+    if ry != 0.0
+        envel *= exp(-(y - y0)^2 / 2 / ry^2)
+    end
+    if rz != 0.0
+        envel *= exp(-(z - z0)^2 / 2 / rz^2)
+    end
 
-    # r =
-    #     sqrt(
-    #         (rx * k * (x - x0))^2 +
-    #         (ry * l * (y - y0))^2 +
-    #         (rz * m * (z - z0))^2,
-    #     ) / pi
-    # if r <= 1
-    #     return (1 + cos(pi * r)) / 2
-    # else
-    #     return 0.0
-    # end
+    return envel
 end
