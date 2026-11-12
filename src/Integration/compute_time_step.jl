@@ -48,7 +48,7 @@ function compute_time_step end
     (; cfl_number, wkb_cfl_number, dtmin, dtmax, adaptive_time_step) =
         state.namelists.discretization
     (; tref, re) = state.constants
-    (; master, comm, ko, i0, i1, j0, j1, k0, k1) = state.domain
+    (; master, comm, i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, dzcmin) = grid
     (; predictands) = state.variables
     (; u, v, w) = predictands

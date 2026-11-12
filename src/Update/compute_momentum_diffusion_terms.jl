@@ -177,7 +177,7 @@ function compute_momentum_diffusion_terms end
     direction::X,
 )::AbstractFloat
     (; u) = state.variables.predictands
-    (; dx, dz, met13, met23, met33) = state.grid
+    (; dx, dz, met13) = state.grid
 
     uu = 0.5 * (u[i, j, k + 1] + u[i - 1, j, k + 1])
     ud = 0.5 * (u[i, j, k - 1] + u[i - 1, j, k - 1])
@@ -198,7 +198,7 @@ end
     direction::Y,
 )::AbstractFloat
     (; u) = state.variables.predictands
-    (; dy, dz, met13, met23, met33) = state.grid
+    (; dy, dz, met23) = state.grid
 
     uf = 0.5 * (u[i, j + 1, k] + u[i - 1, j + 1, k])
     ub = 0.5 * (u[i, j - 1, k] + u[i - 1, j - 1, k])
@@ -243,7 +243,7 @@ end
     direction::X,
 )::AbstractFloat
     (; v) = state.variables.predictands
-    (; dx, dz, met13, met23, met33) = state.grid
+    (; dx, dz, met13) = state.grid
 
     vr = 0.5 * (v[i + 1, j, k] + v[i + 1, j - 1, k])
     vl = 0.5 * (v[i - 1, j, k] + v[i - 1, j - 1, k])
@@ -264,7 +264,7 @@ end
     direction::Y,
 )::AbstractFloat
     (; v) = state.variables.predictands
-    (; dy, dz, met13, met23, met33) = state.grid
+    (; dy, dz, met23) = state.grid
 
     vu = 0.5 * (v[i, j, k + 1] + v[i, j - 1, k + 1])
     vd = 0.5 * (v[i, j, k - 1] + v[i, j - 1, k - 1])
@@ -308,7 +308,7 @@ end
     variable::W,
     direction::X,
 )::AbstractFloat
-    (; dx, dz, met13, met23, met33) = state.grid
+    (; dx, dz, met13) = state.grid
 
     wr =
         0.5 * (
@@ -339,7 +339,7 @@ end
     variable::W,
     direction::Y,
 )::AbstractFloat
-    (; dy, dz, met13, met23, met33) = state.grid
+    (; dy, dz, met23) = state.grid
 
     wf =
         0.5 * (
