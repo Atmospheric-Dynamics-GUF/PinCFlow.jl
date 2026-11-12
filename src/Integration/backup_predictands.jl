@@ -16,5 +16,5 @@ function backup_predictands(
 )::Tuple{<:Predictands, <:TracerPredictands}
     p0 = deepcopy(state.variables.predictands)
     chi0 = deepcopy(state.tracer.tracerpredictands)
-    return (p0, chi0)
+    (p0, chi0)
 end

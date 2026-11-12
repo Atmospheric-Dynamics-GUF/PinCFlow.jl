@@ -1,6 +1,6 @@
 """
 ```julia
-compute_stress_tensor!(state::State)
+compute_stress_tensor!(state::State)::Nothing
 ```
 
 Compute the Cartesian stress tensor elements.
@@ -27,7 +27,7 @@ where
 \\end{align*}
 ```
 
-``\\Pi^{1 1}``, ``\\Pi^{1 2}``, ``\\Pi^{1 3}``, ``\\Pi^{2 2}``, ``\\Pi^{2 3}``, and ``\\Pi^{3 3}`` are stored in `state.variables.auxiliaries.stress_tensor_11`, `state.variables.auxiliaries.stress_tensor_12`, `state.variables.auxiliaries.stress_tensor_13`, `state.variables.auxiliaries.stress_tensor_22`, `state.variables.auxiliaries.stress_tensor_23`, and `state.variables.auxiliaries.stress_tensor_33`, respectively.
+``\\Pi^{1 1}``, ``\\Pi^{1 2}``, ``\\Pi^{1 3}``, ``\\Pi^{2 2}``, ``\\Pi^{2 3}``, and ``\\Pi^{3 3}`` are stored in `state.variables.stress_tensor.pi11`, `state.variables.stress_tensor.pi12`, `state.variables.stress_tensor.pi13`, `state.variables.stress_tensor.pi22`, `state.variables.stress_tensor.pi23`, and `state.variables.stress_tensor.pi33`, respectively.
 
 # Arguments
 
@@ -39,25 +39,18 @@ where
 """
 function compute_stress_tensor! end
 
-@ivy function compute_stress_tensor!(state::State)
+@ivy function compute_stress_tensor!(state::State)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (;
-        stress_tensor_11,
-        stress_tensor_12,
-        stress_tensor_13,
-        stress_tensor_22,
-        stress_tensor_23,
-        stress_tensor_33,
-    ) = state.variables.auxiliaries
+    (; pi11, pi12, pi13, pi22, pi23, pi33) = state.variables.stress_tensor
     (; u, v, w) = state.variables.predictands
-    (; dx, dy, dz, jac, met) = state.grid
+    (; dx, dy, dz, jac, met13, met23) = state.grid
     (; re) = state.constants
 
     if 1 / re <= eps()
-        return
+        return nothing
     end
 
-    for k in (k0 - 2):(k1 + 1), j in (j0 - 2):(j1 + 1), i in (i0 - 2):(i1 + 1)
+    for k in (k0 - 2):(k1 + 2), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         jacedger = 0.5 * (jac[i, j, k] + jac[i + 1, j, k])
         jacedgel = 0.5 * (jac[i, j, k] + jac[i - 1, j, k])
         jacedgef = 0.5 * (jac[i, j, k] + jac[i, j + 1, k])
@@ -98,47 +91,47 @@ function compute_stress_tensor! end
                 compute_vertical_wind(i, j - 1, k - 1, state)
             )
 
-        stress_tensor_11[i, j, k] =
+        pi11[i, j, k] =
             2.0 * (u[i, j, k] - u[i - 1, j, k]) / dx +
-            met[i, j, k, 1, 3] * (uu - ud) / dz -
+            met13[i, j, k] * (uu - ud) / dz -
             2.0 / 3.0 * (
                 (jacedger * u[i, j, k] - jacedgel * u[i - 1, j, k]) / dx +
                 (jacedgef * v[i, j, k] - jacedgeb * v[i, j - 1, k]) / dy +
                 (jacedgeu * w[i, j, k] - jacedged * w[i, j, k - 1]) / dz
             ) / jac[i, j, k]
 
-        stress_tensor_12[i, j, k] =
+        pi12[i, j, k] =
             0.5 * (uf - ub) / dy +
-            0.5 * met[i, j, k, 2, 3] * (uu - ud) / dz +
+            0.5 * met23[i, j, k] * (uu - ud) / dz +
             0.5 * (vr - vl) / dx +
-            0.5 * met[i, j, k, 1, 3] * (vu - vd) / dz
+            0.5 * met13[i, j, k] * (vu - vd) / dz
 
-        stress_tensor_13[i, j, k] =
+        pi13[i, j, k] =
             0.5 * (uu - ud) / dz / jac[i, j, k] +
             0.5 * (wr - wl) / dx +
-            met[i, j, k, 1, 3] * (
+            met13[i, j, k] * (
                 compute_vertical_wind(i, j, k, state) -
                 compute_vertical_wind(i, j, k - 1, state)
             ) / dz
 
-        stress_tensor_22[i, j, k] =
+        pi22[i, j, k] =
             2.0 * (v[i, j, k] - v[i, j - 1, k]) / dy +
-            met[i, j, k, 2, 3] * (vu - vd) / dz -
+            met23[i, j, k] * (vu - vd) / dz -
             2.0 / 3.0 * (
                 (jacedger * u[i, j, k] - jacedgel * u[i - 1, j, k]) / dx +
                 (jacedgef * v[i, j, k] - jacedgeb * v[i, j - 1, k]) / dy +
                 (jacedgeu * w[i, j, k] - jacedged * w[i, j, k - 1]) / dz
             ) / jac[i, j, k]
 
-        stress_tensor_23[i, j, k] =
+        pi23[i, j, k] =
             0.5 * (vu - vd) / dz / jac[i, j, k] +
             0.5 * (wf - wb) / dy +
-            met[i, j, k, 2, 3] * (
+            met23[i, j, k] * (
                 compute_vertical_wind(i, j, k, state) -
                 compute_vertical_wind(i, j, k - 1, state)
             ) / dz
 
-        stress_tensor_33[i, j, k] =
+        pi33[i, j, k] =
             2.0 * (
                 compute_vertical_wind(i, j, k, state) -
                 compute_vertical_wind(i, j, k - 1, state)
@@ -150,5 +143,5 @@ function compute_stress_tensor! end
             ) / jac[i, j, k]
     end
 
-    return
+    nothing
 end

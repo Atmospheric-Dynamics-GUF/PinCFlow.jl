@@ -1,5 +1,30 @@
 # src/Examples/wkb_mountain_wave.jl
 
+"""
+```julia
+wkb_mountain_wave(;
+    display_figure::Bool = true,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    output_file::AbstractString = "wkb_mountain_wave.h5",
+    plot_file::AbstractString = "wkb_mountain_wave.svg",
+    prepare_restart::Bool = false,
+    visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
+)::Nothing
+```
+
+Run the WKB-mountain-wave example simulation.
+
+# Keywords
+
+The keywords are analogous to those of `cold_bubble`.
+"""
+function wkb_mountain_wave end
+
 function wkb_mountain_wave(;
     display_figure::Bool = true,
     npx::Integer = 1,
@@ -12,7 +37,7 @@ function wkb_mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 300
     l0 = 5000
     rl = 10
@@ -84,5 +109,5 @@ function wkb_mountain_wave(;
         )
     end
 
-    return
+    nothing
 end

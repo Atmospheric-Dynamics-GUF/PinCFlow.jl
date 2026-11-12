@@ -49,7 +49,7 @@ function DiscretizationNamelist(;
     adaptive_time_step::Bool = true,
     limiter_type::Symbol = :MCVariant,
 )::DiscretizationNamelist
-    return DiscretizationNamelist(
+    DiscretizationNamelist(
         Float64(cfl_number),
         Float64(wkb_cfl_number),
         Float64(dtmin),

@@ -108,7 +108,7 @@ function Tracer(
     tracerwkbintegrals = TracerWKBIntegrals(namelists, domain)
     tracerwkbtendencies = TracerWKBTendencies(namelists, domain)
 
-    return Tracer(
+    Tracer(
         tracerpredictands,
         tracerincrements,
         tracerreconstructions,

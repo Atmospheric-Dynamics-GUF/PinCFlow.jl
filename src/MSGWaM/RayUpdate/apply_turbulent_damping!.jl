@@ -8,7 +8,7 @@ apply_turbulent_damping!(
     k::Integer,
     zr::AbstractFloat,
     dt::AbstractFloat,
-)
+)::Nothing
 ```
 
 Damping of the wave-action density due to turbulence.
@@ -58,9 +58,6 @@ and the turbulent mixing lengths ``l_v`` and ``l_b`` stored in `state.turbulence
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_turbulent_velocity`](@ref)
-
-!!! danger "Experimental"
-    The turbulent damping of wave-action density is an experimental feature that hasn't been validated yet.
 """
 function apply_turbulent_damping! end
 
@@ -71,22 +68,22 @@ function apply_turbulent_damping! end
     j::Integer,
     k::Integer,
     dt::AbstractFloat,
-)
+)::Nothing
     (; rays) = state.wkb
     (; lv, lb) = state.turbulence.turbulenceconstants
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
     (; x_size, y_size) = state.namelists.domain
-    (; n2, rhobar) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; turbulent_damping) = state.namelists.wkb
     (; tke) = state.turbulence.turbulencepredictands
     (; rho) = state.variables.predictands
 
     if !turbulent_damping
-        return
+        return nothing
     end
     if rays.dens[r, i, j, k] == 0.0
-        return
+        return nothing
     end
 
     fc = coriolis_frequency * tref
@@ -136,5 +133,5 @@ function apply_turbulent_damping! end
 
     rays.dens[r, i, j, k] = wadr / factor
 
-    return
+    nothing
 end

@@ -150,5 +150,5 @@ function compute_time_step end
         )
     end
 
-    return dt
+    dt
 end

@@ -5,7 +5,7 @@ TurbulenceWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Integrals of gravity-wave quantities that impact turbulence.
 
-```julia 
+```julia
 TurbulenceWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
@@ -41,7 +41,7 @@ TurbulenceWKBIntegrals(
 
 Construct a `TurbulenceWKBIntegrals` instance with zero-initialized arrays if `state.namelists.turbulence.gw_coupling == true`, otherwise the arrays are zero-size.
 
-# Fields 
+# Fields
 
   - `gw_shear::A`: Gravity-wave shear field.
 
@@ -66,7 +66,7 @@ function TurbulenceWKBIntegrals(
     (; turbulence_scheme) = namelists.turbulence
     (; wkb_mode) = namelists.wkb
 
-    @dispatch_turbulence_scheme @dispatch_wkb_mode return TurbulenceWKBIntegrals(
+    @dispatch_turbulence_scheme @dispatch_wkb_mode TurbulenceWKBIntegrals(
         namelists,
         domain,
         Val(turbulence_scheme),
@@ -85,7 +85,7 @@ function TurbulenceWKBIntegrals(
         Val{:MultiColumn},
     },
 )::TurbulenceWKBIntegrals
-    return TurbulenceWKBIntegrals(zeros(0, 0, 0))
+    TurbulenceWKBIntegrals(zeros(0, 0, 0))
 end
 
 function TurbulenceWKBIntegrals(
@@ -98,8 +98,8 @@ function TurbulenceWKBIntegrals(
     (; gw_coupling) = namelists.turbulence
 
     if gw_coupling
-        return TurbulenceWKBIntegrals(zeros(nxx, nyy, nzz))
+        TurbulenceWKBIntegrals(zeros(nxx, nyy, nzz))
     else
-        return TurbulenceWKBIntegrals(zeros(0, 0, 0))
+        TurbulenceWKBIntegrals(zeros(0, 0, 0))
     end
 end

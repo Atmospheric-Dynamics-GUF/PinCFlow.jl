@@ -14,7 +14,7 @@ TracerNamelist(;
     initial_chi::Function = (x, y, z) -> 0.0,
     relaxed_chi::Function = (x, y, z, t, dt) -> 0.0,
     apply_lhs_sponge_to_tracer::Bool = true,
-    background_tracer_gradient::AbstractFloat = 1.0,
+    background_tracer_gradient::AbstractFloat = 0.0,
 )::TracerNamelist
 ```
 
@@ -59,7 +59,7 @@ function TracerNamelist(;
     apply_lhs_sponge_to_tracer::Bool = true,
     background_tracer_gradient::AbstractFloat = 0.0,
 )::TracerNamelist
-    return TracerNamelist(
+    TracerNamelist(
         tracer_setup,
         leading_order_impact,
         next_order_impact,

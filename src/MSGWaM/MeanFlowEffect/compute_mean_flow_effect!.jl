@@ -1,6 +1,6 @@
 """
 ```julia
-compute_mean_flow_effect!(state::State, dt::AbstractFloat)
+compute_mean_flow_effect!(state::State, dt::AbstractFloat)::Nothing
 ```
 
 Calculate the mean-flow impact of unresolved gravity waves by dispatching to a WKB-mode-specific method.
@@ -10,7 +10,7 @@ compute_mean_flow_effect!(
     state::State,
     dt::AbstractFloat,
     wkb_mode::Val{:NoWKB},
-)
+)::Nothing
 ```
 
 Return for non-WKB configurations.
@@ -20,7 +20,7 @@ compute_mean_flow_effect!(
     state::State,
     dt::AbstractFloat,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
 ```
 
 Calculate the mean-flow impact of unresolved gravity waves.
@@ -69,25 +69,25 @@ This method consists of the following steps:
 """
 function compute_mean_flow_effect! end
 
-function compute_mean_flow_effect!(state::State, dt::AbstractFloat)
+function compute_mean_flow_effect!(state::State, dt::AbstractFloat)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode compute_mean_flow_effect!(state, dt, Val(wkb_mode))
-    return
+    nothing
 end
 
 function compute_mean_flow_effect!(
     state::State,
     dt::AbstractFloat,
     wkb_mode::Val{:NoWKB},
-)
-    return
+)::Nothing
+    nothing
 end
 
 function compute_mean_flow_effect!(
     state::State,
     dt::AbstractFloat,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
     compute_gw_integrals!(state)
 
     set_boundaries!(state, BoundaryWKBIntegrals())
@@ -108,5 +108,5 @@ function compute_mean_flow_effect!(
 
     set_boundaries!(state, BoundaryWKBTendencies())
 
-    return
+    nothing
 end

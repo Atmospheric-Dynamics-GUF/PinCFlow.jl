@@ -89,7 +89,7 @@ function compute_compressible_wind_factor(
     variable::Union{U, V, W},
 )::AbstractFloat
     (; model) = state.namelists.atmosphere
-    @dispatch_model return compute_compressible_wind_factor(
+    @dispatch_model compute_compressible_wind_factor(
         state,
         i,
         j,
@@ -107,7 +107,7 @@ function compute_compressible_wind_factor(
     variable::Union{U, V, W},
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
 )::AbstractFloat
-    return 1.0
+    1.0
 end
 
 @ivy function compute_compressible_wind_factor(
@@ -120,7 +120,8 @@ end
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
-    return (jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k]) / 2
+
+    (jac[i, j, k] * p[i, j, k] + jac[i + 1, j, k] * p[i + 1, j, k]) / 2
 end
 
 @ivy function compute_compressible_wind_factor(
@@ -133,7 +134,8 @@ end
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
-    return (jac[i, j, k] * p[i, j, k] + jac[i, j + 1, k] * p[i, j + 1, k]) / 2
+
+    (jac[i, j, k] * p[i, j, k] + jac[i, j + 1, k] * p[i, j + 1, k]) / 2
 end
 
 @ivy function compute_compressible_wind_factor(
@@ -146,6 +148,7 @@ end
 )::AbstractFloat
     (; jac) = state.grid
     (; p) = state.variables.predictands
-    return jac[i, j, k] * jac[i, j, k + 1] * (p[i, j, k] + p[i, j, k + 1]) /
-           (jac[i, j, k] + jac[i, j, k + 1])
+
+    jac[i, j, k] * jac[i, j, k + 1] * (p[i, j, k] + p[i, j, k + 1]) /
+    (jac[i, j, k] + jac[i, j, k + 1])
 end

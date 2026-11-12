@@ -43,5 +43,5 @@ function find_argument(input::Any; argument::Any = nothing)::Any
         end
     end
 
-    return argument
+    argument
 end

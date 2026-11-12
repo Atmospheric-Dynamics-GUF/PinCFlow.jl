@@ -56,8 +56,8 @@ function SurfaceIndices(
     nxx::Integer,
     nyy::Integer,
 )::SurfaceIndices
-    return SurfaceIndices(
+    SurfaceIndices(
         zeros(Int, n_sfc, nxx, nyy),
-        [zeros(Int, n_sfc) for i in 1:7]...,
+        (zeros(Int, n_sfc) for i in 1:7)...,
     )
 end

@@ -87,16 +87,14 @@ function turbulence_diffusion_coefficient end
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
 
-    if (
-        ((ko == 0 && k < k0) || (ko + nz == z_size && k > k1)) &&
-        vertical_boundary_condition === :SolidWall
-    )
+    if vertical_boundary_condition === :SolidWall &&
+       ((ko == 0 && k < k0) || (ko + nz == z_size && k > k1))
         km = -lv * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     else
         km = lv * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     end
 
-    return km
+    km
 end
 
 @ivy function turbulence_diffusion_coefficient(
@@ -113,16 +111,14 @@ end
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
 
-    if (
-        ((ko == 0 && k < k0) || (ko + nz == z_size && k > k1)) &&
-        vertical_boundary_condition === :SolidWall
-    )
+    if vertical_boundary_condition === :SolidWall &&
+       ((ko == 0 && k < k0) || (ko + nz == z_size && k > k1))
         kh = -lb * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     else
         kh = lb * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     end
 
-    return kh
+    kh
 end
 
 @ivy function turbulence_diffusion_coefficient(
@@ -139,14 +135,12 @@ end
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
 
-    if (
-        ((ko == 0 && k < k0) || (ko + nz == z_size && k > k1)) &&
-        vertical_boundary_condition === :SolidWall
-    )
+    if vertical_boundary_condition === :SolidWall &&
+       ((ko == 0 && k < k0) || (ko + nz == z_size && k > k1))
         kek = -lt * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     else
         kek = lt * sqrt(2 * tke[i, j, k] / (rho[i, j, k] + rhobar[i, j, k]))
     end
 
-    return kek
+    kek
 end

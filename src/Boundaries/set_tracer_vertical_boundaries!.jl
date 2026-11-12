@@ -3,7 +3,7 @@
 set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for tracers by dispatching to the appropriate method.
@@ -13,7 +13,7 @@ set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -23,7 +23,7 @@ set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for tracer predictands.
@@ -33,7 +33,7 @@ set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for tracer reconstructions.
@@ -43,7 +43,27 @@ set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
+```
+
+Enforce vertical boundary conditions for vertical tracer fluxes by dispatching to the vertical boundary condition specific method.
+
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:Periodic},
+)::Nothing
+```
+
+Return for periodic vertical boundary conditions.
+
+```julia
+set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:SolidWall},
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for vertical tracer fluxes.
@@ -53,7 +73,7 @@ set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for tracer WKB quantities by dispatching to the appropriate method.
@@ -63,7 +83,7 @@ set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for tracer WKB integrals.
@@ -73,7 +93,7 @@ set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
 ```
 
 Enforce vertical boundary conditions for tracer WKB tendencies.
@@ -88,6 +108,8 @@ Enforce vertical boundary conditions for tracer WKB tendencies.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
+  - `vertical_boundary_condition`: Vertical boundary conditions.
+
 # See also
 
   - [`PinCFlow.Boundaries.set_vertical_boundaries_of_field!`](@ref)
@@ -97,29 +119,29 @@ function set_tracer_vertical_boundaries! end
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
-)
+)::Nothing
     (; tracer_setup) = state.namelists.tracer
     @dispatch_tracer_setup set_tracer_vertical_boundaries!(
         state,
         variables,
         Val(tracer_setup),
     )
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryVariables,
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryPredictands,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; namelists, domain) = state
     (; tracerpredictands) = state.tracer
 
@@ -127,19 +149,19 @@ function set_tracer_vertical_boundaries!(
         set_vertical_boundaries_of_field!(
             getfield(tracerpredictands, field),
             namelists,
-            domain,
-            -,
+            domain;
+            mode = -,
         )
     end
 
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryReconstructions,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; namelists, domain) = state
     (; tracerreconstructions) = state.tracer
 
@@ -151,14 +173,37 @@ function set_tracer_vertical_boundaries!(
         )
     end
 
-    return
+    nothing
+end
+
+function set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    tracer_setup::Val{:TracerOn},
+)::Nothing
+    (; vertical_boundary_condition) = state.namelists.domain
+
+    @dispatch_vertical_boundary_condition set_tracer_vertical_boundaries!(
+        state,
+        variables,
+        Val(vertical_boundary_condition),
+    )
+    nothing
+end
+
+function set_tracer_vertical_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    vertical_boundary_condition::Val{:Periodic},
+)::Nothing
+    nothing
 end
 
 @ivy function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
-    tracer_setup::Val{:TracerOn},
-)
+    vertical_boundary_condition::Val{:SolidWall},
+)::Nothing
     (; z_size) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
     (; tracerfluxes) = state.tracer
@@ -175,28 +220,28 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::AbstractBoundaryWKBVariables,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode set_tracer_vertical_boundaries!(
         state,
         variables,
         Val(wkb_mode),
     )
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBIntegrals,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
     (; namelists, domain) = state
     (; tracerwkbintegrals) = state.tracer
     (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
@@ -207,8 +252,7 @@ function set_tracer_vertical_boundaries!(
             set_vertical_boundaries_of_field!(
                 getfield(tracerwkbintegrals, field),
                 namelists,
-                domain,
-                +;
+                domain;
                 layers = (1, 1, 1),
             )
         end
@@ -229,8 +273,7 @@ function set_tracer_vertical_boundaries!(
             set_vertical_boundaries_of_field!(
                 getfield(tracerwkbintegrals, field),
                 namelists,
-                domain,
-                +;
+                domain;
                 layers = (1, 1, 1),
             )
         end
@@ -240,36 +283,35 @@ function set_tracer_vertical_boundaries!(
         set_vertical_boundaries_of_field!(
             tracerwkbintegrals.qchi,
             namelists,
-            domain,
-            +;
+            domain;
             layers = (1, 1, 1),
         )
     end
 
-    return
+    nothing
 end
 
 function set_tracer_vertical_boundaries!(
     state::State,
     variables::BoundaryWKBTendencies,
     wkb_mode::Union{Val{:SteadyState}, Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
     (; namelists, domain) = state
     (; dchidt0, dchidt1, dchidtq) = state.tracer.tracerwkbtendencies
     (; leading_order_impact, next_order_impact, turbulence_wave_impact) =
         namelists.tracer
 
     if leading_order_impact
-        set_vertical_boundaries_of_field!(dchidt0, namelists, domain, +)
+        set_vertical_boundaries_of_field!(dchidt0, namelists, domain)
     end
 
     if next_order_impact
-        set_vertical_boundaries_of_field!(dchidt1, namelists, domain, +)
+        set_vertical_boundaries_of_field!(dchidt1, namelists, domain)
     end
 
     if turbulence_wave_impact
-        set_vertical_boundaries_of_field!(dchidtq, namelists, domain, +)
+        set_vertical_boundaries_of_field!(dchidtq, namelists, domain)
     end
 
-    return
+    nothing
 end

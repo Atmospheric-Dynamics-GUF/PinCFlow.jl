@@ -1,6 +1,6 @@
 """
 ```julia
-set_zonal_halo_rays!(state::State)
+set_zonal_halo_rays!(state::State)::Nothing
 ```
 
 Exchange ray volumes in zonal halo cells.
@@ -13,7 +13,7 @@ Performs bidirectional MPI communication between left and right neighbor process
 """
 function set_zonal_halo_rays! end
 
-@ivy function set_zonal_halo_rays!(state::State)
+@ivy function set_zonal_halo_rays!(state::State)::Nothing
     (; comm, ny, nz, i0, i1, j0, j1, k0, k1, left, right) = state.domain
     (; nray, rays) = state.wkb
 
@@ -46,5 +46,5 @@ function set_zonal_halo_rays! end
         )
     end
 
-    return
+    nothing
 end

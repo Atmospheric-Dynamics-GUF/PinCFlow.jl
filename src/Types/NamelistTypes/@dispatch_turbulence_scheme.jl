@@ -18,7 +18,7 @@ The parameter can take any of the following values:
 macro dispatch_turbulence_scheme end
 
 macro dispatch_turbulence_scheme(input::Expr)
-    return esc(quote
+    esc(quote
         @dispatch (:NoTurbulence, :TKEScheme) $(input)
     end)
 end

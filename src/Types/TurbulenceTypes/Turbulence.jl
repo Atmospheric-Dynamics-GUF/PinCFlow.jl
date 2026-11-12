@@ -122,7 +122,7 @@ function Turbulence(
     turbulencewkbintegrals = TurbulenceWKBIntegrals(namelists, domain)
     turbulencewkbtendencies = TurbulenceWKBTendencies(namelists, domain)
 
-    return Turbulence(
+    Turbulence(
         turbulencepredictands,
         turbulenceincrements,
         turbulenceauxiliaries,

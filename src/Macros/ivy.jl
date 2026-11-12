@@ -39,10 +39,10 @@ function ivy(x::Any; root::Bool = true)::Any
     end
 
     if root
-        return quote
+        quote
             @views @inbounds $x
         end
     else
-        return x
+        x
     end
 end

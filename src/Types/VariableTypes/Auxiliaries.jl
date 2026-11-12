@@ -77,10 +77,10 @@ end
 function Auxiliaries(domain::Domain)::Auxiliaries
     (; nx, ny, nz, nxx, nyy, nzz) = domain
 
-    return Auxiliaries(
+    Auxiliaries(
         zeros(nxx, nyy, nzz),
-        [zeros(nx, ny, nz) for i in 1:6]...,
-        [zeros(nx, ny) for i in 1:5]...,
-        [zeros(nxx, nyy, nzz) for i in 1:6]...,
+        (zeros(nx, ny, nz) for i in 1:6)...,
+        (zeros(nx, ny) for i in 1:5)...,
+        (zeros(nxx, nyy, nzz) for i in 1:6)...,
     )
 end

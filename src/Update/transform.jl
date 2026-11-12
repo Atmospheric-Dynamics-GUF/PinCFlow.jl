@@ -101,7 +101,7 @@ function transform end
     coordinate::Cartesian,
     state::State,
 )::AbstractFloat
-    (; jac, met) = state.grid
+    (; jac, met13, met23, met33) = state.grid
 
     jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
@@ -112,12 +112,10 @@ function transform end
     vc = 0.5 * (vedgef + vedgeb)
     vu = 0.5 * (vuedgef + vuedgeb)
 
-    return jacedgeu * (
+    jacedgeu * (
         -(
-            jac[i, j, k + 1] *
-            (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
-            jac[i, j, k] *
-            (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)
+            jac[i, j, k + 1] * (met13[i, j, k] * uc + met23[i, j, k] * vc) +
+            jac[i, j, k] * (met13[i, j, k + 1] * uu + met23[i, j, k + 1] * vu)
         ) / (jac[i, j, k] + jac[i, j, k + 1]) + wedgeu
     )
 end
@@ -138,7 +136,7 @@ end
     coordinate::Transformed,
     state::State,
 )::AbstractFloat
-    (; jac, met) = state.grid
+    (; jac, met13, met23, met33) = state.grid
 
     jacedgeu =
         2.0 * jac[i, j, k] * jac[i, j, k + 1] /
@@ -149,9 +147,8 @@ end
     vc = 0.5 * (vedgef + vedgeb)
     vu = 0.5 * (vuedgef + vuedgeb)
 
-    return (
-        jac[i, j, k + 1] * (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
-        jac[i, j, k] *
-        (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)
+    (
+        jac[i, j, k + 1] * (met13[i, j, k] * uc + met23[i, j, k] * vc) +
+        jac[i, j, k] * (met13[i, j, k + 1] * uu + met23[i, j, k + 1] * vu)
     ) / (jac[i, j, k] + jac[i, j, k + 1]) + wedgeu / jacedgeu
 end

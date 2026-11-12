@@ -146,7 +146,7 @@ function boussinesq_periodic(;
                     )
                 ),
             ) / 2,
-            momentum_coupling = false,
+        momentum_coupling = false,
     )
 
     integrate(Namelists(; atmosphere, domain, output, tracer, turbulence))

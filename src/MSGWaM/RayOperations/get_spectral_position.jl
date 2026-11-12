@@ -32,5 +32,5 @@ function get_spectral_position end
     j::Integer,
     k::Integer,
 )::NTuple{3, <:AbstractFloat}
-    return (rays.k[r, i, j, k], rays.l[r, i, j, k], rays.m[r, i, j, k])
+    (rays.k[r, i, j, k], rays.l[r, i, j, k], rays.m[r, i, j, k])
 end

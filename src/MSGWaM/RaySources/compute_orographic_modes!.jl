@@ -1,6 +1,6 @@
 """
 ```julia
-compute_orographic_modes!(state::State)
+compute_orographic_modes!(state::State)::Nothing
 ```
 
 Compute the wavenumbers, intrinsic frequency and wave-action density of every orographic wave mode.
@@ -53,16 +53,10 @@ For `state.namelists.wkb.elastic_mode_selection == true`, `apply_elastic_mode_se
   - [`PinCFlow.MSGWaM.BlockedLayer.compute_blocked_layer!`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources.apply_elastic_mode_selection!`](@ref)
-
-!!! danger "Experimental"
-    The blocked-layer scheme is an experimental feature that hasn't been fully validated yet.
-
-!!! danger "Experimental"
-    The elastic mode selection is an experimental feature adapted from [Banerjee (2026)](https://doi.org/10.5281/zenodo.20582010).
 """
 function compute_orographic_modes! end
 
-@ivy function compute_orographic_modes!(state::State)
+@ivy function compute_orographic_modes!(state::State)::Nothing
     (; coriolis_frequency) = state.namelists.atmosphere
     (; vertical_boundary_condition) = state.namelists.domain
     (; branch, wave_modes, elastic_mode_selection) = state.namelists.wkb
@@ -74,7 +68,7 @@ function compute_orographic_modes! end
         state.wkb.elastic_mode_selection
 
     if ko != 0 || vertical_boundary_condition === :Periodic
-        return
+        return nothing
     end
 
     fc = coriolis_frequency * tref
@@ -150,5 +144,5 @@ function compute_orographic_modes! end
         end
     end
 
-    return
+    nothing
 end

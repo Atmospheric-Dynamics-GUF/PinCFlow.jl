@@ -79,7 +79,7 @@ function OutputNamelist(;
     input_file::AbstractString = "./pincflow_input.h5",
     output_file::AbstractString = "./pincflow_output.h5",
 )::OutputNamelist
-    return OutputNamelist(
+    OutputNamelist(
         output_variables,
         save_ray_volumes,
         prepare_restart,

@@ -22,7 +22,7 @@ The parameter can take any of the following values:
 macro dispatch_filter_order end
 
 macro dispatch_filter_order(input::Expr)
-    return esc(quote
+    esc(quote
         @dispatch (1, 2, 3, 4) $(input)
     end)
 end

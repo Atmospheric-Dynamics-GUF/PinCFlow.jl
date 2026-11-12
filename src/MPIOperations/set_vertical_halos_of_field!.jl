@@ -5,12 +5,10 @@ set_vertical_halos_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Exchange a specified number of vertical halo values of a 3D array by performing MPI communication between downward and upward neighbor processes.
-
-The corresponding ghost-cell values are not changed.
 
 ```julia
 set_vertical_halos_of_field!(
@@ -18,7 +16,7 @@ set_vertical_halos_of_field!(
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
 ```
 
 Exchange a specified number of vertical halo values of a 5D array with an algorithm similar to that implemented in the above method.
@@ -44,7 +42,7 @@ function set_vertical_halos_of_field! end
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-) where {T <: Real}
+)::Nothing where {T <: Real}
     (; nbz) = namelists.domain
     (; comm, i0, i1, j0, j1, k0, k1, down, up) = domain
 
@@ -71,7 +69,7 @@ function set_vertical_halos_of_field! end
         source = up,
     )
 
-    return
+    nothing
 end
 
 @ivy function set_vertical_halos_of_field!(
@@ -79,7 +77,7 @@ end
     namelists::Namelists,
     domain::Domain;
     layers::NTuple{3, <:Integer} = (-1, -1, -1),
-)
+)::Nothing
     (; nbz) = namelists.domain
     (; comm, i0, i1, j0, j1, k0, k1, down, up) = domain
 
@@ -106,5 +104,5 @@ end
         source = up,
     )
 
-    return
+    nothing
 end

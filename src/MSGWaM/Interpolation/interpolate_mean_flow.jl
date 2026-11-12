@@ -249,7 +249,7 @@ function interpolate_mean_flow end
         xlc,
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -368,7 +368,7 @@ end
         xlc,
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -382,6 +382,7 @@ end
     (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, zc) = grid
+    (; u) = state.variables.predictands
 
     if x_size == 1
         phi = 0.0
@@ -440,13 +441,17 @@ end
 
     # Assign the values.
 
-    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DUDX())
+    (philbd, philbu) =
+        compute_derivatives(state, il - 1, jb, klbd, klbu, u, DX())
 
-    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DUDX())
+    (philfd, philfu) =
+        compute_derivatives(state, il - 1, jf, klfd, klfu, u, DX())
 
-    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DUDX())
+    (phirbd, phirbu) =
+        compute_derivatives(state, ir - 1, jb, krbd, krbu, u, DX())
 
-    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DUDX())
+    (phirfd, phirfu) =
+        compute_derivatives(state, ir - 1, jf, krfd, krfu, u, DX())
 
     # Interpolate.
     phi = interpolate(
@@ -476,7 +481,7 @@ end
         xlc,
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -643,7 +648,7 @@ end
         xlc,
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -757,7 +762,7 @@ end
         xlc,
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -924,7 +929,7 @@ end
         xlc,
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -938,6 +943,7 @@ end
     (; x_size, y_size) = namelists.domain
     (; nxx, nyy, io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, x, y, zc) = grid
+    (; v) = state.variables.predictands
 
     # Locate the closest points in zonal direction.
     if x_size == 1
@@ -997,13 +1003,17 @@ end
 
     # Assign the values.
 
-    (philbd, philbu) = compute_derivatives(state, il, jb, klbd, klbu, DVDY())
+    (philbd, philbu) =
+        compute_derivatives(state, il, jb - 1, klbd, klbu, v, DY())
 
-    (philfd, philfu) = compute_derivatives(state, il, jf, klfd, klfu, DVDY())
+    (philfd, philfu) =
+        compute_derivatives(state, il, jf - 1, klfd, klfu, v, DY())
 
-    (phirbd, phirbu) = compute_derivatives(state, ir, jb, krbd, krbu, DVDY())
+    (phirbd, phirbu) =
+        compute_derivatives(state, ir, jb - 1, krbd, krbu, v, DY())
 
-    (phirfd, phirfu) = compute_derivatives(state, ir, jf, krfd, krfu, DVDY())
+    (phirfd, phirfu) =
+        compute_derivatives(state, ir, jf - 1, krfd, krfu, v, DY())
 
     # Interpolate.
     phi = interpolate(
@@ -1033,7 +1043,7 @@ end
         xlc,
     )
 
-    return phi
+    phi
 end
 
 @ivy function interpolate_mean_flow(
@@ -1147,5 +1157,5 @@ end
         xlc,
     )
 
-    return phi
+    phi
 end

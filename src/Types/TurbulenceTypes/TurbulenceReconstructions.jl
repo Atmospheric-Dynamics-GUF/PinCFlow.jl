@@ -56,7 +56,7 @@ function TurbulenceReconstructions(
 )::TurbulenceReconstructions
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme return TurbulenceReconstructions(
+    @dispatch_turbulence_scheme TurbulenceReconstructions(
         domain,
         Val(turbulence_scheme),
     )
@@ -68,7 +68,7 @@ function TurbulenceReconstructions(
 )::TurbulenceReconstructions
     tketilde = zeros(0, 0, 0, 0, 0)
 
-    return TurbulenceReconstructions(tketilde)
+    TurbulenceReconstructions(tketilde)
 end
 
 function TurbulenceReconstructions(
@@ -79,5 +79,5 @@ function TurbulenceReconstructions(
 
     tketilde = zeros(nxx, nyy, nzz, 3, 2)
 
-    return TurbulenceReconstructions(tketilde)
+    TurbulenceReconstructions(tketilde)
 end

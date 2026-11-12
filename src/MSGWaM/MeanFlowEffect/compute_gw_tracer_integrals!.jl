@@ -4,7 +4,7 @@ compute_gw_tracer_integrals!(
     state::State,
     order::Union{LeadingOrder, NextOrder},
     parameters::NamedTuple,
-)
+)::Nothing
 ```
 
 Compute the leading- or next-order gravity-wave-tracer fluxes by dispatching to the appropriate method.
@@ -15,7 +15,7 @@ compute_gw_tracer_integrals!(
     order::Union{LeadingOrder, NextOrder},
     parameters::NamedTuple,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -26,7 +26,7 @@ compute_gw_tracer_integrals!(
     order::LeadingOrder,
     parameters::NamedTuple,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Compute the leading-order gravity-wave tracer fluxes and wave amplitudes at ``(i, j, k)``.
@@ -35,22 +35,9 @@ The zonal, meridional, and vertical fluxes are given by
 
 ```math
 \\begin{align*}
-    \\bar{\\rho}\\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle^{(0)} & = \\frac{\\bar{\\rho}}{2} \\sum_{r, \\lambda,\\mu,\\nu} \\left[F \\Re \\left(u^{(0)}_\\mathrm{w}\\chi^{{(0)}^*}_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    \\bar{\\rho}\\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(0)} & = \\frac{\\bar{\\rho}}{2} \\sum_{r,  \\lambda, \\mu, \\nu} \\left[F \\Re \\left(v^{(0)}_\\mathrm{w} \\chi^{{(0)}^*}_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
-    \\bar{\\rho}\\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(0)} & = \\frac{\\bar{\\rho}}{2} \\sum_{r, \\lambda, \\mu, \\nu} \\left[F \\Re \\left(w^{(0)}_\\mathrm{w} \\chi^{{(0)}^*}_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu},
-\\end{align*}
-```
-
-with flux contributions given by 
-
-```math 
-\\begin{align*}
-    \\frac{\\bar{\\rho}}{2} \\Re \\left(u^{(0)}_{\\mathrm{w}, r}\\chi^{{(0)}^*}_{\\mathrm{w}, r}\\right) & = \\frac{f}{\\hat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r - m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r\\right], \\\\
-    \\frac{\\bar{\\rho}}{2} \\Re \\left(v^{(0)}_{\\mathrm{w}, r} \\chi^{{(0)}^*}_{\\mathrm{w}, r}\\right) & = \\frac{f}{\\hat{\\omega}_{r}} \\frac{m_r}{\\left|\\boldsymbol{k}_{r}\\right|^2} \\mathcal{A}_r \\left[m_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r - k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial z}\\right)_r\\right], \\\\
-    \\frac{\\bar{\\rho}}{2} \\Re \\left(w^{(0)}_{\\mathrm{w}, r} \\chi^{{(0)}^*}_{\\mathrm{w}, r}\\right) & = \\frac{f}{\\hat{\\omega}_r} \\frac{m_r}{\\left|\\boldsymbol{k}_r\\right|^2} \\mathcal{A}_r \\left[k_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial y}\\right)_r - l_r \\left(\\frac{\\partial \\chi_\\mathrm{b}}{\\partial x}\\right)_r\\right].
-\\end{align*}
-```
-
+    \\bar{\\rho}\\left\\langle \\tilde{u} \\tilde{\\chi} \\right\\rangle & = \\frac{\\bar{\\rho}}{2} \\sum_{r, \\lambda,\\mu,\\nu} \\left[F \\Re \\left(u_\\mathrm{w}\\chi^*_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\bar{\\rho}\\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle & = \\frac{\\bar{\\rho}}{2} \\sum_{r,  \\lambda, \\mu, \\nu} \\left[F \\Re \\left(v_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
+    \\bar{\\rho}\\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle & = \\frac{\\bar{\\rho}}{2} \\sum_{r, \\lambda, \\mu, \\nu} \\left[F \\Re \\left(w_\\mathrm{w} \\chi^*_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu}
 The leading-order wave amplitudes, used for the next-order flux calculations, are given by 
 
 ```math 
@@ -96,6 +83,7 @@ The zonal, meridional, and vertical fluxes are given by
     \\left\\langle \\tilde{v} \\tilde{\\chi} \\right\\rangle^{(1)} & = \\sum_{r, \\lambda, \\mu, \\nu} \\left[F \\Re \\left(v^{(0)}_\\mathrm{w}\\chi^{{(1)}^*}_\\mathrm{w} + v^{(1)}_\\mathrm{w}\\chi^{{(0)}^*}_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu},\\\\
     \\left\\langle \\tilde{w} \\tilde{\\chi} \\right\\rangle^{(1)} & = \\sum_{r, \\lambda, \\mu, \\nu} \\left[F \\Re \\left(w^{(0)}_\\mathrm{w}\\chi^{{(1)}^*}_\\mathrm{w} + w^{(1)}_\\mathrm{w}\\chi^{{(0)}^*}_\\mathrm{w}\\right)\\right]_{r, i + \\lambda, j + \\mu, k + \\nu}.
 \\end{align*}
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.leading_order_tracer_fluxes`](@ref)
 ```
 
 The next-order wave amplitudes are obtained via the matrix equation 
@@ -144,9 +132,6 @@ Here, ``u^{(0)}_{\\mathrm{w}, \\mathrm{old}}``, ``v^{(0)}_{\\mathrm{w}, \\mathrm
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
-
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_scalar`](@ref)
 """
 function compute_gw_tracer_integrals! end
 
@@ -154,7 +139,7 @@ function compute_gw_tracer_integrals!(
     state::State,
     order::Union{LeadingOrder, NextOrder},
     parameters::NamedTuple,
-)
+)::Nothing
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup compute_gw_tracer_integrals!(
@@ -163,7 +148,7 @@ function compute_gw_tracer_integrals!(
         parameters,
         Val(tracer_setup),
     )
-    return
+    nothing
 end
 
 function compute_gw_tracer_integrals!(
@@ -171,8 +156,8 @@ function compute_gw_tracer_integrals!(
     order::Union{LeadingOrder, NextOrder},
     parameters::NamedTuple,
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_gw_tracer_integrals!(
@@ -180,7 +165,7 @@ end
     order::LeadingOrder,
     parameters::NamedTuple,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; uchi0, vchi0, wchi0, qchi, uhat, vhat, what, bhat, pihat, chihat) =
         state.tracer.tracerwkbintegrals
     (;
@@ -220,13 +205,11 @@ end
     if (fc != 0.0 && leading_order_impact) ||
        next_order_impact ||
        turbulence_wave_impact
-        chi ./= (rho .+ rhobar)
         dchidx = interpolate_scalar(state, xr, yr, zr, chi, DX())
         dchidy = interpolate_scalar(state, xr, yr, zr, chi, DY())
         dchidz =
             interpolate_scalar(state, xr, yr, zr, chi, DZ()) +
             background_tracer_gradient * lref
-        chi .*= (rho .+ rhobar)
     end
 
     if fc != 0.0 && leading_order_impact
@@ -292,7 +275,7 @@ end
             lb / 2 * imag(mr * conj(q1r) * chiamp) * factor
     end
 
-    return
+    nothing
 end
 
 @ivy function compute_gw_tracer_integrals!(
@@ -300,7 +283,7 @@ end
     order::NextOrder,
     parameters::NamedTuple,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (;
         uhat,
         vhat,
@@ -512,5 +495,5 @@ end
     wchi1[iray, jray, kray] +=
         real(whatr * conj(chihat2r) + what2r * conj(chihatr)) * factor
 
-    return
+    nothing
 end

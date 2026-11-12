@@ -1,6 +1,6 @@
 """
 ```julia
-check_tke!(state::State)
+check_tke!(state::State)::Nothing
 ```
 
 Enforce a minimum mass-specific turbulent kinetic energy value set by `state.turbulence.turbulenceconstants.tkemin`.
@@ -11,7 +11,7 @@ Enforce a minimum mass-specific turbulent kinetic energy value set by `state.tur
 """
 function check_tke! end
 
-@ivy function check_tke!(state::State)
+@ivy function check_tke!(state::State)::Nothing
     (; k0, k1, j0, j1, i0, i1) = state.domain
     (; tke) = state.turbulence.turbulencepredictands
     (; tkemin) = state.turbulence.turbulenceconstants
@@ -21,5 +21,5 @@ function check_tke! end
         tke[i, j, k] = max(tke[i, j, k], tkemin * rhobar[i, j, k])
     end
 
-    return
+    nothing
 end
