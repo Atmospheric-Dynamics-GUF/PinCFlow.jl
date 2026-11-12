@@ -75,6 +75,24 @@ Singleton that distinguishes an `integrate` method without exception reduction.
 """
 struct ParallelExceptions end
 
+"""
+```julia
+MassSpecific
+```
+
+Singleton for the conversion of the mass-weighted into the mass-specific tracer mixing ratio.
+"""
+struct MassSpecific end
+
+"""
+```julia
+MassWeighted
+```
+
+Singleton for the conversion of the mass-specific into the mass-weighted tracer mixing ratio.
+"""
+struct MassWeighted end
+
 include("compute_time_step.jl")
 include("integrate.jl")
 include("modify_compressible_wind!.jl")
@@ -88,6 +106,7 @@ include("wkb_integration!.jl")
 include("backup_predictands.jl")
 include("turbulence_integration!.jl")
 include("reduce_exceptions.jl")
+include("prepare_wkb_tracer.jl")
 
 export integrate
 

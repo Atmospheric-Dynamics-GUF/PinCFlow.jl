@@ -352,7 +352,11 @@ function integrate(
         #                           MS-GWaM
         #-----------------------------------------------------------------
 
+        prepare_wkb_tracer(state, MassSpecific())
+
         wkb_integration!(state, dt)
+
+        prepare_wkb_tracer(state, MassWeighted())
 
         #-----------------------------------------------------------------
         #                         Turbulence
