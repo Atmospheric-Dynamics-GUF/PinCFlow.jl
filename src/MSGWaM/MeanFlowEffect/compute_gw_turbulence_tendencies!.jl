@@ -1,0 +1,110 @@
+"""
+```julia
+compute_gw_turbulence_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)::Nothing
+```
+
+Calculates the turbulence impact of the gravity-wave shear by dispatching to the appropriate method.
+
+```julia
+compute_gw_turbulence_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    turbulence_scheme::Val{:NoTurbulence},
+)::Nothing
+```
+
+Return for configurations without turbulence parameterization.
+
+```julia
+compute_gw_turbulence_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    turbulence_scheme::Val{:TKEScheme},
+)::Nothing
+```
+
+Computes the turbulence impact of the gravity-wave shear at ``\\left(i, j, k\\right)`` given by
+
+```math
+    \\left(\\frac{\\partial e_\\mathrm{k}}{\\partial t}\\right)_\\mathrm{w} = K_\\mathrm{M}\\mathcal{S}_\\mathrm{w},
+```
+
+where ``K_\\mathrm{M}`` represents the eddy diffusion coefficient for momentum (calculated with `turbulence_diffusion_coefficient`).
+
+# Arguments
+
+  - `state`: Model state.
+
+  - `i`: Zonal grid-cell index.
+
+  - `j`: Meridional grid-cell index.
+
+  - `k`: Vertical grid-cell index.
+
+  - `turbulence_scheme`: General turbulence parameterization configuration.
+
+# See also
+
+  - [`PinCFlow.Update.turbulence_diffusion_coefficient`](@ref)
+"""
+function compute_gw_turbulence_tendencies! end
+
+function compute_gw_turbulence_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)::Nothing
+    (; turbulence_scheme) = state.namelists.turbulence
+
+    @dispatch_turbulence_scheme compute_gw_turbulence_tendencies!(
+        state,
+        i,
+        j,
+        k,
+        Val(turbulence_scheme),
+    )
+
+    nothing
+end
+
+function compute_gw_turbulence_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    turbulence_scheme::Val{:NoTurbulence},
+)::Nothing
+    nothing
+end
+
+@ivy function compute_gw_turbulence_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+    turbulence_scheme::Val{:TKEScheme},
+)::Nothing
+    (; gw_shear) = state.turbulence.turbulencewkbintegrals
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
+    (; gw_coupling) = state.namelists.turbulence
+
+    if !gw_coupling
+        return nothing
+    end
+
+    dtkedt[i, j, k] =
+        turbulence_diffusion_coefficient(state, i, j, k, KM()) *
+        gw_shear[i, j, k]
+
+    nothing
+end
