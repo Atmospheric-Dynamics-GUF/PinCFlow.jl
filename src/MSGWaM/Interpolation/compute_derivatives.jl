@@ -6,26 +6,7 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DUDX,
-)::NTuple{2, <:AbstractFloat}
-```
-
-Compute and return the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``) at ``\\left(i, j, k_\\mathrm{D}\\right)`` and ``\\left(i, j, k_\\mathrm{U}\\right)``.
-
-The derivative is given by
-
-```math
-\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right) = \\frac{u_{\\mathrm{b}, i + 1 / 2} - u_{\\mathrm{b}, i - 1 / 2}}{\\Delta \\hat{x}} + G^{13} \\frac{u_{\\mathrm{b}, k + 1} - u_{\\mathrm{b}, k - 1}}{2 \\Delta \\hat{z}}.
-```
-
-```julia
-compute_derivatives(
-    state::State,
-    i::Integer,
-    j::Integer,
-    kd::Integer,
-    ku::Integer,
-    phitype::DUDY,
+    derivative::DUDY,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -46,7 +27,7 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DUDZ,
+    derivative::DUDZ,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -58,7 +39,7 @@ The derivative is given by
 \\left(\\frac{\\partial u_\\mathrm{b}}{\\partial z}\\right)_{i + 1 / 2, k + 1 / 2} = \\frac{u_{\\mathrm{b}, i + 1 / 2, k + 1} - u_{\\mathrm{b}, i + 1 / 2}}{J_{i + 1 / 2, k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
-In the case of solid-wall vertical boundary conditions, the grid points beyond the vertical boundaries are set to zero.
+In the case of solid-wall vertical boundary conditions, the derivative is set to zero at grid points beyond the vertical boundaries.
 
 ```julia
 compute_derivatives(
@@ -67,7 +48,7 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DVDX,
+    derivative::DVDX,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -86,26 +67,7 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DVDY,
-)::NTuple{2, <:AbstractFloat}
-```
-
-Compute and return the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) at ``\\left(i, j, k_\\mathrm{D}\\right)`` and ``\\left(i, j, k_\\mathrm{U}\\right)``.
-
-The derivative is given by
-
-```math
-\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right) = \\frac{v_{\\mathrm{b}, j + 1 / 2} - v_{\\mathrm{b}, j - 1 / 2}}{\\Delta \\hat{y}} + G^{23} \\frac{v_{\\mathrm{b}, k + 1} - v_{\\mathrm{b}, k - 1} }{2 \\Delta \\hat{z}}.
-```
-
-```julia
-compute_derivatives(
-    state::State,
-    i::Integer,
-    j::Integer,
-    kd::Integer,
-    ku::Integer,
-    phitype::DVDZ,
+    derivative::DVDZ,
 )::NTuple{2, <:AbstractFloat}
 ```
 
@@ -117,7 +79,7 @@ The derivative is given by
 \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial z}\\right)_{j + 1 / 2, k + 1 / 2} = \\frac{v_{\\mathrm{b}, j + 1 / 2, k + 1} - v_{\\mathrm{b}, j + 1 / 2}}{J_{j + 1 / 2, k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
-In the case of solid-wall vertical boundary conditions, the grid points beyond the vertical boundaries are set to zero.
+In the case of solid-wall vertical boundary conditions, the derivative is set to zero at grid points beyond the vertical boundaries.
 
 ```julia
 compute_derivatives(
@@ -127,7 +89,7 @@ compute_derivatives(
     kd::Integer,
     ku::Integer,
     field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
-    phitype::DX,
+    derivative::DX,
 )::Union{
     NTuple{2, T},
     NTuple{2, Complex{T}},
@@ -152,7 +114,7 @@ compute_derivatives(
     kd::Integer,
     ku::Integer,
     field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
-    phitype::DY,
+    derivative::DY,
 )::Union{
     NTuple{2, T},
     NTuple{2, Complex{T}},
@@ -177,7 +139,7 @@ compute_derivatives(
     kd::Integer,
     ku::Integer,
     field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
-    phitype::DZ,
+    derivative::DZ,
 )::Union{
     NTuple{2, T},
     NTuple{2, Complex{T}},
@@ -194,7 +156,7 @@ The derivative is given by
 \\left(\\frac{\\partial \\psi_\\mathrm{b}}{\\partial z}\\right)_{k + 1 / 2} = \\frac{\\psi_{\\mathrm{b}, k + 1} - \\psi_\\mathrm{b}}{J_{k + 1 / 2} \\Delta \\hat{z}}.
 ```
 
-In the case of solid-wall vertical boundary conditions, the grid points beyond the vertical boundaries are set to zero.
+In the case of solid-wall vertical boundary conditions, the derivative is set to zero at grid points beyond the vertical boundaries.
 
 # Arguments
 
@@ -210,7 +172,7 @@ In the case of solid-wall vertical boundary conditions, the grid points beyond t
 
   - `field`: Input array.
 
-  - `phitype`: Type of derivative to compute.
+  - `derivative`: Type of derivative to compute.
 """
 function compute_derivatives end
 
@@ -219,51 +181,20 @@ function compute_derivatives end
     i::Integer,
     j::Integer,
     kd::Integer,
-    ku::Integer,
-    phitype::DUDX,
+    ku::Integer,    
+    derivative::DUDY,
 )::NTuple{2, <:AbstractFloat}
-    (; dx, dz, met) = state.grid
-    (; u) = state.variables.predictands
-
-    phid =
-        (u[i, j, kd] - u[i - 1, j, kd]) / dx +
-        met[i, j, kd, 1, 3] *
-        0.25 *
-        (
-            u[i, j, kd + 1] + u[i - 1, j, kd + 1] - u[i, j, kd - 1] -
-            u[i - 1, j, kd - 1]
-        ) / dz
-    phiu =
-        (u[i, j, ku] - u[i - 1, j, ku]) / dx +
-        met[i, j, ku, 1, 3] *
-        0.25 *
-        (
-            u[i, j, ku + 1] + u[i - 1, j, ku + 1] - u[i, j, ku - 1] -
-            u[i - 1, j, ku - 1]
-        ) / dz
-
-    return (phid, phiu)
-end
-
-@ivy function compute_derivatives(
-    state::State,
-    i::Integer,
-    j::Integer,
-    kd::Integer,
-    ku::Integer,
-    phitype::DUDY,
-)::NTuple{2, <:AbstractFloat}
-    (; dy, dz, met) = state.grid
+    (; dy, dz, met23) = state.grid
     (; u) = state.variables.predictands
 
     phid =
         (u[i, j + 1, kd] - u[i, j, kd]) / dy +
         0.25 *
         (
-            met[i, j, kd, 2, 3] +
-            met[i + 1, j, kd, 2, 3] +
-            met[i, j + 1, kd, 2, 3] +
-            met[i + 1, j + 1, kd, 2, 3]
+            met23[i, j, kd] +
+            met23[i + 1, j, kd] +
+            met23[i, j + 1, kd] +
+            met23[i + 1, j + 1, kd]
         ) *
         0.25 *
         (
@@ -274,10 +205,10 @@ end
         (u[i, j + 1, ku] - u[i, j, ku]) / dy +
         0.25 *
         (
-            met[i, j, ku, 2, 3] +
-            met[i + 1, j, ku, 2, 3] +
-            met[i, j + 1, ku, 2, 3] +
-            met[i + 1, j + 1, ku, 2, 3]
+            met23[i, j, ku] +
+            met23[i + 1, j, ku] +
+            met23[i, j + 1, ku] +
+            met23[i + 1, j + 1, ku]
         ) *
         0.25 *
         (
@@ -285,7 +216,7 @@ end
             u[i, j + 1, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -294,7 +225,7 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DUDZ,
+    derivative::DUDZ,
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; u) = state.variables.predictands
@@ -362,7 +293,7 @@ end
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -371,19 +302,19 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DVDX,
+    derivative::DVDX,
 )::NTuple{2, <:AbstractFloat}
-    (; dx, dz, met) = state.grid
+    (; dx, dz, met13) = state.grid
     (; v) = state.variables.predictands
 
     phid =
         (v[i + 1, j, kd] - v[i, j, kd]) / dx +
         0.25 *
         (
-            met[i, j, kd, 1, 3] +
-            met[i + 1, j, kd, 1, 3] +
-            met[i, j + 1, kd, 1, 3] +
-            met[i + 1, j + 1, kd, 1, 3]
+            met13[i, j, kd] +
+            met13[i + 1, j, kd] +
+            met13[i, j + 1, kd] +
+            met13[i + 1, j + 1, kd]
         ) *
         0.25 *
         (
@@ -394,10 +325,10 @@ end
         (v[i + 1, j, ku] - v[i, j, ku]) / dx +
         0.25 *
         (
-            met[i, j, ku, 1, 3] +
-            met[i + 1, j, ku, 1, 3] +
-            met[i, j + 1, ku, 1, 3] +
-            met[i + 1, j + 1, ku, 1, 3]
+            met13[i, j, ku] +
+            met13[i + 1, j, ku] +
+            met13[i, j + 1, ku] +
+            met13[i + 1, j + 1, ku]
         ) *
         0.25 *
         (
@@ -405,7 +336,7 @@ end
             v[i + 1, j, ku - 1]
         ) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -414,38 +345,7 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
-    phitype::DVDY,
-)::NTuple{2, <:AbstractFloat}
-    (; dy, dz, met) = state.grid
-    (; v) = state.variables.predictands
-
-    phid =
-        (v[i, j, kd] - v[i, j - 1, kd]) / dy +
-        met[i, j, kd, 2, 3] *
-        0.25 *
-        (
-            v[i, j, kd + 1] + v[i, j - 1, kd + 1] - v[i, j, kd - 1] -
-            v[i, j - 1, kd - 1]
-        ) / dz
-    phiu =
-        (v[i, j, ku] - v[i, j - 1, ku]) / dy +
-        met[i, j, ku, 2, 3] *
-        0.25 *
-        (
-            v[i, j, ku + 1] + v[i, j - 1, ku + 1] - v[i, j, ku - 1] -
-            v[i, j - 1, ku - 1]
-        ) / dz
-
-    return (phid, phiu)
-end
-
-@ivy function compute_derivatives(
-    state::State,
-    i::Integer,
-    j::Integer,
-    kd::Integer,
-    ku::Integer,
-    phitype::DVDZ,
+    derivative::DVDZ,
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; v) = state.variables.predictands
@@ -513,7 +413,7 @@ end
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -523,14 +423,14 @@ end
     kd::Integer,
     ku::Integer,
     field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
-    phitype::DX,
+    derivative::DX,
 )::Union{
     NTuple{2, T},
     NTuple{2, Complex{T}},
     Tuple{T, Complex{T}},
     Tuple{Complex{T}, T},
 } where {T <: Real}
-    (; dx, dz, met) = state.grid
+    (; dx, dz, met13) = state.grid
 
     cc = field[i, j, kd]
     cr = field[i + 1, j, kd]
@@ -542,7 +442,7 @@ end
     phid =
         (cr - cc) / dx +
         0.5 *
-        (met[i, j, kd, 1, 3] + met[i + 1, j, kd, 1, 3]) *
+        (met13[i, j, kd] + met13[i + 1, j, kd]) *
         0.25 *
         (cu + cru - cd - crd) / dz
 
@@ -556,11 +456,11 @@ end
     phiu =
         (cr - cc) / dx +
         0.5 *
-        (met[i, j, ku, 1, 3] + met[i + 1, j, ku, 1, 3]) *
+        (met13[i, j, ku] + met13[i + 1, j, ku]) *
         0.25 *
         (cu + cru - cd - crd) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -570,14 +470,14 @@ end
     kd::Integer,
     ku::Integer,
     field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
-    phitype::DY,
+    derivative::DY,
 )::Union{
     NTuple{2, T},
     NTuple{2, Complex{T}},
     Tuple{T, Complex{T}},
     Tuple{Complex{T}, T},
 } where {T <: Real}
-    (; dy, dz, met) = state.grid
+    (; dy, dz, met23) = state.grid
 
     cc = field[i, j, kd]
     cf = field[i, j + 1, kd]
@@ -589,7 +489,7 @@ end
     phid =
         (cf - cc) / dy +
         0.5 *
-        (met[i, j, kd, 2, 3] + met[i, j + 1, kd, 2, 3]) *
+        (met23[i, j, kd] + met23[i, j + 1, kd]) *
         0.25 *
         (cu + cfu - cd - cfd) / dz
 
@@ -603,11 +503,11 @@ end
     phiu =
         (cf - cc) / dy +
         0.5 *
-        (met[i, j, ku, 2, 3] + met[i, j + 1, ku, 2, 3]) *
+        (met23[i, j, ku] + met23[i, j + 1, ku]) *
         0.25 *
         (cu + cfu - cd - cfd) / dz
 
-    return (phid, phiu)
+    (phid, phiu)
 end
 
 @ivy function compute_derivatives(
@@ -617,7 +517,7 @@ end
     kd::Integer,
     ku::Integer,
     field::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
-    phitype::DZ,
+    derivative::DZ,
 )::Union{
     NTuple{2, T},
     NTuple{2, Complex{T}},
@@ -631,8 +531,7 @@ end
     cdc = field[i, j, kd]
     cuu = field[i, j, ku + 1]
     cdu = field[i, j, kd + 1]
-
-    if vertical_boundary_condition === :Periodic
+if vertical_boundary_condition === :Periodic
         phid =
             (cdu - cdc) / dz / (
                 2.0 * jac[i, j, kd] * jac[i, j, kd + 1] /
@@ -680,5 +579,5 @@ end
         end
     end
 
-    return (phid, phiu)
+    (phid, phiu)
 end

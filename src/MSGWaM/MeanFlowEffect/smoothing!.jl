@@ -1,6 +1,6 @@
 """
 ```julia
-smoothing!(state::State, variables::Tendencies)
+smoothing!(state::State, variables::Tendencies)::Nothing
 ```
 
 Apply spatial smoothing to gravity-wave tendency fields by dispatching to a method specific for the chosen filter (`state.namelists.wkb.filter_type`) and dimensionality of the domain.
@@ -43,7 +43,7 @@ smoothing!(
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XYZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Apply a 3D box filter to smooth in all spatial directions.
@@ -62,7 +62,7 @@ smoothing!(
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Apply a 2D box filter to smooth in ``\\hat{x}`` and ``\\hat{z}``.
@@ -81,7 +81,7 @@ smoothing!(
     state::State,
     filter_type::Val{:BoxFilter},
     direction::YZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Apply a 2D box filter to smooth in ``\\hat{y}`` and ``\\hat{z}``.
@@ -100,7 +100,7 @@ smoothing!(
     state::State,
     filter_type::Val{:BoxFilter},
     direction::Z,
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Apply a 1D box filter to smooth in ``\\hat{z}``.
@@ -119,7 +119,7 @@ smoothing!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XYZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Apply a 3D Shapiro filter to smooth in all spatial directions.
@@ -132,7 +132,7 @@ smoothing!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Apply a 2D Shapiro filter to smooth in ``\\hat{x}`` and ``\\hat{z}``.
@@ -145,7 +145,7 @@ smoothing!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::YZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Apply a 2D Shapiro filter to smooth in ``\\hat{y}`` and ``\\hat{z}``.
@@ -158,7 +158,7 @@ smoothing!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Z,
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{z}``.
@@ -169,7 +169,7 @@ smoothing!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Y,
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{y}``.
@@ -180,11 +180,10 @@ smoothing!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::X,
-) where {T <: Real}
+)::Nothing where {T <: Real}
 ```
 
 Apply a 1D Shapiro filter to smooth in ``\\hat{x}``.
-
 # Arguments
 
   - `state`: Model state.
@@ -203,14 +202,15 @@ Apply a 1D Shapiro filter to smooth in ``\\hat{x}``.
 """
 function smoothing! end
 
-function smoothing!(state::State, variables::Tendencies)
+function smoothing!(state::State, variables::Tendencies)::Nothing
     (; x_size, y_size) = state.namelists.domain
     (; smoothing, filter_type) = state.namelists.wkb
     (; dudt, dvdt, dthetadt) = state.wkb.tendencies
     (; tracer_setup) = state.namelists.tracer
+    (; turbulence_scheme, gw_coupling) = state.namelists.turbulence
 
     if !smoothing
-        return
+        return nothing
     end
 
     @dispatch_filter_type if x_size == y_size == 1
@@ -233,20 +233,27 @@ function smoothing!(state::State, variables::Tendencies)
 
     @dispatch_tracer_setup smoothing!(state, variables, Val(tracer_setup))
 
+    if gw_coupling
+        @dispatch_turbulence_scheme smoothing!(
+            state,
+            Val(turbulence_scheme),
+        )
+    end
+
     return
 end
 
-function smoothing!(state::State, variables::Integrals)
+function smoothing!(state::State, variables::Integrals)::Nothing
     (; smoothing) = state.namelists.wkb
     (; tracer_setup) = state.namelists.tracer
 
     if !smoothing
-        return
+        return nothing
     end
 
     @dispatch_tracer_setup smoothing!(state, variables, Val(tracer_setup))
 
-    return
+    nothing
 end
 
 function smoothing!(
@@ -326,7 +333,7 @@ function smoothing!(
         end
     end
 
-    return
+    nothing
 end
 
 function smoothing!(
@@ -337,12 +344,39 @@ function smoothing!(
     return
 end
 
+function smoothing!(
+    state::State,
+    turbulence_scheme::Val{:NoTurbulence},
+)::Nothing
+    nothing
+end
+
+function smoothing!(
+    state::State,
+    turbulence_scheme::Val{:TKEScheme},
+)::Nothing
+    (; x_size, y_size) = state.namelists.domain
+    (; filter_type) = state.namelists.wkb
+    (; dtkedt) = state.turbulence.turbulencewkbtendencies
+
+    @dispatch_filter_type if x_size == y_size == 1
+        smoothing!(dtkedt, state, Val(filter_type), Z())
+    elseif x_size == 1
+        smoothing!(dtkedt, state, Val(filter_type), YZ())
+    elseif y_size == 1
+        smoothing!(dtkedt, state, Val(filter_type), XZ())
+    else
+        smoothing!(dtkedt, state, Val(filter_type), XYZ())
+    end
+
+    nothing
+end
 @ivy function smoothing!(
     output::Union{AbstractArray{T, 3}, AbstractArray{Complex{T}, 3}},
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XYZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
     (; nbx, nby, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -373,7 +407,7 @@ end
             )
     end
 
-    return
+    nothing
 end
 
 @ivy function smoothing!(
@@ -381,7 +415,7 @@ end
     state::State,
     filter_type::Val{:BoxFilter},
     direction::XZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
     (; nbx, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -407,7 +441,7 @@ end
             )
     end
 
-    return
+    nothing
 end
 
 @ivy function smoothing!(
@@ -415,7 +449,7 @@ end
     state::State,
     filter_type::Val{:BoxFilter},
     direction::YZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
     (; nby, nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -441,7 +475,7 @@ end
             )
     end
 
-    return
+    nothing
 end
 
 @ivy function smoothing!(
@@ -449,7 +483,7 @@ end
     state::State,
     filter_type::Val{:BoxFilter},
     direction::Z,
-) where {T <: Real}
+)::Nothing where {T <: Real}
     (; nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -469,7 +503,7 @@ end
             sum(jac[i, j, kk] for kk in (k - filter_order):(k + filter_order))
     end
 
-    return
+    nothing
 end
 
 function smoothing!(
@@ -477,11 +511,11 @@ function smoothing!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XYZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
     smoothing!(output, state, filter_type, X())
     smoothing!(output, state, filter_type, Y())
     smoothing!(output, state, filter_type, Z())
-    return
+    nothing
 end
 
 function smoothing!(
@@ -489,10 +523,10 @@ function smoothing!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::XZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
     smoothing!(output, state, filter_type, X())
     smoothing!(output, state, filter_type, Z())
-    return
+    nothing
 end
 
 function smoothing!(
@@ -500,10 +534,10 @@ function smoothing!(
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::YZ,
-) where {T <: Real}
+)::Nothing where {T <: Real}
     smoothing!(output, state, filter_type, Y())
     smoothing!(output, state, filter_type, Z())
-    return
+    nothing
 end
 
 @ivy function smoothing!(
@@ -511,7 +545,7 @@ end
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Z,
-) where {T <: Real}
+)::Nothing where {T <: Real}
     (; nbz) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; nxx, nyy, k0, k1) = state.domain
@@ -530,7 +564,7 @@ end
         )
     end
 
-    return
+    nothing
 end
 
 @ivy function smoothing!(
@@ -538,7 +572,7 @@ end
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::Y,
-) where {T <: Real}
+)::Nothing where {T <: Real}
     (; nby) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; nxx, nzz, j0, j1) = state.domain
@@ -557,7 +591,7 @@ end
         )
     end
 
-    return
+    nothing
 end
 
 @ivy function smoothing!(
@@ -565,7 +599,7 @@ end
     state::State,
     filter_type::Val{:ShapiroFilter},
     direction::X,
-) where {T <: Real}
+)::Nothing where {T <: Real}
     (; nbx) = state.namelists.domain
     (; filter_order) = state.namelists.wkb
     (; nyy, nzz, i0, i1) = state.domain
@@ -584,5 +618,5 @@ end
         )
     end
 
-    return
+    nothing
 end

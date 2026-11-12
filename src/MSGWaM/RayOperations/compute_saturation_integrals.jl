@@ -63,7 +63,7 @@ function compute_saturation_integrals end
     (; x_size, y_size) = state.namelists.domain
     (; io, jo, i0, j0) = domain
     (; lx, ly, dx, dy, dz, jac) = grid
-    (; n2, rhobar) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; nray, rays) = state.wkb
 
     # Initialize Integrals.
@@ -133,5 +133,5 @@ function compute_saturation_integrals end
         mb2k2 += 2 * n2r^2 / rhobar[iray, jray, kray] * densr * integral2
     end
 
-    return (mb2, mb2k2)
+    (mb2, mb2k2)
 end

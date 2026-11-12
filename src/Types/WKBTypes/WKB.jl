@@ -83,11 +83,7 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `namelists`: Namelists with all model parameters.
 
-  - `constants`: Physical constants and reference values.
-
   - `domain`: Collection of domain-decomposition and MPI-communication parameters.
-
-  - `grid`: Collection of parameters and fields that describe the grid.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
@@ -144,12 +140,12 @@ end
 function WKB(namelists::Namelists, domain::Domain)::WKB
     (; wkb_mode) = namelists.wkb
 
-    @dispatch_wkb_mode return WKB(namelists, domain, Val(wkb_mode))
+    @dispatch_wkb_mode WKB(namelists, domain, Val(wkb_mode))
 end
 
 function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
-    return WKB(
-        [0 for i in 1:3]...,
+    WKB(
+        (0 for i in 1:3)...,
         zeros(Int, 0, 0, 0),
         Rays(0, 0, 0, 0),
         MergedRays(0, 0),
@@ -157,7 +153,7 @@ function WKB(namelists::Namelists, domain::Domain, wkb_mode::Val{:NoWKB})::WKB
         WKBIncrements(0, 0, 0, 0),
         WKBIntegrals(0, 0, 0),
         WKBTendencies(0, 0, 0),
-        [Ref(0.0) for i in 1:3]...,
+        (Ref(0.0) for i in 1:3)...,
         zeros(0, 0),
         zeros(0, 0, 0),
         Spectrum(0, 0, 0, 0),
@@ -185,7 +181,7 @@ function WKB(
         dlr_factor,
         dmr_factor,
     ) = namelists.wkb
-    (; x_size, y_size, z_size) = namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) = namelists.domain
     (; nxx, nyy, nzz) = domain
 
     # Check if the spectral-extent factors are set correctly.
@@ -224,6 +220,11 @@ function WKB(
     # Set the total number of bins and work size of the ray-volume array.
     if wkb_mode === Val(:SteadyState)
         bins = nray_wrk = n_sfc
+        if vertical_boundary_condition === :Periodic
+            error(
+                "Periodic vertical boundary conditions not possible in steady state mode.",
+            )
+        end
     else
         # Set the total number of bins.
         bins = k_bins * l_bins * m_bins
@@ -257,7 +258,7 @@ function WKB(
     spectrum = Spectrum(wave_modes, nxx, nyy, nzz)
     elastic_mode_selection = ElasticModeSelection(wave_modes, nxx, nyy)
 
-    return WKB(
+    WKB(
         bins,
         nray_wrk,
         n_sfc,

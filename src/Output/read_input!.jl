@@ -1,6 +1,6 @@
 """
 ```julia
-read_input!(state::State)
+read_input!(state::State)::Nothing
 ```
 
 Read initial values for all prognostic variables from an HDF5 input file.
@@ -11,7 +11,7 @@ Read initial values for all prognostic variables from an HDF5 input file.
 """
 function read_input! end
 
-@ivy function read_input!(state::State)
+@ivy function read_input!(state::State)::Nothing
     (; x_size, y_size, vertical_boundary_condition) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
     (; model) = state.namelists.atmosphere
@@ -43,6 +43,17 @@ function read_input! end
 
     # Open the file. Note: Fused in-place assignments cannot be used here!
     time = h5open(input_file, "r", comm) do file
+        vbc = file["namelists"]["domain"]["vertical_boundary_condition"][]
+
+        if (vbc === "Periodic" && vertical_boundary_condition === :Periodic) || (
+            vbc === "SolidWall" && vertical_boundary_condition === :SolidWall
+        )
+            return
+        else
+            error(
+                "Vertical boundary condition from input file doesn't match simulation setup.",
+            )
+        end
 
         # Read the time.
         time = file["t"][iin == -1 ? end : iin] / tref
@@ -136,8 +147,8 @@ function read_input! end
             end
         end
 
-        return time
+        time
     end
 
-    return time
+    time
 end

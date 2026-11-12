@@ -203,7 +203,7 @@ function WKBNamelist(;
     maximum_power_fraction::Real = 1.0E+0,
     turbulent_damping::Bool = false,
 )::WKBNamelist
-    return WKBNamelist(
+    WKBNamelist(
         Int(nrx),
         Int(nry),
         Int(nrz),

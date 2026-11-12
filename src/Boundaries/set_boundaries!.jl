@@ -2,83 +2,43 @@
 ```julia
 set_boundaries!(
     state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-        AbstractBoundaryWKBVariables,
-    },
-)
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
+)::Nothing
 ```
 
-Enforce all boundary conditions for non-flux fields.
+Enforce all boundary conditions for the prognostic variables and their reconstructions.
 
 ```julia
-set_boundaries!(state::State, variables::BoundaryFluxes)
+set_boundaries!(state::State, variables::AbstractBoundaryWKBVariables)::Nothing
 ```
 
-Enforce boundary conditions for flux fields by dispatching to the vertical boundary condition appropriate method. 
+Enforce all boundary conditions for the gravity wave integral and tendency fields.
 
-```julia 
-set_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    vertical_boundary_condition::Val{:Periodic},
-)
-```    
-
-Return for periodic vertical boundaries as boundaries are taken care of at the reconstruction stage.
-
-```julia 
-set_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    vertical_boundary_condition::Val{:SolidWall},
-)
+```julia
+set_boundaries!(state::State, variables::BoundaryFluxes)::Nothing
 ```
 
-Enforce vertical boundary conditions for flux fields for solid wall vertical boundary conditions (horizontal boundaries are taken care of at the reconstruction stage).
+Enforce boundary conditions for flux fields (horizontal boundaries are taken care of at the reconstruction stage).
 
-```julia 
+```julia
 set_boundaries!(
     state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-        AbstractBoundaryWKBVariables,
-    },
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
     turbulence::TKE,
-)
+)::Nothing
 ```
 
 Enforce all boundary conditions for turbulence non-flux fields.
 
 ```julia
-set_boundaries!(state::State, variables::BoundaryFluxes, turbulence::TKE)
-```
-
-Enforce boundary conditions for turbulence flux fields by dispatching to the vertical boundary condition appropriate method. 
-
-```julia 
 set_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     turbulence::TKE,
-    vertical_boundary_condition::Val{:Periodic},
-)
+)::Nothing
 ```
 
-Return for periodic vertical boundaries as boundaries are taken care of at the reconstruction stage.
-
-```julia 
-set_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    turbulence::TKE,
-    vertical_boundary_condition::Val{:SolidWall},
-)
-```
-
-Enforce vertical boundary conditions for turbulence flux fields for solid wall vertical boundary conditions (horizontal boundaries are taken care of at the reconstruction stage).
+Enforce boundary conditions for turbulence flux fields (horizontal boundaries are taken care of at the reconstruction stage).
 
 # Arguments
 
@@ -112,12 +72,8 @@ function set_boundaries! end
 
 function set_boundaries!(
     state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-        AbstractBoundaryWKBVariables,
-    },
-)
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
+)::Nothing
     set_zonal_boundaries!(state, variables)
     set_meridional_boundaries!(state, variables)
     set_vertical_boundaries!(state, variables)
@@ -126,88 +82,54 @@ function set_boundaries!(
     set_tracer_meridional_boundaries!(state, variables)
     set_tracer_vertical_boundaries!(state, variables)
 
-    return
-end
-
-function set_boundaries!(state::State, variables::BoundaryFluxes)
-    (; vertical_boundary_condition) = state.namelists.domain
-
-    @dispatch_vertical_boundary_condition set_boundaries!(
-        state,
-        variables,
-        Val(vertical_boundary_condition),
-    )
-    return
+    nothing
 end
 
 function set_boundaries!(
     state::State,
-    variables::BoundaryFluxes,
-    vertical_boundary_condition::Val{:Periodic},
-)
-    return
-end
-
-function set_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    vertical_boundary_condition::Val{:SolidWall},
-)
+    variables::AbstractBoundaryWKBVariables,
+)::Nothing
+    set_zonal_boundaries!(state, variables)
+    set_meridional_boundaries!(state, variables)
     set_vertical_boundaries!(state, variables)
 
+    set_tracer_zonal_boundaries!(state, variables)
+    set_tracer_meridional_boundaries!(state, variables)
     set_tracer_vertical_boundaries!(state, variables)
-    return
-end
 
-function set_boundaries!(
-    state::State,
-    variables::Union{
-        BoundaryPredictands,
-        BoundaryReconstructions,
-        AbstractBoundaryWKBVariables,
-    },
-    turbulence::TKE,
-)
     set_turbulence_zonal_boundaries!(state, variables)
     set_turbulence_meridional_boundaries!(state, variables)
     set_turbulence_vertical_boundaries!(state, variables)
 
-    return
+    nothing
+end
+
+function set_boundaries!(state::State, variables::BoundaryFluxes)::Nothing
+    set_vertical_boundaries!(state, variables)
+
+    set_tracer_vertical_boundaries!(state, variables)
+
+    nothing
 end
 
 function set_boundaries!(
     state::State,
-    variables::BoundaryFluxes,
+    variables::Union{BoundaryPredictands, BoundaryReconstructions},
     turbulence::TKE,
-)
-    (; vertical_boundary_condition) = state.namelists.domain
-
-    @dispatch_vertical_boundary_condition set_boundaries!(
-        state,
-        variables,
-        turbulence,
-        Val(vertical_boundary_condition),
-    )
-
-    return
-end
-
-function set_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    turbulence::TKE,
-    vertical_boundary_condition::Val{:Periodic},
-)
-    return
-end
-
-function set_boundaries!(
-    state::State,
-    variables::BoundaryFluxes,
-    turbulence::TKE,
-    vertical_boundary_condition::Val{:SolidWall},
-)
+)::Nothing
+    set_turbulence_zonal_boundaries!(state, variables)
+    set_turbulence_meridional_boundaries!(state, variables)
     set_turbulence_vertical_boundaries!(state, variables)
 
-    return
+    nothing
+end
+
+function set_boundaries!(
+    state::State,
+    variables::BoundaryFluxes,
+    turbulence::TKE,
+)::Nothing
+    set_turbulence_vertical_boundaries!(state, variables)
+
+    nothing
 end

@@ -336,7 +336,7 @@ end
             )
         end
     end
-    @ivy xr = x[ir]
+    xr = x[ir]
     xl = x[il]
 
     # Locate the closest points in meridional direction.

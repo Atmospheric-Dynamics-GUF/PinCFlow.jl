@@ -7,7 +7,7 @@ compute_n2!(
     grid::Grid,
     thetabar::AbstractArray{<:AbstractFloat, 3},
     n2::AbstractArray{<:AbstractFloat, 3},
-)
+)::Nothing
 ```
 
 Compute the buoyancy frequency ``N^2 \\left(z\\right)`` from the potential temperature.
@@ -47,7 +47,7 @@ function compute_n2! end
     grid::Grid,
     thetabar::AbstractArray{<:AbstractFloat, 3},
     n2::AbstractArray{<:AbstractFloat, 3},
-)
+)::Nothing
     (; z_size, nbz) = namelists.domain
     (; g_ndim) = constants
     (; nz, ko, k0, k1) = domain
@@ -62,7 +62,7 @@ function compute_n2! end
     end
 
     # Compute the squared buoyancy frequency at the boundaries.
-    set_vertical_boundaries_of_field!(n2, namelists, domain, +)
+    set_vertical_boundaries_of_field!(n2, namelists, domain)
     if ko == 0
         for k in 1:nbz
             n2[:, :, k] .=
@@ -78,5 +78,5 @@ function compute_n2! end
         end
     end
 
-    return
+    nothing
 end

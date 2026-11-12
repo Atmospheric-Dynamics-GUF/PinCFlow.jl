@@ -5,11 +5,8 @@ TracerWKBIntegrals{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Integrals of gravity-wave induced tracer fluxes.
 
-```julia 
-TracerWKBIntegrals(
-    namelists::Namelists,
-    domain::Domain,
-)::TracerWKBIntegrals
+```julia
+TracerWKBIntegrals(namelists::Namelists, domain::Domain)::TracerWKBIntegrals
 ```
 
 Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate method.
@@ -24,7 +21,7 @@ TracerWKBIntegrals(
 
 Construct a `TracerWKBIntegrals` instance with zero-size arrays for configurations without tracer transport.
 
-```julia 
+```julia
 TracerWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
@@ -34,7 +31,7 @@ TracerWKBIntegrals(
 
 Construct a `TracerWKBIntegrals` instance by dispatching to the appropriate method.
 
-```julia 
+```julia
 TracerWKBIntegrals(
     namelists::Namelists,
     domain::Domain,
@@ -54,7 +51,7 @@ TracerWKBIntegrals(
 
 Construct a `TracerWKBIntegrals` instance with zero-initialized arrays if `state.namelists.tracer.leading_order_impact == true`, otherwise the arrays are zero-size.
 
-# Fields 
+# Fields
 
   - `uchi0::A`: Leading-order zonal tracer fluxes.
 
@@ -129,7 +126,7 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     (; tracer_setup) = namelists.tracer
 
-    @dispatch_tracer_setup return TracerWKBIntegrals(
+    @dispatch_tracer_setup TracerWKBIntegrals(
         namelists,
         domain,
         Val(tracer_setup),
@@ -141,9 +138,9 @@ function TracerWKBIntegrals(
     domain::Domain,
     tracer_setup::Val{:NoTracer},
 )::TracerWKBIntegrals
-    return TracerWKBIntegrals(
-        [zeros(0, 0, 0) for i in 1:6]...,
-        [zeros(ComplexF64, 0, 0, 0) for i in 1:11]...,
+    TracerWKBIntegrals(
+        (zeros(0, 0, 0) for i in 1:6)...,
+        (zeros(ComplexF64, 0, 0, 0) for i in 1:11)...,
     )
 end
 
@@ -154,11 +151,7 @@ function TracerWKBIntegrals(
 )::TracerWKBIntegrals
     (; wkb_mode) = namelists.wkb
 
-    @dispatch_wkb_mode return TracerWKBIntegrals(
-        namelists,
-        domain,
-        Val(wkb_mode),
-    )
+    @dispatch_wkb_mode TracerWKBIntegrals(namelists, domain, Val(wkb_mode))
 end
 
 function TracerWKBIntegrals(
@@ -166,9 +159,9 @@ function TracerWKBIntegrals(
     domain::Domain,
     wkb_mode::Val{:NoWKB},
 )::TracerWKBIntegrals
-    return TracerWKBIntegrals(
-        [zeros(0, 0, 0) for i in 1:6]...,
-        [zeros(ComplexF64, 0, 0, 0) for i in 1:11]...,
+    TracerWKBIntegrals(
+        (zeros(0, 0, 0) for i in 1:6)...,
+        (zeros(ComplexF64, 0, 0, 0) for i in 1:11)...,
     )
 end
 
@@ -201,8 +194,8 @@ function TracerWKBIntegrals(
     end
 
     return TracerWKBIntegrals(
-        [zeros(nxl, nyl, nzl) for i in 1:3]...,
-        [zeros(nxn, nyn, nzn) for i in 1:3]...,
-        [zeros(ComplexF64, nxn, nyn, nzn) for i in 1:11]...,
+        (zeros(nxl, nyl, nzl) for i in 1:3)...,
+        (zeros(nxn, nyn, nzn) for i in 1:3)...,
+        (zeros(ComplexF64, nxn, nyn, nzn) for i in 1:11)...,
     )
 end

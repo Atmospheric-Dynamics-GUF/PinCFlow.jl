@@ -1,6 +1,6 @@
 """
 ```julia
-propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)::Nothing
 ```
 
 Integrate the wave-action-density and ray equations by dispatching to a WKB-mode-specific method.
@@ -11,7 +11,7 @@ propagate_rays!(
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Val{:NoWKB},
-)
+)::Nothing
 ```
 
 Return for non-WKB configurations.
@@ -22,7 +22,7 @@ propagate_rays!(
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
 ```
 
 Integrate the wave-action-density and ray equations derived from 1D or 3D transient WKB theory.
@@ -95,7 +95,7 @@ propagate_rays!(
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Val{:SteadyState},
-)
+)::Nothing
 ```
 
 Update the vertical wavenumber and wave-action density, using steady-state WKB theory.
@@ -166,10 +166,14 @@ If `rkstage != 1`, this method returns immediately.
 """
 function propagate_rays! end
 
-function propagate_rays!(state::State, dt::AbstractFloat, rkstage::Integer)
+function propagate_rays!(
+    state::State,
+    dt::AbstractFloat,
+    rkstage::Integer,
+)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode propagate_rays!(state, dt, rkstage, Val(wkb_mode))
-    return
+    nothing
 end
 
 function propagate_rays!(
@@ -177,8 +181,8 @@ function propagate_rays!(
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Val{:NoWKB},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function propagate_rays!(
@@ -186,7 +190,7 @@ end
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
-)
+)::Nothing
     (; branch, impact_altitude, blocking) = state.namelists.wkb
     (; x_size, y_size, vertical_boundary_condition) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -197,13 +201,12 @@ end
     (; alphark, betark, stepfrac, nstages) = state.time
     (; dx, dy, dzcmin, hb) = state.grid
     (; ko, k0, k1, j0, j1, i0, i1) = state.domain
-    (; n2) = state.atmosphere
     (; alphar) = state.sponge
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 - 1 : k0
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 - 1 : k0
     kmax = k1
 
     # Initialize the WKB increments and maximum group velocities at the first
@@ -269,13 +272,20 @@ end
             # Determine if horizontal propagation and refraction are allowed.
             multi_column = wkb_mode === Val(:MultiColumn)
             launch_layer = k == k0 - 1
-            blocked_layer = blocking && zrd < hb[i, j] + deltazb[i, j] / 2
+            blocked_layer =
+                vertical_boundary_condition === :SolidWall &&
+                blocking &&
+                zrd < hb[i, j] + deltazb[i, j] / 2
+
             zonal_propagation =
                 x_size > 1 && multi_column && !launch_layer && !blocked_layer
             meridional_propagation =
                 y_size > 1 && multi_column && !launch_layer && !blocked_layer
             refraction =
-                zr > impact_altitude / lref && !launch_layer && !blocked_layer
+                vertical_boundary_condition === :SolidWall &&
+                zr > impact_altitude / lref &&
+                !launch_layer &&
+                !blocked_layer
 
             # Compute intrinsic zonal group velocity.
             if x_size > 1
@@ -471,7 +481,7 @@ end
         activate_orographic_source!(state)
     end
 
-    return
+    nothing
 end
 
 @ivy function propagate_rays!(
@@ -479,7 +489,7 @@ end
     dt::AbstractFloat,
     rkstage::Integer,
     wkb_mode::Val{:SteadyState},
-)
+)::Nothing
     (; x_size, y_size, z_size, vertical_boundary_condition) =
         state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
@@ -487,13 +497,13 @@ end
     (; tref) = state.constants
     (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
     (; dx, dy, dz, zctilde, zc, jac) = state.grid
-    (; n2, rhobar) = state.atmosphere
+    (; rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
     (; nray, rays) = state.wkb
     (; alphar) = state.sponge
 
     if rkstage != 1
-        return
+        return nothing
     end
 
     # Set Coriolis parameter.
@@ -549,7 +559,7 @@ end
             rays.dzray[r, i, j, k] =
                 rays.dzray[r, i, j, k - 1] * jac[i, j, k] / jac[i, j, k - 1]
 
-            # Get the horizontal wavenumbers.
+            # Get the ray volume positions and wavenumbers.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             khr = sqrt(kr^2 + lr^2)
@@ -574,6 +584,7 @@ end
             end
 
             # Compute the local vertical wavenumber and vertical group velocity.
+            n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())
             omir =
                 -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
                 (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
@@ -659,7 +670,6 @@ end
             if rays.dens[r, i, j, k] == 0
                 continue
             end
-            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             khr = sqrt(kr^2 + lr^2)
             n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())
@@ -696,5 +706,5 @@ end
         end
     end
 
-    return
+    nothing
 end
