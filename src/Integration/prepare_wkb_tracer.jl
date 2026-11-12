@@ -3,7 +3,7 @@
 prepare_wkb_tracer(
     state::State,
     operation::Union{MassSpecific, MassWeighted},
-)
+)::Nothing
 ```
 
 Convert the mass-weighted into the mass-specific tracer mixing ratio and vice versa by dispatching to the configuration-specific method.
@@ -13,7 +13,7 @@ prepare_wkb_tracer(
     state::State,
     operation::Union{MassSpecific, MassWeighted},
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -23,7 +23,7 @@ prepare_wkb_tracer(
     state::State,
     operation::MassSpecific,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Convert the mass-weighted into the mass-specific tracer mixing ratio.
@@ -33,7 +33,7 @@ prepare_wkb_tracer(
     state::State,
     operation::MassWeighted,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Convert the mass-specific into the mass-weighted tracer mixing ratio.
@@ -49,7 +49,7 @@ Convert the mass-specific into the mass-weighted tracer mixing ratio.
 function prepare_wkb_tracer(
     state::State,
     operation::Union{MassSpecific, MassWeighted},
-)
+)::Nothing
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup prepare_wkb_tracer(
@@ -58,22 +58,22 @@ function prepare_wkb_tracer(
         Val(tracer_setup),
     )
 
-    return
+    nothing
 end
 
 function prepare_wkb_tracer(
     state::State,
     operation::Union{MassSpecific, MassWeighted},
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function prepare_wkb_tracer(
     state::State,
     operation::MassSpecific,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; tracerpredictands) = state.tracer
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
@@ -82,14 +82,14 @@ end
         getfield(tracerpredictands, field) ./= (rho .+ rhobar)
     end
 
-    return
+    nothing
 end
 
 @ivy function prepare_wkb_tracer(
     state::State,
     operation::MassWeighted,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; tracerpredictands) = state.tracer
     (; rho) = state.variables.predictands
     (; rhobar) = state.atmosphere
@@ -98,5 +98,5 @@ end
         getfield(tracerpredictands, field) .*= (rho .+ rhobar)
     end
 
-    return
+    nothing
 end
