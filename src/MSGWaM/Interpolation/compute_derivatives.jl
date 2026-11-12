@@ -6,25 +6,6 @@ compute_derivatives(
     j::Integer,
     kd::Integer,
     ku::Integer,
-    derivative::DUDX,
-)::NTuple{2, <:AbstractFloat}
-```
-
-Compute and return the zonal derivative of the zonal wind (``\\partial u_\\mathrm{b} / \\partial x``) at ``\\left(i, j, k_\\mathrm{D}\\right)`` and ``\\left(i, j, k_\\mathrm{U}\\right)``.
-
-The derivative is given by
-
-```math
-\\left(\\frac{\\partial u_\\mathrm{b}}{\\partial x}\\right) = \\frac{u_{\\mathrm{b}, i + 1 / 2} - u_{\\mathrm{b}, i - 1 / 2}}{\\Delta \\hat{x}} + G^{13} \\frac{u_{\\mathrm{b}, k + 1} - u_{\\mathrm{b}, k - 1}}{2 \\Delta \\hat{z}}.
-```
-
-```julia
-compute_derivatives(
-    state::State,
-    i::Integer,
-    j::Integer,
-    kd::Integer,
-    ku::Integer,
     derivative::DUDY,
 )::NTuple{2, <:AbstractFloat}
 ```
@@ -77,25 +58,6 @@ The derivative is given by
 
 ```math
 \\left(\\frac{\\partial v_\\mathrm{b}}{\\partial x}\\right)_{i + 1 / 2, j + 1 / 2} = \\frac{v_{\\mathrm{b}, i + 1, j + 1 / 2} - v_{\\mathrm{b}, j + 1 / 2}}{\\Delta \\hat{x}} + G_{i + 1 / 2, j + 1 / 2}^{13} \\frac{v_{\\mathrm{b}, i + 1 / 2, j + 1 / 2, k + 1} - v_{\\mathrm{b}, i + 1 / 2, j + 1 / 2, k - 1}}{2 \\Delta \\hat{z}}.
-```
-
-```julia
-compute_derivatives(
-    state::State,
-    i::Integer,
-    j::Integer,
-    kd::Integer,
-    ku::Integer,
-    derivative::DVDY,
-)::NTuple{2, <:AbstractFloat}
-```
-
-Compute and return the meridional derivative of the meridional wind (``\\partial v_\\mathrm{b} / \\partial y``) at ``\\left(i, j, k_\\mathrm{D}\\right)`` and ``\\left(i, j, k_\\mathrm{U}\\right)``.
-
-The derivative is given by
-
-```math
-\\left(\\frac{\\partial v_\\mathrm{b}}{\\partial y}\\right) = \\frac{v_{\\mathrm{b}, j + 1 / 2} - v_{\\mathrm{b}, j - 1 / 2}}{\\Delta \\hat{y}} + G^{23} \\frac{v_{\\mathrm{b}, k + 1} - v_{\\mathrm{b}, k - 1} }{2 \\Delta \\hat{z}}.
 ```
 
 ```julia
@@ -198,37 +160,6 @@ At grid points beyond the vertical boundaries, it is set to zero.
   - `derivative`: Type of derivative to compute.
 """
 function compute_derivatives end
-
-@ivy function compute_derivatives(
-    state::State,
-    i::Integer,
-    j::Integer,
-    kd::Integer,
-    ku::Integer,
-    derivative::DUDX,
-)::NTuple{2, <:AbstractFloat}
-    (; dx, dz, met13, met23, met33) = state.grid
-    (; u) = state.variables.predictands
-
-    phid =
-        (u[i, j, kd] - u[i - 1, j, kd]) / dx +
-        met13[i, j, kd] *
-        0.25 *
-        (
-            u[i, j, kd + 1] + u[i - 1, j, kd + 1] - u[i, j, kd - 1] -
-            u[i - 1, j, kd - 1]
-        ) / dz
-    phiu =
-        (u[i, j, ku] - u[i - 1, j, ku]) / dx +
-        met13[i, j, ku] *
-        0.25 *
-        (
-            u[i, j, ku + 1] + u[i - 1, j, ku + 1] - u[i, j, ku - 1] -
-            u[i - 1, j, ku - 1]
-        ) / dz
-
-    (phid, phiu)
-end
 
 @ivy function compute_derivatives(
     state::State,
@@ -370,37 +301,6 @@ end
         (
             v[i, j, ku + 1] + v[i + 1, j, ku + 1] - v[i, j, ku - 1] -
             v[i + 1, j, ku - 1]
-        ) / dz
-
-    (phid, phiu)
-end
-
-@ivy function compute_derivatives(
-    state::State,
-    i::Integer,
-    j::Integer,
-    kd::Integer,
-    ku::Integer,
-    derivative::DVDY,
-)::NTuple{2, <:AbstractFloat}
-    (; dy, dz, met13, met23, met33) = state.grid
-    (; v) = state.variables.predictands
-
-    phid =
-        (v[i, j, kd] - v[i, j - 1, kd]) / dy +
-        met23[i, j, kd] *
-        0.25 *
-        (
-            v[i, j, kd + 1] + v[i, j - 1, kd + 1] - v[i, j, kd - 1] -
-            v[i, j - 1, kd - 1]
-        ) / dz
-    phiu =
-        (v[i, j, ku] - v[i, j - 1, ku]) / dy +
-        met23[i, j, ku] *
-        0.25 *
-        (
-            v[i, j, ku + 1] + v[i, j - 1, ku + 1] - v[i, j, ku - 1] -
-            v[i, j - 1, ku - 1]
         ) / dz
 
     (phid, phiu)
