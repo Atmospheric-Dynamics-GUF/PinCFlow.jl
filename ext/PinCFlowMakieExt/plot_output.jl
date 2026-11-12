@@ -85,7 +85,7 @@ plot_output
     x_tick_format::AbstractString = "{:.1f}",
     y_tick_format::AbstractString = "{:.1f}",
     z_tick_format::AbstractString = "{:.1f}",
-)
+)::Nothing
     set_visualization_theme!()
 
     # Store the ray-volume property names.
@@ -166,7 +166,7 @@ plot_output
             resize_to_layout!(figure)
             record(figure, plot_file, fields; framerate) do field
                 plot_snapshot!(figure, field, input, 1)
-                return
+                nothing
             end
         else
             row = 0
@@ -179,8 +179,8 @@ plot_output
             save(plot_file, figure)
         end
 
-        return
+        nothing
     end
 
-    return
+    nothing
 end

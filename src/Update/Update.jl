@@ -60,33 +60,6 @@ struct RHS end
 
 """
 ```julia
-X
-```
-
-Singleton for ``\\hat{x}``-axis along which a calculation should be performed.
-"""
-struct X end
-
-"""
-```julia
-Y
-```
-
-Singleton for ``\\hat{y}``-axis along which a calculation should be performed.
-"""
-struct Y end
-
-"""
-```julia
-Z
-```
-
-Singleton for ``\\hat{z}``-axis along which a calculation should be performed.
-"""
-struct Z end
-
-"""
-```julia
 KM
 ```
 
@@ -119,7 +92,7 @@ include("compute_buoyancy_factor.jl")
 include("compute_compressible_wind_factor.jl")
 include("compute_pressure_gradient.jl")
 include("compute_sponges!.jl")
-include("compute_stress_tensor.jl")
+include("compute_stress_tensor!.jl")
 include("compute_vertical_wind.jl")
 include("compute_volume_force.jl")
 include("transform.jl")
@@ -130,14 +103,14 @@ include("thomas_algorithm!.jl")
 include("reset_thomas!.jl")
 include("turbulent_diffusion!.jl")
 
-export LHS, RHS, X, Y, Z, KM, KH, KEK
+export LHS, RHS, KM, KH, KEK
 
 export apply_lhs_sponge!,
     compute_buoyancy_factor,
     compute_compressible_wind_factor,
     compute_pressure_gradient,
     compute_sponges!,
-    compute_stress_tensor,
+    compute_stress_tensor!,
     compute_vertical_wind,
     compute_volume_force,
     conductive_heating,

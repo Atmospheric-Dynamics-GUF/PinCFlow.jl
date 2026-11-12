@@ -25,8 +25,8 @@ function compute_flux(
     phidown::AbstractFloat,
 )::AbstractFloat
     if usurf > 0.0
-        return usurf * phiup
+        usurf * phiup
     else
-        return usurf * phidown
+        usurf * phidown
     end
 end

@@ -54,7 +54,7 @@ function PoissonNamelist(;
     initial_cleaning::Bool = true,
     tolerance_is_relative::Bool = false,
 )::PoissonNamelist
-    return PoissonNamelist(
+    PoissonNamelist(
         Float64(tolerance),
         Int(poisson_iterations),
         preconditioner,

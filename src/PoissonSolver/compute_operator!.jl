@@ -4,7 +4,7 @@ compute_operator!(
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Compute the tensor elements of the linear operator on the right-hand side of the Poisson equation.
@@ -41,13 +41,13 @@ function compute_operator! end
     state::State,
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size, nbz) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; model) = state.namelists.atmosphere
     (; gamma, rsp, pref, kappa) = state.constants
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; dx, dy, dz, jac, met) = state.grid
+    (; dx, dy, dz, jac, met13, met23, met33) = state.grid
     (; pbar, rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (;
@@ -266,56 +266,48 @@ function compute_operator! end
             (jac[i, j, k] + jac[i, j, k - 1])
 
         # Interpolate metric-tensor elements.
-        met13edger = 0.5 * (met[i, j, k, 1, 3] + met[i + 1, j, k, 1, 3])
-        met13edgel = 0.5 * (met[i, j, k, 1, 3] + met[i - 1, j, k, 1, 3])
-        met23edgef = 0.5 * (met[i, j, k, 2, 3] + met[i, j + 1, k, 2, 3])
-        met23edgeb = 0.5 * (met[i, j, k, 2, 3] + met[i, j - 1, k, 2, 3])
+        met13edger = 0.5 * (met13[i, j, k] + met13[i + 1, j, k])
+        met13edgel = 0.5 * (met13[i, j, k] + met13[i - 1, j, k])
+        met23edgef = 0.5 * (met23[i, j, k] + met23[i, j + 1, k])
+        met23edgeb = 0.5 * (met23[i, j, k] + met23[i, j - 1, k])
         met13edgeu =
             (
-                jac[i, j, k + 1] * met[i, j, k, 1, 3] +
-                jac[i, j, k] * met[i, j, k + 1, 1, 3]
+                jac[i, j, k + 1] * met13[i, j, k] +
+                jac[i, j, k] * met13[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
         met23edgeu =
             (
-                jac[i, j, k + 1] * met[i, j, k, 2, 3] +
-                jac[i, j, k] * met[i, j, k + 1, 2, 3]
+                jac[i, j, k + 1] * met23[i, j, k] +
+                jac[i, j, k] * met23[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
         met33edgeu =
             (
-                jac[i, j, k + 1] * met[i, j, k, 3, 3] +
-                jac[i, j, k] * met[i, j, k + 1, 3, 3]
+                jac[i, j, k + 1] * met33[i, j, k] +
+                jac[i, j, k] * met33[i, j, k + 1]
             ) / (jac[i, j, k] + jac[i, j, k + 1])
         met13edged =
             (
-                jac[i, j, k - 1] * met[i, j, k, 1, 3] +
-                jac[i, j, k] * met[i, j, k - 1, 1, 3]
+                jac[i, j, k - 1] * met13[i, j, k] +
+                jac[i, j, k] * met13[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1])
         met23edged =
             (
-                jac[i, j, k - 1] * met[i, j, k, 2, 3] +
-                jac[i, j, k] * met[i, j, k - 1, 2, 3]
+                jac[i, j, k - 1] * met23[i, j, k] +
+                jac[i, j, k] * met23[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1])
         met33edged =
             (
-                jac[i, j, k - 1] * met[i, j, k, 3, 3] +
-                jac[i, j, k] * met[i, j, k - 1, 3, 3]
+                jac[i, j, k - 1] * met33[i, j, k] +
+                jac[i, j, k] * met33[i, j, k - 1]
             ) / (jac[i, j, k] + jac[i, j, k - 1])
-        met13uedger =
-            0.5 * (met[i, j, k + 1, 1, 3] + met[i + 1, j, k + 1, 1, 3])
-        met13uedgel =
-            0.5 * (met[i, j, k + 1, 1, 3] + met[i - 1, j, k + 1, 1, 3])
-        met23uedgef =
-            0.5 * (met[i, j, k + 1, 2, 3] + met[i, j + 1, k + 1, 2, 3])
-        met23uedgeb =
-            0.5 * (met[i, j, k + 1, 2, 3] + met[i, j - 1, k + 1, 2, 3])
-        met13dedger =
-            0.5 * (met[i, j, k - 1, 1, 3] + met[i + 1, j, k - 1, 1, 3])
-        met13dedgel =
-            0.5 * (met[i, j, k - 1, 1, 3] + met[i - 1, j, k - 1, 1, 3])
-        met23dedgef =
-            0.5 * (met[i, j, k - 1, 2, 3] + met[i, j + 1, k - 1, 2, 3])
-        met23dedgeb =
-            0.5 * (met[i, j, k - 1, 2, 3] + met[i, j - 1, k - 1, 2, 3])
+        met13uedger = 0.5 * (met13[i, j, k + 1] + met13[i + 1, j, k + 1])
+        met13uedgel = 0.5 * (met13[i, j, k + 1] + met13[i - 1, j, k + 1])
+        met23uedgef = 0.5 * (met23[i, j, k + 1] + met23[i, j + 1, k + 1])
+        met23uedgeb = 0.5 * (met23[i, j, k + 1] + met23[i, j - 1, k + 1])
+        met13dedger = 0.5 * (met13[i, j, k - 1] + met13[i + 1, j, k - 1])
+        met13dedgel = 0.5 * (met13[i, j, k - 1] + met13[i - 1, j, k - 1])
+        met23dedgef = 0.5 * (met23[i, j, k - 1] + met23[i, j + 1, k - 1])
+        met23dedgeb = 0.5 * (met23[i, j, k - 1] + met23[i, j - 1, k - 1])
 
         # Compute Rayleigh damping terms.
         facedger = 1.0
@@ -434,7 +426,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 1, 3] *
+                met13[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredger / rhoedger
         elseif ko + k == z_size + nbz
@@ -447,7 +439,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 1, 3] *
+                met13[i, j, k] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphoredger / rhoedger
         else
@@ -460,7 +452,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 1, 3] *
+                met13[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredger / rhoedger -
                 jacinv / dz *
@@ -470,7 +462,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 1, 3] *
+                met13[i, j, k] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphoredger / rhoedger
         end
@@ -486,7 +478,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 1, 3] *
+                met13[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgel / rhoedgel
         elseif ko + k == z_size + nbz
@@ -499,7 +491,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 1, 3] *
+                met13[i, j, k] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphoredgel / rhoedgel
         else
@@ -512,7 +504,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 1, 3] *
+                met13[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgel / rhoedgel -
                 jacinv / dz *
@@ -522,7 +514,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 1, 3] *
+                met13[i, j, k] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphoredgel / rhoedgel
         end
@@ -538,7 +530,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 2, 3] *
+                met23[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgef / rhoedgef
         elseif ko + k == z_size + nbz
@@ -551,7 +543,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 2, 3] *
+                met23[i, j, k] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphoredgef / rhoedgef
         else
@@ -564,7 +556,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 2, 3] *
+                met23[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgef / rhoedgef -
                 jacinv / dz *
@@ -574,7 +566,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 2, 3] *
+                met23[i, j, k] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphoredgef / rhoedgef
         end
@@ -590,7 +582,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 2, 3] *
+                met23[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgeb / rhoedgeb
         elseif ko + k == z_size + nbz
@@ -603,7 +595,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 2, 3] *
+                met23[i, j, k] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphoredgeb / rhoedgeb
         else
@@ -616,7 +608,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 2, 3] *
+                met23[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgeb / rhoedgeb -
                 jacinv / dz *
@@ -626,7 +618,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k, 2, 3] *
+                met23[i, j, k] *
                 jac[i, j, k - 1] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphoredgeb / rhoedgeb
         end
@@ -657,7 +649,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k + 1, 1, 3] *
+                met13[i, j, k + 1] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoruedger / rhouedger
         end
@@ -674,7 +666,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k + 1, 1, 3] *
+                met13[i, j, k + 1] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoruedgel / rhouedgel
         end
@@ -691,7 +683,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k + 1, 2, 3] *
+                met23[i, j, k + 1] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoruedgef / rhouedgef
         end
@@ -708,7 +700,7 @@ function compute_operator! end
                 n2edgeu *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k + 1, 2, 3] *
+                met23[i, j, k + 1] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoruedgeb / rhouedgeb
         end
@@ -725,7 +717,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k - 1, 1, 3] *
+                met13[i, j, k - 1] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphordedger / rhodedger
         end
@@ -742,7 +734,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k - 1, 1, 3] *
+                met13[i, j, k - 1] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphordedgel / rhodedgel
         end
@@ -759,7 +751,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k - 1, 2, 3] *
+                met23[i, j, k - 1] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphordedgef / rhodedgef
         end
@@ -776,7 +768,7 @@ function compute_operator! end
                 n2edged *
                 dt^2.0 *
                 0.5 *
-                met[i, j, k - 1, 2, 3] *
+                met23[i, j, k - 1] *
                 jac[i, j, k] / (jac[i, j, k] + jac[i, j, k - 1]) *
                 imphordedgeb / rhodedgeb
         end
@@ -1602,5 +1594,5 @@ function compute_operator! end
         abdd_b[ia, ja, ka] = abdd
     end
 
-    return
+    nothing
 end

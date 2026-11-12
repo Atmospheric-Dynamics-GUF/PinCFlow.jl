@@ -18,7 +18,7 @@ The parameter can take any of the following values:
 macro dispatch_tracer_setup end
 
 macro dispatch_tracer_setup(input::Expr)
-    return esc(quote
+    esc(quote
         @dispatch (:NoTracer, :TracerOn) $(input)
     end)
 end

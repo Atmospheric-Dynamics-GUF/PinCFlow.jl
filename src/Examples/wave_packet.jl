@@ -14,7 +14,7 @@ wave_packet(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
 ```
 
 Run the wave-packet example simulation.
@@ -37,7 +37,7 @@ function wave_packet(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     z0 = 10000
 
     lx = 20000
@@ -118,5 +118,5 @@ function wave_packet(;
         )
     end
 
-    return
+    nothing
 end
