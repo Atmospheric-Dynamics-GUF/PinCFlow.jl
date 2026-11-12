@@ -62,5 +62,5 @@ function apply_corrector!(
     # Correct momentum and buoyancy.
     correct!(state, dt, rayleigh_factor)
 
-    return (errflagbicg, niterbicg)
+    (errflagbicg, niterbicg)
 end

@@ -19,10 +19,10 @@ function compute_norms()::NTuple{2, NamedTuple}
             Symbol(key) => norm(read(data[key]), Inf) for
             key in keys(data) if data[key] isa HDF5.Dataset
         )
-        return (l2, linf)
+        (l2, linf)
     end
 
     rm(file)
 
-    return (l2, linf)
+    (l2, linf)
 end

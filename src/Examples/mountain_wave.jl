@@ -1,5 +1,30 @@
 # src/Examples/mountain_wave.jl
 
+"""
+```julia
+mountain_wave(;
+    display_figure::Bool = true,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    output_file::AbstractString = "mountain_wave.h5",
+    plot_file::AbstractString = "mountain_wave.svg",
+    prepare_restart::Bool = false,
+    visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
+)::Nothing
+```
+
+Run the mountain-wave example simulation.
+
+# Keywords
+
+The keywords are analogous to those of `cold_bubble`.
+"""
+function mountain_wave end
+
 function mountain_wave(;
     display_figure::Bool = true,
     npx::Integer = 1,
@@ -12,7 +37,7 @@ function mountain_wave(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 100
     l0 = 1000
 
@@ -28,6 +53,7 @@ function mountain_wave(;
     atmosphere = AtmosphereNamelist(;
         coriolis_frequency = 0.0,
         initial_u = (x, y, z) -> 10.0,
+        kinematic_diffusivity = 2.0E-5,
     )
 
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
@@ -54,7 +80,7 @@ function mountain_wave(;
                 sin(pi * (abs(y) - (ly - dyr) / 2) / dyr)^2 : 0.0
             alpharz =
                 z >= lz - dzr ? sin(pi / 2 * (z - (lz - dzr)) / dzr)^2 : 0.0
-            return alpharmax * (alpharx + alphary + alpharz) / 3
+            alpharmax * (alpharx + alphary + alpharz) / 3
         end,
         relaxed_u = (x, y, z, t, dt) -> 10.0,
     )
@@ -71,5 +97,5 @@ function mountain_wave(;
         )
     end
 
-    return
+    nothing
 end

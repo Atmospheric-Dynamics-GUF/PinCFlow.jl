@@ -19,6 +19,7 @@ WKBNamelist(;
     dkr_factor::Real = 1.0E-1,
     dlr_factor::Real = 1.0E-1,
     dmr_factor::Real = 1.0E-1,
+    vertical_multiplication_factor::Integer = 2,
     branch::Integer = -1,
     merge_mode::Symbol = :ConstantWaveAction,
     filter_order::Integer = 2,
@@ -72,6 +73,8 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
   - `dlr_factor::Float64`: Relative initial ray-volume extent in ``l``.
 
   - `dmr_factor::Float64`: Relative initial ray-volume extent in ``m``.
+
+  - `vertical_multiplication_factor::Integer`: Factor that controls the size of the ray-volume arrays by accounting for ray-volume multiplication in the vertical.
 
   - `branch::Int`: Frequency branch.
 
@@ -139,6 +142,7 @@ struct WKBNamelist
     dkr_factor::Float64
     dlr_factor::Float64
     dmr_factor::Float64
+    vertical_multiplication_factor::Int
     branch::Int
     merge_mode::Symbol
     filter_order::Int
@@ -179,6 +183,7 @@ function WKBNamelist(;
     dkr_factor::Real = 1.0E-1,
     dlr_factor::Real = 1.0E-1,
     dmr_factor::Real = 1.0E-1,
+    vertical_multiplication_factor::Integer = 2,
     branch::Integer = -1,
     merge_mode::Symbol = :ConstantWaveAction,
     filter_order::Integer = 2,
@@ -203,7 +208,7 @@ function WKBNamelist(;
     maximum_power_fraction::Real = 1.0E+0,
     turbulent_damping::Bool = false,
 )::WKBNamelist
-    return WKBNamelist(
+    WKBNamelist(
         Int(nrx),
         Int(nry),
         Int(nrz),
@@ -216,6 +221,7 @@ function WKBNamelist(;
         Float64(dkr_factor),
         Float64(dlr_factor),
         Float64(dmr_factor),
+        Int(vertical_multiplication_factor),
         Int(branch),
         merge_mode,
         Int(filter_order),

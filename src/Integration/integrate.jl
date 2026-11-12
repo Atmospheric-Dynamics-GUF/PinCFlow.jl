@@ -4,7 +4,8 @@ integrate(
     namelists::Vararg{Namelists};
     base_comm::MPI.Comm = MPI.COMM_WORLD,
     delay::Real = 0,
-)
+    skip_exceptions_reduction::Bool = false,
+)::Nothing
 ```
 
 Call the `integrate` method below and reduce potential exceptions with `reduce_exceptions`.
@@ -16,7 +17,7 @@ integrate(
     namelists::Namelists,
     ::ParallelExceptions;
     base_comm::MPI.Comm = MPI.COMM_WORLD,
-)
+)::Nothing
 ```
 
 Initialize the model state and integrate it in time.
@@ -50,6 +51,8 @@ In the case of turbulence parameterization, the turbulence variables are integra
   - `base_comm`: MPI communicator which is used to create the Cartesian communicator for the integration.
 
   - `delay`: Delay (in seconds) between the first exception and the following MPI abort.
+
+  - `skip_exceptions_reduction`: Switch for not reducing exceptions. In simulations with very many MPI processes, setting this to `true` prevents out-of-memory errors caused by `reduce_exceptions`.
 
 # See also
 
@@ -95,23 +98,26 @@ function integrate(
     namelists::Vararg{Namelists};
     base_comm::MPI.Comm = MPI.COMM_WORLD,
     delay::Real = 0,
-)
+    skip_exceptions_reduction::Bool = false,
+)::Nothing
     !MPI.Initialized() && MPI.Init()
     rank = MPI.Comm_rank(base_comm)
 
     if length(namelists) == 1
         reduce_exceptions(
-            base_comm;
+            skip_exceptions_reduction ? MPI.COMM_SELF : base_comm;
             delay,
-            info = "Rank $(rank) has thrown the following exception:",
+            info = skip_exceptions_reduction ? "" :
+                   "Rank $(rank) has thrown the following exception:",
         ) do
             integrate(namelists[1], ParallelExceptions(); base_comm)
-            return
+            nothing
         end
     else
         reduce_exceptions(
-            base_comm;
-            info = "The ensemble could not be set up properly:",
+            skip_exceptions_reduction ? MPI.COMM_SELF : base_comm;
+            info = skip_exceptions_reduction ? "" :
+                   "The ensemble could not be set up properly:",
         ) do
             # Check if the ensemble is large enough.
             MPI.Comm_size(base_comm) < length(namelists) &&
@@ -137,33 +143,34 @@ function integrate(
             open(replace(output_files[member], r"\.h5$" => ".log"), "w") do io
                 redirect_stdout(io) do
                     reduce_exceptions(
-                        base_comm;
+                        skip_exceptions_reduction ? MPI.COMM_SELF : base_comm;
                         delay,
-                        info = "Rank $(member_rank) of ensemble member $(member) has thrown the following exception:",
+                        info = skip_exceptions_reduction ? "" :
+                               "Rank $(member_rank) of ensemble member $(member) has thrown the following exception:",
                     ) do
                         integrate(
                             namelists[member],
                             ParallelExceptions();
                             base_comm = member_comm,
                         )
-                        return
+                        nothing
                     end
-                    return
+                    nothing
                 end
-                return
+                nothing
             end
-            return
+            nothing
         end
     end
 
-    return
+    nothing
 end
 
 function integrate(
     namelists::Namelists,
     ::ParallelExceptions;
     base_comm::MPI.Comm = MPI.COMM_WORLD,
-)
+)::Nothing
 
     #-------------------------------------------------
     #                     Setup
@@ -511,5 +518,5 @@ function integrate(
         println(repeat("-", 80))
     end
 
-    return
+    nothing
 end

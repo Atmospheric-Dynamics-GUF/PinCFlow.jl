@@ -1,5 +1,30 @@
 # src/Examples/vortex.jl
 
+"""
+```julia
+vortex(;
+    display_figure::Bool = true,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    output_file::AbstractString = "vortex.h5",
+    plot_file::AbstractString = "vortex.svg",
+    prepare_restart::Bool = false,
+    visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
+)::Nothing
+```
+
+Run the vortex example simulation.
+
+# Keywords
+
+The keywords are analogous to those of `cold_bubble`.
+"""
+function vortex end
+
 function vortex(;
     display_figure::Bool = true,
     npx::Integer = 1,
@@ -12,7 +37,7 @@ function vortex(;
     x_size::Integer = 20,
     y_size::Integer = 20,
     z_size::Integer = 1,
-)
+)::Nothing
     lx = 20000
     ly = 20000
 
@@ -25,17 +50,17 @@ function vortex(;
         initial_u = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2)
             if r <= 1
-                return -5 * y / ry * (1 + cos(pi * r)) / 2
+                -5 * y / ry * (1 + cos(pi * r)) / 2
             else
-                return 0.0
+                0.0
             end
         end,
         initial_v = (x, y, z) -> begin
             r = sqrt((x / rx)^2 + (y / ry)^2)
             if r <= 1
-                return 5 * x / rx * (1 + cos(pi * r)) / 2
+                5 * x / rx * (1 + cos(pi * r)) / 2
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -53,9 +78,9 @@ function vortex(;
         initial_chi = (x, y, z) -> begin
             r = sqrt(((abs(x) - rx) / rx)^2 + (y / ry)^2)
             if r <= 1
-                return sign(x) * (1 + cos(pi * r)) / 2
+                sign(x) * (1 + cos(pi * r)) / 2
             else
-                return 0.0
+                0.0
             end
         end,
     )
@@ -66,5 +91,5 @@ function vortex(;
         plot_output(plot_file, output_file, (:chi, 2); display_figure)
     end
 
-    return
+    nothing
 end

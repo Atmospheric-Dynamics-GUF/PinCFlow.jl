@@ -226,7 +226,7 @@ end
     layer_comm = MPI.Comm_split(comm, coords[3], rank)
     column_comm = MPI.Comm_split(comm, coords[2] * npx + coords[1], rank)
 
-    return Domain(
+    Domain(
         comm,
         master,
         rank,

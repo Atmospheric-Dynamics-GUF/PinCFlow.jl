@@ -1,5 +1,30 @@
 # src/Examples/periodic_hill.jl
 
+"""
+```julia
+periodic_hill(;
+    display_figure::Bool = true,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    output_file::AbstractString = "periodic_hill.h5",
+    plot_file::AbstractString = "periodic_hill.svg",
+    prepare_restart::Bool = false,
+    visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 20,
+    z_size::Integer = 20,
+)::Nothing
+```
+
+Run the periodic-hill example simulation.
+
+# Keywords
+
+The keywords are analogous to those of `cold_bubble`.
+"""
+function periodic_hill end
+
 function periodic_hill(;
     display_figure::Bool = true,
     npx::Integer = 1,
@@ -12,7 +37,7 @@ function periodic_hill(;
     x_size::Integer = 20,
     y_size::Integer = 1,
     z_size::Integer = 20,
-)
+)::Nothing
     h0 = 500
     l0 = 10000
 
@@ -46,5 +71,5 @@ function periodic_hill(;
         plot_output(plot_file, output_file, (:w, 2); display_figure)
     end
 
-    return
+    nothing
 end
