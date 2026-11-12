@@ -166,7 +166,8 @@ function compute_derivatives end
     i::Integer,
     j::Integer,
     kd::Integer,
-    ku::Integer,
+    ku::Integer,    
+    derivative::DUDY,
 )::NTuple{2, <:AbstractFloat}
     (; dy, dz, met23) = state.grid
     (; u) = state.variables.predictands
@@ -329,6 +330,7 @@ end
     j::Integer,
     kd::Integer,
     ku::Integer,
+    derivative::DVDZ,
 )::NTuple{2, <:AbstractFloat}
     (; lz, dz, zctilde, jac, hb) = state.grid
     (; v) = state.variables.predictands
