@@ -167,7 +167,7 @@ compute_derivatives(
     kd::Integer,
     ku::Integer,
     field::AbstractArray{<:AbstractFloat, 3},
-    derivative::DChiDZ,
+    derivative::DZ,
 )::NTuple{2, <:AbstractFloat}
 ```
 
