@@ -5,7 +5,7 @@ TurbulenceWKBTendencies{A <: AbstractArray{<:AbstractFloat, 3}}
 
 Turbulence impact of unresolved gravity waves.
 
-```julia 
+```julia
 TurbulenceWKBTendencies(
     namelists::Namelists,
     domain::Domain,
@@ -41,7 +41,7 @@ TurbulenceWKBTendencies(
 
 Construct a `TurbulenceWKBTendencies` instance with zero-initialized arrays if `state.namelists.turbulence.gw_coupling == true`, otherwise the arrays are zero-size.
 
-# Fields 
+# Fields
 
   - `dtkedt::A`: Turbulence impact of unresolved gravity waves.
 
@@ -66,7 +66,7 @@ function TurbulenceWKBTendencies(
     (; turbulence_scheme) = namelists.turbulence
     (; wkb_mode) = namelists.wkb
 
-    @dispatch_turbulence_scheme @dispatch_wkb_mode return TurbulenceWKBTendencies(
+    @dispatch_turbulence_scheme @dispatch_wkb_mode TurbulenceWKBTendencies(
         namelists,
         domain,
         Val(turbulence_scheme),
@@ -85,7 +85,7 @@ function TurbulenceWKBTendencies(
         Val{:MultiColumn},
     },
 )::TurbulenceWKBTendencies
-    return TurbulenceWKBTendencies(zeros(0, 0, 0))
+    TurbulenceWKBTendencies(zeros(0, 0, 0))
 end
 
 function TurbulenceWKBTendencies(
@@ -98,8 +98,8 @@ function TurbulenceWKBTendencies(
     (; gw_coupling) = namelists.turbulence
 
     if gw_coupling
-        return TurbulenceWKBTendencies(zeros(nxx, nyy, nzz))
+        TurbulenceWKBTendencies(zeros(nxx, nyy, nzz))
     else
-        return TurbulenceWKBTendencies(zeros(0, 0, 0))
+        TurbulenceWKBTendencies(zeros(0, 0, 0))
     end
 end

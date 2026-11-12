@@ -59,9 +59,9 @@ using .Research
                     end
                 end
             end
-            return
+            nothing
         end
-        return
+        nothing
     end
 end
 

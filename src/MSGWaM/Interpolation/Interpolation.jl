@@ -98,7 +98,7 @@ struct DVDZ end
 DX
 ```
 
-Singleton for dispatch to interpolation of the gradient of a scalar field in ``\\hat{x}``-direction.
+Singleton for dispatch to interpolation of the gradient of a scalar field in ``x``-direction.
 """
 struct DX end
 
@@ -107,7 +107,7 @@ struct DX end
 DY
 ```
 
-Singleton for dispatch to interpolation of the gradient of a scalar field in ``\\hat{y}``-direction.
+Singleton for dispatch to interpolation of the gradient of a scalar field in ``y``-direction.
 """
 struct DY end
 
@@ -116,7 +116,7 @@ struct DY end
 DZ
 ```
 
-Singleton for dispatch to interpolation of the gradient of a scalar field in ``\\hat{z}``-direction.
+Singleton for dispatch to interpolation of the gradient of a scalar field in ``z``-direction.
 """
 struct DZ end
 

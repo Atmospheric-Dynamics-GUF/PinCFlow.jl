@@ -1,5 +1,48 @@
 # src/Examples/wkb_wave_vertical_periodicity.jl
 
+"""
+```julia
+wkb_wave_vertical_periodicity(;
+    display_figure::Bool = true,
+    npx::Integer = 1,
+    npy::Integer = 1,
+    npz::Integer = 1,
+    output_file::AbstractString = "wkb_wave_vertical_periodicity.h5",
+    plot_file::AbstractString = "wkb_wave_vertical_periodicity.svg",
+    prepare_restart::Bool = false,
+    visualize::Bool = true,
+    x_size::Integer = 20,
+    y_size::Integer = 1,
+    z_size::Integer = 20,
+)::Nothing
+```
+
+Run the wave packet with periodic vertical boundary conditions example simulation.
+
+# Keywords
+
+  - `display_figure`: Switch for displaying the figure created by `plot_output`.
+
+  - `npx`: Number of MPI subdomains in ``\\hat{x}``.
+
+  - `npy`: Number of MPI subdomains in ``\\hat{y}``.
+
+  - `npz`: Number of MPI subdomains in ``\\hat{z}``.
+
+  - `output_file`: File to which to save the output data.
+
+  - `plot_file`: File to which to save the figure created by `plot_output`.
+
+  - `prepare_restart`: Switch for writing all fields necessary for a restart.
+
+  - `visualize`: Switch for visualizing the output with `plot_output`.
+
+  - `x_size`: Number of grid points in ``\\hat{x}``.
+
+  - `y_size`: Number of grid points in ``\\hat{y}``.
+
+  - `z_size`: Number of grid points in ``\\hat{z}``.
+"""
 function wkb_wave_vertical_periodicity(;
     display_figure::Bool = true,
     npx::Integer = 1,
@@ -9,10 +52,10 @@ function wkb_wave_vertical_periodicity(;
     plot_file::AbstractString = "wkb_wave_vertical_periodicity.svg",
     prepare_restart::Bool = false,
     visualize::Bool = true,
-    x_size::Integer = 10,
+    x_size::Integer = 20,
     y_size::Integer = 1,
-    z_size::Integer = 10,
-)
+    z_size::Integer = 20,
+)::Nothing
     lx = 300.0e3
     ly = 10.0e3
     lz = 10.0e3
@@ -27,7 +70,7 @@ function wkb_wave_vertical_periodicity(;
         x0 = 0.0,
         y0 = 0.0,
         z0 = lz / 2,
-        a0 = 0.5,
+        a0 = 0.1,
     )
     (; k, l, m) = parameters
 
@@ -65,29 +108,22 @@ function wkb_wave_vertical_periodicity(;
     output = OutputNamelist(;
         output_file,
         output_interval = 3600.0,
-        output_variables = [:dchidt1],
+        output_variables = [:u],
         prepare_restart,
         tmax = 3600.0,
     )
 
-    tracer = TracerNamelist(;
-        tracer_setup = :TracerOn,
-        initial_chi = (x, y, z) ->
-            lz / 2 * exp(-(z - lz / 2)^2 / lz^2) * exp(-x^2 / lx^2),
-        next_order_impact = true,
-    )
-
-    integrate(Namelists(; atmosphere, wkb, domain, output, tracer))
+    integrate(Namelists(; atmosphere, wkb, domain, output))
 
     if visualize && MPI.Comm_rank(MPI.COMM_WORLD) == 0
         plot_output(
             plot_file,
             output_file,
-            (:dchidt1, 0.5, 0.5, 0.5, 2);
+            (:u, 0.5, 0.5, 0.5, 2);
             display_figure,
             time_unit = :h,
         )
     end
 
-    return
+    nothing
 end

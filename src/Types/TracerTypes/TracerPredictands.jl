@@ -86,7 +86,7 @@ function TracerPredictands(
 )::TracerPredictands
     (; tracer_setup) = namelists.tracer
 
-    @dispatch_tracer_setup return TracerPredictands(
+    @dispatch_tracer_setup TracerPredictands(
         namelists,
         constants,
         domain,
@@ -106,8 +106,8 @@ function TracerPredictands(
     tracer_setup::Val{:NoTracer},
     variables::Variables,
 )::TracerPredictands
-    return TracerPredictands(
-        [zeros(0, 0, 0) for field in fieldnames(TracerPredictands)]...,
+    TracerPredictands(
+        (zeros(0, 0, 0) for field in fieldnames(TracerPredictands))...,
     )
 end
 
@@ -120,7 +120,7 @@ end
     tracer_setup::Val{:TracerOn},
     variables::Variables,
 )::TracerPredictands
-    (; nxx, nyy, nzz, i0, i1, j0, j1) = domain
+    (; nxx, nyy, nzz, i0, i1, j0, j1, k0, k1) = domain
     (; x, y, zc) = grid
     (; lref) = constants
     (; rhobar) = atmosphere
@@ -129,14 +129,14 @@ end
     (; initial_chi) = namelists.tracer
 
     chi = zeros(nxx, nyy, nzz)
-    for k in 1:nzz, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         chi[i, j, k] = initial_chi(x[i] * lref, y[j] * lref, zc[i, j, k] * lref)
     end
     set_zonal_boundaries_of_field!(chi, namelists, domain)
     set_meridional_boundaries_of_field!(chi, namelists, domain)
-    set_vertical_boundaries_of_field!(chi, namelists, domain, +)
+    set_vertical_boundaries_of_field!(chi, namelists, domain)
 
     chi .*= rho .+ rhobar
 
-    return TracerPredictands(chi)
+    TracerPredictands(chi)
 end

@@ -1,6 +1,6 @@
 """
 ```julia
-compute_fluxes!(state::State, predictands::Predictands)
+compute_fluxes!(state::State, predictands::Predictands)::Nothing
 ```
 
 Compute fluxes by dispatching to specialized methods for each prognostic variable.
@@ -8,7 +8,7 @@ Compute fluxes by dispatching to specialized methods for each prognostic variabl
 Before the computation of the fluxes, the stress tensor elements, needed for the momentum fluxes, are computed using `compute_stress_tensor!`.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
+compute_fluxes!(state::State, predictands::Predictands, variable::Rho)::Nothing
 ```
 
 Compute the density fluxes in all three directions, by dispatching to a model-specific method.
@@ -19,7 +19,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Rho,
     model::Val{:Boussinesq},
-)
+)::Nothing
 ```
 
 Return in Boussinesq mode.
@@ -30,7 +30,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
 ```
 
 Compute the density fluxes in all three directions.
@@ -60,7 +60,7 @@ are the transporting velocities (weighted by the Jacobian) and ``\\tilde{\\phi}`
 
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)
+compute_fluxes!(state::State, predictands::Predictands, variable::RhoP)::Nothing
 ```
 
 Compute the density-fluctuations fluxes in all three directions.
@@ -73,7 +73,7 @@ compute_fluxes!(
     predictands::Predictands,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
-)
+)::Nothing
 ```
 
 Return in non-compressible modes.
@@ -84,7 +84,7 @@ compute_fluxes!(
     predictands::Predictands,
     model::Val{:Compressible},
     variable::P,
-)
+)::Nothing
 ```
 
 Compute the mass-weighted potential-temperature fluxes in all three directions.
@@ -100,7 +100,11 @@ The fluxes are given by
 ```
 
 ```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::U)
+compute_fluxes!(
+    state::State,
+    old_predictands::Predictands,
+    variable::U,
+)::Nothing
 ```
 
 Compute the zonal-momentum fluxes in all three directions.
@@ -146,7 +150,11 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 ```
 
 ```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::V)
+compute_fluxes!(
+    state::State,
+    old_predictands::Predictands,
+    variable::V,
+)::Nothing
 ```
 
 Compute the meridional-momentum fluxes in all three directions.
@@ -192,7 +200,11 @@ Finally, if the diffusivity ``\\mu`` is nonzero, the diffusive parts (weighted b
 ```
 
 ```julia
-compute_fluxes!(state::State, old_predictands::Predictands, variable::W)
+compute_fluxes!(
+    state::State,
+    old_predictands::Predictands,
+    variable::W,
+)::Nothing
 ```
 
 Compute the vertical-momentum fluxes in all three directions.
@@ -242,7 +254,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -252,7 +264,7 @@ compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Compute the tracer fluxes in all three directions.
@@ -260,7 +272,11 @@ Compute the tracer fluxes in all three directions.
 The computation is analogous to that of the density fluxes.
 
 ```julia
-compute_fluxes!(state::State, predictands::Predictands, variable::Theta)
+compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Theta,
+)::Nothing
 ```
 
 Compute the potential temperature fluxes by dispatching to a model-specific method.
@@ -271,7 +287,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
 ```
 
 Return in Boussinesq/pseudo-incompressible mode.
@@ -282,7 +298,7 @@ compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Compute the potential temperature fluxes due to heat conduction (weighted by the Jacobian) in compressible mode.
@@ -304,7 +320,7 @@ The fluxes are given by
 where ``\\lambda`` is the thermal conductivity (computed from `state.namelists.atmosphere.thermal_conductivity`).
 
 ```julia
-compute_fluxes!(state::State, variable::TKE)
+compute_fluxes!(state::State, variable::TKE)::Nothing
 ```
 
 Compute the turbulence fluxes in all three directions.
@@ -333,7 +349,7 @@ The computation is analogous to that of the density fluxes.
 """
 function compute_fluxes! end
 
-function compute_fluxes!(state::State, predictands::Predictands)
+function compute_fluxes!(state::State, predictands::Predictands)::Nothing
     (; model) = state.namelists.atmosphere
 
     compute_stress_tensor!(state)
@@ -350,13 +366,17 @@ function compute_fluxes!(state::State, predictands::Predictands)
         predictands,
         Val(state.namelists.tracer.tracer_setup),
     )
-    return
+    nothing
 end
 
-function compute_fluxes!(state::State, predictands::Predictands, variable::Rho)
+function compute_fluxes!(
+    state::State,
+    predictands::Predictands,
+    variable::Rho,
+)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -364,8 +384,8 @@ function compute_fluxes!(
     predictands::Predictands,
     variable::Rho,
     model::Val{:Boussinesq},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_fluxes!(
@@ -373,7 +393,7 @@ end
     predictands::Predictands,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar, rhobar) = state.atmosphere
@@ -456,14 +476,14 @@ end
         phirho[i, j, k, 3] = hrho
     end
 
-    return
+    nothing
 end
 
 @ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::RhoP,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -532,7 +552,7 @@ end
         phirhop[i, j, k, 3] = hrhop
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -540,8 +560,8 @@ function compute_fluxes!(
     predictands::Predictands,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
     variable::P,
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_fluxes!(
@@ -549,7 +569,7 @@ end
     predictands::Predictands,
     model::Val{:Compressible},
     variable::P,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -597,31 +617,30 @@ end
             (jac[i, j, k] + jac[i, j, k + 1]) * w0[i, j, k]
     end
 
-    return
+    nothing
 end
 
 @ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::U,
-)
+)::Nothing
     (; grid) = state
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; re, uref, lref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = grid
+    (; jac, met13, met23, met33) = grid
     (; pbar, rhobar) = state.atmosphere
     (; utilde) = state.variables.reconstructions
     (; phiu) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; stress_tensor_11, stress_tensor_12, stress_tensor_13) =
-        state.variables.auxiliaries
+    (; pi11, pi12, pi13) = state.variables.stress_tensor
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
     kmax =
-        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
 
     #-----------------------------------------
@@ -712,8 +731,7 @@ end
         for k in kmin:kmax, j in j0:j1, i in (i0 - 2):i1
             coef_v = 1 / re * rhobar[i + 1, j, k0]
 
-            frhou_visc =
-                coef_v * jac[i + 1, j, k] * stress_tensor_11[i + 1, j, k]
+            frhou_visc = coef_v * jac[i + 1, j, k] * pi11[i + 1, j, k]
 
             phiu[i, j, k, 1] -= frhou_visc
         end
@@ -737,10 +755,10 @@ end
                 coef_v *
                 0.25 *
                 (
-                    jac[i, j, k] * stress_tensor_12[i, j, k] +
-                    jac[i + 1, j, k] * stress_tensor_12[i + 1, j, k] +
-                    jac[i, j + 1, k] * stress_tensor_12[i, j + 1, k] +
-                    jac[i + 1, j + 1, k] * stress_tensor_12[i + 1, j + 1, k]
+                    jac[i, j, k] * pi12[i, j, k] +
+                    jac[i + 1, j, k] * pi12[i + 1, j, k] +
+                    jac[i, j + 1, k] * pi12[i, j + 1, k] +
+                    jac[i + 1, j + 1, k] * pi12[i + 1, j + 1, k]
                 )
 
             phiu[i, j, k, 2] -= grhou_visc
@@ -754,21 +772,21 @@ end
             coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i + 1, j, k0])
 
             stresstens13 =
-                met[i, j, k, 1, 3] * stress_tensor_11[i, j, k] +
-                met[i, j, k, 2, 3] * stress_tensor_12[i, j, k] +
-                stress_tensor_13[i, j, k] / jac[i, j, k]
+                met13[i, j, k] * pi11[i, j, k] +
+                met23[i, j, k] * pi12[i, j, k] +
+                pi13[i, j, k] / jac[i, j, k]
             stresstens13r =
-                met[i + 1, j, k, 1, 3] * stress_tensor_11[i + 1, j, k] +
-                met[i + 1, j, k, 2, 3] * stress_tensor_12[i + 1, j, k] +
-                stress_tensor_13[i + 1, j, k] / jac[i + 1, j, k]
+                met13[i + 1, j, k] * pi11[i + 1, j, k] +
+                met23[i + 1, j, k] * pi12[i + 1, j, k] +
+                pi13[i + 1, j, k] / jac[i + 1, j, k]
             stresstens13u =
-                met[i, j, k + 1, 1, 3] * stress_tensor_11[i, j, k + 1] +
-                met[i, j, k + 1, 2, 3] * stress_tensor_12[i, j, k + 1] +
-                stress_tensor_13[i, j, k + 1] / jac[i, j, k + 1]
+                met13[i, j, k + 1] * pi11[i, j, k + 1] +
+                met23[i, j, k + 1] * pi12[i, j, k + 1] +
+                pi13[i, j, k + 1] / jac[i, j, k + 1]
             stresstens13ru =
-                met[i + 1, j, k + 1, 1, 3] * stress_tensor_11[i + 1, j, k + 1] +
-                met[i + 1, j, k + 1, 2, 3] * stress_tensor_12[i + 1, j, k + 1] +
-                stress_tensor_13[i + 1, j, k + 1] / jac[i + 1, j, k + 1]
+                met13[i + 1, j, k + 1] * pi11[i + 1, j, k + 1] +
+                met23[i + 1, j, k + 1] * pi12[i + 1, j, k + 1] +
+                pi13[i + 1, j, k + 1] / jac[i + 1, j, k + 1]
             hrhou_visc =
                 coef_v *
                 0.5 *
@@ -908,31 +926,30 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::V,
-)
+)::Nothing
     (; grid) = state
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; re, uref, lref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = grid
+    (; jac, met13, met23) = grid
     (; pbar, rhobar) = state.atmosphere
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; stress_tensor_12, stress_tensor_22, stress_tensor_23) =
-        state.variables.auxiliaries
+    (; pi12, pi22, pi23) = state.variables.stress_tensor
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
     kmax =
-        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
 
     #-----------------------------------------
@@ -1035,10 +1052,10 @@ end
                 coef_v *
                 0.25 *
                 (
-                    jac[i, j, k] * stress_tensor_12[i, j, k] +
-                    jac[i + 1, j, k] * stress_tensor_12[i + 1, j, k] +
-                    jac[i, j + 1, k] * stress_tensor_12[i, j + 1, k] +
-                    jac[i + 1, j + 1, k] * stress_tensor_12[i + 1, j + 1, k]
+                    jac[i, j, k] * pi12[i, j, k] +
+                    jac[i + 1, j, k] * pi12[i + 1, j, k] +
+                    jac[i, j + 1, k] * pi12[i, j + 1, k] +
+                    jac[i + 1, j + 1, k] * pi12[i + 1, j + 1, k]
                 )
 
             phiv[i, j, k, 1] -= frhov_visc
@@ -1051,8 +1068,7 @@ end
         for k in kmin:kmax, j in (j0 - 2):j1, i in i0:i1
             coef_v = 1 / re * rhobar[i, j + 1, k0]
 
-            grhov_visc =
-                coef_v * jac[i, j + 1, k] * stress_tensor_22[i, j + 1, k]
+            grhov_visc = coef_v * jac[i, j + 1, k] * pi22[i, j + 1, k]
 
             phiv[i, j, k, 2] -= grhov_visc
         end
@@ -1065,21 +1081,21 @@ end
             coef_v = 1 / re * 0.5 * (rhobar[i, j, k0] + rhobar[i, j + 1, k0])
 
             stresstens23 =
-                met[i, j, k, 1, 3] * stress_tensor_12[i, j, k] +
-                met[i, j, k, 2, 3] * stress_tensor_22[i, j, k] +
-                stress_tensor_23[i, j, k] / jac[i, j, k]
+                met13[i, j, k] * pi12[i, j, k] +
+                met23[i, j, k] * pi22[i, j, k] +
+                pi23[i, j, k] / jac[i, j, k]
             stresstens23f =
-                met[i, j + 1, k, 1, 3] * stress_tensor_12[i, j + 1, k] +
-                met[i, j + 1, k, 2, 3] * stress_tensor_22[i, j + 1, k] +
-                stress_tensor_23[i, j + 1, k] / jac[i, j + 1, k]
+                met13[i, j + 1, k] * pi12[i, j + 1, k] +
+                met23[i, j + 1, k] * pi22[i, j + 1, k] +
+                pi23[i, j + 1, k] / jac[i, j + 1, k]
             stresstens23u =
-                met[i, j, k + 1, 1, 3] * stress_tensor_12[i, j, k + 1] +
-                met[i, j, k + 1, 2, 3] * stress_tensor_22[i, j, k + 1] +
-                stress_tensor_23[i, j, k + 1] / jac[i, j, k + 1]
+                met13[i, j, k + 1] * pi12[i, j, k + 1] +
+                met23[i, j, k + 1] * pi22[i, j, k + 1] +
+                pi23[i, j, k + 1] / jac[i, j, k + 1]
             stresstens23fu =
-                met[i, j + 1, k + 1, 1, 3] * stress_tensor_12[i, j + 1, k + 1] +
-                met[i, j + 1, k + 1, 2, 3] * stress_tensor_22[i, j + 1, k + 1] +
-                stress_tensor_23[i, j + 1, k + 1] / jac[i, j + 1, k + 1]
+                met13[i, j + 1, k + 1] * pi12[i, j + 1, k + 1] +
+                met23[i, j + 1, k + 1] * pi22[i, j + 1, k + 1] +
+                pi23[i, j + 1, k + 1] / jac[i, j + 1, k + 1]
             hrhov_visc =
                 coef_v *
                 0.5 *
@@ -1219,24 +1235,23 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function compute_fluxes!(
     state::State,
     old_predictands::Predictands,
     variable::W,
-)
+)::Nothing
     (; grid) = state
     (; re, uref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = grid
+    (; jac, met13, met23) = grid
     (; pbar, rhobar) = state.atmosphere
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes
     (; kinematic_diffusivity) = state.namelists.atmosphere
-    (; stress_tensor_13, stress_tensor_23, stress_tensor_33) =
-        state.variables.auxiliaries
+    (; pi13, pi23, pi33) = state.variables.stress_tensor
 
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
@@ -1356,14 +1371,12 @@ end
                 (
                     jac[i, j, k] *
                     jac[i, j, k + 1] *
-                    (stress_tensor_13[i, j, k] + stress_tensor_13[i, j, k + 1]) /
+                    (pi13[i, j, k] + pi13[i, j, k + 1]) /
                     (jac[i, j, k] + jac[i, j, k + 1]) +
                     jac[i + 1, j, k] *
                     jac[i + 1, j, k + 1] *
-                    (
-                        stress_tensor_13[i + 1, j, k] +
-                        stress_tensor_13[i + 1, j, k + 1]
-                    ) / (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
+                    (pi13[i + 1, j, k] + pi13[i + 1, j, k + 1]) /
+                    (jac[i + 1, j, k] + jac[i + 1, j, k + 1])
                 )
 
             phiw[i, j, k, 1] -= frhow_visc
@@ -1382,14 +1395,12 @@ end
                 (
                     jac[i, j, k] *
                     jac[i, j, k + 1] *
-                    (stress_tensor_13[i, j, k] + stress_tensor_13[i, j, k + 1]) /
+                    (pi13[i, j, k] + pi13[i, j, k + 1]) /
                     (jac[i, j, k] + jac[i, j, k + 1]) +
                     jac[i, j + 1, k] *
                     jac[i, j + 1, k + 1] *
-                    (
-                        stress_tensor_13[i, j + 1, k] +
-                        stress_tensor_13[i, j + 1, k + 1]
-                    ) / (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
+                    (pi13[i, j + 1, k] + pi13[i, j + 1, k + 1]) /
+                    (jac[i, j + 1, k] + jac[i, j + 1, k + 1])
                 )
 
             phiw[i, j, k, 2] -= grhow_visc
@@ -1404,13 +1415,9 @@ end
 
             hrhow_visc =
                 coef_v * (
-                    jac[i, j, k + 1] *
-                    met[i, j, k + 1, 1, 3] *
-                    stress_tensor_13[i, j, k + 1] +
-                    jac[i, j, k + 1] *
-                    met[i, j, k + 1, 2, 3] *
-                    stress_tensor_23[i, j, k + 1] +
-                    stress_tensor_33[i, j, k + 1]
+                    jac[i, j, k + 1] * met13[i, j, k + 1] * pi13[i, j, k + 1] +
+                    jac[i, j, k + 1] * met23[i, j, k + 1] * pi23[i, j, k + 1] +
+                    pi33[i, j, k + 1]
                 )
 
             phiw[i, j, k, 3] -= hrhow_visc
@@ -1536,22 +1543,22 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_fluxes!(
     state::State,
     predictands::Predictands,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -1603,18 +1610,18 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 function compute_fluxes!(
     state::State,
     predictands::Predictands,
     variable::Theta,
-)
+)::Nothing
     (; model) = state.namelists.atmosphere
 
     @dispatch_model compute_fluxes!(state, predictands, variable, Val(model))
-    return
+    nothing
 end
 
 function compute_fluxes!(
@@ -1622,8 +1629,8 @@ function compute_fluxes!(
     predictands::Predictands,
     variable::Theta,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_fluxes!(
@@ -1631,9 +1638,9 @@ end
     predictands::Predictands,
     variable::Theta,
     model::Val{:Compressible},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, dx, dy, dz, met) = state.grid
+    (; jac, dx, dy, dz, met13, met23, met33) = state.grid
     (; pbar, rhobar) = state.atmosphere
     (; phitheta) = state.variables.fluxes
     (; thermal_conductivity) = state.namelists.atmosphere
@@ -1641,7 +1648,7 @@ end
     (; rho) = predictands
 
     if thermal_conductivity == 0.0
-        return
+        return nothing
     end
 
     mu_conduct = thermal_conductivity / uref / lref
@@ -1679,8 +1686,8 @@ end
             0.5 * (jac[i, j, k] + jac[i + 1, j, k]) * (thetar - thetal) / dx +
             0.5 *
             (
-                jac[i, j, k] * met[i, j, k, 1, 3] +
-                jac[i + 1, j, k] * met[i + 1, j, k, 1, 3]
+                jac[i, j, k] * met13[i, j, k] +
+                jac[i + 1, j, k] * met13[i + 1, j, k]
             ) *
             (thetau - thetad) / (2.0 * dz)
 
@@ -1720,8 +1727,8 @@ end
             0.5 * (jac[i, j, k] + jac[i, j + 1, k]) * (thetaf - thetab) / dy +
             0.5 *
             (
-                jac[i, j, k] * met[i, j, k, 2, 3] +
-                jac[i, j + 1, k] * met[i, j + 1, k, 2, 3]
+                jac[i, j, k] * met23[i, j, k] +
+                jac[i, j + 1, k] * met23[i, j + 1, k]
             ) *
             (thetau - thetad) / (2.0 * dz)
 
@@ -1778,21 +1785,20 @@ end
             jac[i, j, k] *
             jac[i, j, k + 1] *
             (
-                (met[i, j, k, 1, 3] + met[i, j, k + 1, 1, 3]) *
-                (thetar - thetal) / (2.0 * dx) +
-                (met[i, j, k, 2, 3] + met[i, j, k + 1, 2, 3]) *
-                (thetaf - thetab) / (2.0 * dy) +
-                (met[i, j, k, 3, 3] + met[i, j, k + 1, 3, 3]) *
-                (thetau - thetad) / dz
+                (met13[i, j, k] + met13[i, j, k + 1]) * (thetar - thetal) /
+                (2.0 * dx) +
+                (met23[i, j, k] + met23[i, j, k + 1]) * (thetaf - thetab) /
+                (2.0 * dy) +
+                (met33[i, j, k] + met33[i, j, k + 1]) * (thetau - thetad) / dz
             ) / (jac[i, j, k] + jac[i, j, k + 1])
 
         phitheta[i, j, k, 3] = -coef_t * dtht_dzi
     end
 
-    return
+    nothing
 end
 
-@ivy function compute_fluxes!(state::State, variable::TKE)
+@ivy function compute_fluxes!(state::State, variable::TKE)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; jac) = state.grid
     (; pbar) = state.atmosphere
@@ -1843,5 +1849,5 @@ end
         end
     end
 
-    return
+    nothing
 end

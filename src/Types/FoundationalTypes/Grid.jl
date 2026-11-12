@@ -5,7 +5,6 @@ Grid{
     B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 5},
 }
 ```
 
@@ -102,7 +101,11 @@ Coordinate transformation.
 
   - `jac::D`: Jacobian.
 
-  - `met::E`: Metric tensor.
+  - `met13::D`: Element 1-3 of the metric tensor.
+
+  - `met23::D`: Element 2-3 of the metric tensor.
+
+  - `met33::D`: Element 3-3 of the metric tensor.
 
 Vertical coordinates:
 
@@ -135,7 +138,6 @@ struct Grid{
     B <: AbstractVector{<:AbstractFloat},
     C <: AbstractMatrix{<:AbstractFloat},
     D <: AbstractArray{<:AbstractFloat, 3},
-    E <: AbstractArray{<:AbstractFloat, 5},
 }
 
     # Scaled domain.
@@ -160,7 +162,9 @@ struct Grid{
 
     # Jacobian and metric tensor.
     jac::D
-    met::E
+    met13::D
+    met23::D
+    met33::D
 
     # Vertical coordinates.
     zc::D
@@ -209,47 +213,54 @@ end
         z[k] = (k - k0) * dz + dz / 2
     end
 
-    # Allocate the stretched vertical grid.
-    (ztildes, zs) = (zeros(z_size + 2 * nbz) for i in 1:2)
-
-    # Compute the stretched vertical grid.
-    for k in 1:(z_size + 2 * nbz)
-        level = z[k] + 0.5 * dz
-        if level < 0
-            ztildes[k] = -vertical_grid_stretching(-level * lref) / lref
-        elseif level > lz
-            ztildes[k] =
-                2 * lz -
-                vertical_grid_stretching((2 * lz - level) * lref) / lref
-        else
-            ztildes[k] = vertical_grid_stretching(level * lref) / lref
-        end
-    end
-    !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = <=) &&
-        error("Impossible vertical grid stretching!")
-    for k in 2:(z_size + 2 * nbz)
-        zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
-    end
-    zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
-
-    # Compute the topography.
-    (hb, hw, kh, lh) = compute_topography(namelists, constants, domain, x, y)
-
     # Allocate Jacobian and metric tensor.
     jac = zeros(nxx, nyy, nzz)
     (met13, met23, met33) = (zeros(nxx, nyy, nzz) for i in 1:3)
-    met = zeros(nxx, nyy, nzz, 3, 3)
+
+    # Allocate the physical layers.
+    (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
 
     if vertical_boundary_condition === :Periodic
-
-        # Compute the metric tensor.
-
-        met[:, :, :, 1, 1] .= 1.0
-        met[:, :, :, 2, 2] .= 1.0
-        met[:, :, :, 3, 3] .= 1.0
+        @warn "Input topographies and grid stretching are ignored for periodic vertical boundary conditions."
+        met33 .= 1.0
 
         jac .= 1.0
+
+        # Compute the physical layers.
+        for k in 1:nzz
+            zctilde[:, :, k] .= z[ko + k] + 0.5 * dz
+            zc[:, :, k] .= z[ko + k]
+        end
+
+        hb = zeros(0, 0)
+        (hw, kh, lh) = (zeros(0, 0, 0) for i in 1:3)
     else
+        # Allocate the stretched vertical grid.
+        (ztildes, zs) = (zeros(z_size + 2 * nbz) for i in 1:2)
+
+        # Compute the stretched vertical grid.
+        for k in 1:(z_size + 2 * nbz)
+            level = z[k] + 0.5 * dz
+            if level < 0
+                ztildes[k] = -vertical_grid_stretching(-level * lref) / lref
+            elseif level > lz
+                ztildes[k] =
+                    2 * lz -
+                    vertical_grid_stretching((2 * lz - level) * lref) / lref
+            else
+                ztildes[k] = vertical_grid_stretching(level * lref) / lref
+            end
+        end
+        !issorted(ztildes[k0:(k0 + z_size - 1)]; lt = (<=)) &&
+            error("Impossible vertical grid stretching!")
+        for k in 2:(z_size + 2 * nbz)
+            zs[k] = 0.5 * (ztildes[k] + ztildes[k - 1])
+        end
+        zs[1] = ztildes[1] - 0.5 * (ztildes[2 * nbz] - ztildes[2 * nbz - 1])
+
+        # Compute the topography.
+        (hb, hw, kh, lh) =
+            compute_topography(namelists, constants, domain, x, y)
         # Set the start index for the computation of the Jacobian and metric tensor.
         kmin = ko == 0 ? 2 : 1
         kmax = nzz
@@ -264,11 +275,6 @@ end
 
         # Compute the metric tensor.
 
-        met[:, :, :, 1, 2] .= 0.0
-        met[:, :, :, 2, 1] .= 0.0
-        met[:, :, :, 1, 1] .= 1.0
-        met[:, :, :, 2, 2] .= 1.0
-
         for k in kmin:kmax, j in 1:nyy, i in i0:i1
             met13[i, j, k] =
                 (hb[i + 1, j] - hb[i - 1, j]) / (2.0 * dx) * (zs[ko + k] - lz) /
@@ -279,8 +285,6 @@ end
             met13[:, :, 1] .=
                 met13[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
         )
-        met[:, :, :, 1, 3] .= met13
-        met[:, :, :, 3, 1] .= met13
 
         for k in 2:nzz, j in j0:j1, i in 1:nxx
             met23[i, j, k] =
@@ -292,8 +296,6 @@ end
             met23[:, :, 1] .=
                 met23[:, :, 2 * nbz] .* (zs[1] .- lz) ./ (zs[2 * nbz] .- lz)
         )
-        met[:, :, :, 2, 3] .= met23
-        met[:, :, :, 3, 2] .= met23
 
         for k in kmin:kmax, j in j0:j1, i in i0:i1
             met33[i, j, k] =
@@ -317,23 +319,22 @@ end
         end
         set_zonal_boundaries_of_field!(met33, namelists, domain)
         set_meridional_boundaries_of_field!(met33, namelists, domain)
-        met[:, :, :, 3, 3] .= met33
-    end
 
-    # Allocate the physical layers.
-    (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
+        # Allocate the physical layers.
+        (zctilde, zc) = (zeros(nxx, nyy, nzz) for i in 1:2)
 
-    # Compute the physical layers.
-    for k in 1:nzz
-        zctilde[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
-        zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
+        # Compute the physical layers.
+        for k in 1:nzz
+            zctilde[:, :, k] .= (lz .- hb) ./ lz .* ztildes[ko + k] .+ hb
+            zc[:, :, k] .= (lz .- hb) ./ lz .* zs[ko + k] .+ hb
+        end
     end
 
     # Compute the minimum layer depth.
-    dzcmin = minimum(diff(zctilde; dims = 3))
+    dzcmin = mapreduce(-, min, zctilde[:, :, 2:nzz], zctilde[:, :, 1:(nzz - 1)])
     dzcmin = MPI.Allreduce(dzcmin, min, comm)
 
-    return Grid(
+    Grid(
         lx,
         ly,
         lz,
@@ -347,7 +348,9 @@ end
         kh,
         lh,
         jac,
-        met,
+        met13,
+        met23,
+        met33,
         zc,
         zctilde,
         dzcmin,

@@ -1,6 +1,6 @@
 """
 ```julia
-create_output(state::State)
+create_output(state::State)::Nothing
 ```
 
 Create an HDF5 output file with one dataset for each variable.
@@ -13,7 +13,7 @@ The dimensions of the datasets are set to those of the domain, whereas the chunk
 """
 function create_output end
 
-function create_output(state::State, machine_start_time::DateTime)
+function create_output(state::State, machine_start_time::DateTime)::Nothing
     (; x_size, y_size, z_size, npx, npy, npz) = state.namelists.domain
     (; prepare_restart, save_ray_volumes, output_variables, output_file) =
         state.namelists.output
@@ -661,7 +661,7 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        return
+        nothing
     end
 
     # Add attributes and namelists.
@@ -1018,13 +1018,13 @@ function create_output(state::State, machine_start_time::DateTime)
                     "kg*m^-1*s^-2",
                 ),
                 (
-                    L"\bar{\rho}\langle u'u' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
-                    L"\bar{\rho}\langle u'v' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
-                    L"\bar{\rho}\langle u'w' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
-                    L"\bar{\rho}\langle v'v' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
-                    L"\bar{\rho}\langle v'w' \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
-                    L"\bar{\rho}\langle u'\theta' \rangle\ [\mathrm{kg\, m^{-2}\ s^{-1}\ K}]",
-                    L"\bar{\rho}\langle v'\theta' \rangle\ [\mathrm{kg\, m^{-2}\ s^{-1}\ K}]",
+                    L"\bar{\rho}\langle \tilde{u}\tilde{u} \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle \tilde{u}\tilde{v} \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle \tilde{u}\tilde{w} \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle \tilde{v}\tilde{v} \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle \tilde{v}\tilde{w} \rangle\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
+                    L"\bar{\rho}\langle \tilde{u}\tilde{\theta} \rangle\ [\mathrm{kg\, m^{-2}\ s^{-1}\ K}]",
+                    L"\bar{\rho}\langle \tilde{v}\tilde{\theta} \rangle\ [\mathrm{kg\, m^{-2}\ s^{-1}\ K}]",
                     L"\mathcal{E}\ [\mathrm{kg\ m^{-1}\ s^{-2}}]",
                 ),
                 (
@@ -1093,10 +1093,10 @@ function create_output(state::State, machine_start_time::DateTime)
             end
         end
 
-        return
+        nothing
     end
 
     MPI.Barrier(comm)
 
-    return
+    nothing
 end

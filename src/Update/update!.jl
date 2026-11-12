@@ -1,6 +1,6 @@
 """
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)::Nothing
 ```
 
 Update the density if the atmosphere is not Boussinesq by dispatching to the appropriate method.
@@ -12,7 +12,7 @@ update!(
     m::Integer,
     variable::Rho,
     model::Val{:Boussinesq},
-)
+)::Nothing
 ```
 
 Return in Boussinesq mode (the density is constant).
@@ -24,7 +24,7 @@ update!(
     m::Integer,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
 ```
 
 Update the density with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
@@ -41,7 +41,13 @@ The update is given by
 where ``\\Delta t`` is the time step given as input to this method.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::RhoP, side::LHS)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::RhoP,
+    side::LHS,
+)::Nothing
 ```
 
 Update the density fluctuations with a Runge-Kutta step on the left-hand-side of the equation.
@@ -73,7 +79,7 @@ update!(
     variable::RhoP,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
 ```
 
 Update the density fluctuations with an explicit Euler step the on right-hand side of the equation, without the Rayleigh-damping term.
@@ -100,7 +106,7 @@ update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Update the density fluctuations with an implicit Euler step on the right-hand side of the equation.
@@ -129,7 +135,13 @@ in Boussinesq/pseudo-incompressible mode and
 in compressible mode, where ``\\hat{w}_\\mathrm{old}`` is the transformed vertical wind stored in `state.variables.backups`.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::U, side::LHS)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::U,
+    side::LHS,
+)::Nothing
 ```
 
 Update the zonal momentum with a Runge-Kutta step on the left-hand side of the equation.
@@ -153,7 +165,7 @@ update!(
     variable::U,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
 ```
 
 Update the zonal wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
@@ -180,7 +192,7 @@ update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Update the zonal wind with an implicit Euler step on the right-hand side of the equation.
@@ -200,7 +212,13 @@ U_{i + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, i + 1 / 2} \\Delta t\
 in compressible mode.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::V, side::LHS)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::V,
+    side::LHS,
+)::Nothing
 ```
 
 Update the meridional momentum with a Runge-Kutta step on the left-hand side of the equation.
@@ -224,7 +242,7 @@ update!(
     variable::V,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
 ```
 
 Update the meridional wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
@@ -251,7 +269,7 @@ update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Update the meridional wind with an implicit Euler step on the right-hand side of the equation.
@@ -271,7 +289,13 @@ V_{j + 1 / 2} \\rightarrow \\left(1 + \\beta_{\\mathrm{R}, j + 1 / 2} \\Delta t\
 in compressible mode.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::W, side::LHS)
+update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::W,
+    side::LHS,
+)::Nothing
 ```
 
 Update the transformed vertical momentum with a Runge-Kutta step on the left-hand side of the equation.
@@ -300,7 +324,7 @@ update!(
     variable::W,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
 ```
 
 Update the transformed vertical wind with an explicit Euler step on the right-hand side of the equation, without the Rayleigh-damping term.
@@ -327,7 +351,7 @@ update!(
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
 ```
 
 Update the transformed vertical wind with an implicit Euler step on the right-hand side of the equation.
@@ -356,7 +380,7 @@ in Boussinesq/pseudo-incompressible mode and
 in compressible mode.
 
 ```julia
-update!(state::State, dt::AbstractFloat, variable::PiP)
+update!(state::State, dt::AbstractFloat, variable::PiP)::Nothing
 ```
 
 Update the Exner-pressure if the atmosphere is compressible by dispatching to the appropriate method.
@@ -367,7 +391,7 @@ update!(
     dt::AbstractFloat,
     variable::PiP,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
 ```
 
 Return in non-compressible modes.
@@ -378,7 +402,7 @@ update!(
     dt::AbstractFloat,
     variable::PiP,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Update the Exner-pressure such that it is synchronized with the updated mass-weighted potential temperature.
@@ -395,7 +419,7 @@ The update is given by
 where ``U_{\\mathrm{old}, i + 1 / 2}``, ``V_{\\mathrm{old}, j + 1 / 2}`` and ``\\hat{W}_{\\mathrm{old}, k + 1 / 2}`` are the transformed wind components (including the factor ``J P``) stored in `state.variables.backups`.
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::P)::Nothing
 ```
 
 Update the mass-weighted potential temperature if the atmosphere is compressible by dispatching to the appropriate method.
@@ -407,7 +431,7 @@ update!(
     m::Integer,
     variable::P,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
+)::Nothing
 ```
 
 Return in non-compressible modes.
@@ -419,7 +443,7 @@ update!(
     m::Integer,
     variable::P,
     model::Val{:Compressible},
-)
+)::Nothing
 ```
 
 Update the mass-weighted potential temperature with a Runge-Kutta step on the left-hand side of the equation (the right-hand side is zero).
@@ -434,7 +458,7 @@ The update is given by
 ```
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)::Nothing
 ```
 
 Update the tracers by dispatching to the appropriate method.
@@ -446,7 +470,7 @@ update!(
     m::Integer,
     variable::Chi,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -458,7 +482,7 @@ update!(
     m::Integer,
     variable::Chi,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Update the tracers with a Runge-Kutta step on the left-hand sides of the equations with WKB right-hand side terms according to namelists configuration.
@@ -473,7 +497,7 @@ The update is given by
 ```
 
 ```julia
-update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)
+update!(state::State, dt::AbstractFloat, m::Integer, variable::TKE)::Nothing
 ```
 
 Update the turbulent kinetic energy with a Runge-Kutta step on the left-hand sides of the equations with shear and buoyancy production terms.
@@ -523,10 +547,15 @@ The update is given by
 """
 function update! end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, variable::Rho)
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Rho,
+)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model update!(state, dt, m, variable, Val(model))
-    return
+    nothing
 end
 
 function update!(
@@ -535,8 +564,8 @@ function update!(
     m::Integer,
     variable::Rho,
     model::Val{:Boussinesq},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function update!(
@@ -545,7 +574,7 @@ end
     m::Integer,
     variable::Rho,
     model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
@@ -574,7 +603,7 @@ end
         rho[i, j, k] += betark[m] * drho[i, j, k]
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -583,7 +612,7 @@ end
     m::Integer,
     variable::RhoP,
     side::LHS,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; thetabar) = state.atmosphere
@@ -615,7 +644,7 @@ end
         rhop[i, j, k] += betark[m] * drhop[i, j, k]
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -624,7 +653,7 @@ end
     variable::RhoP,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; g_ndim) = state.constants
     (; rhobar, n2) = state.atmosphere
@@ -647,7 +676,7 @@ end
         rhop[i, j, k] = -buoy * (rho[i, j, k] + rhobar[i, j, k]) / g_ndim
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -657,10 +686,10 @@ end
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size, nbz, vertical_boundary_condition) = state.namelists.domain
     (; ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = state.grid
+    (; jac, met13, met23) = state.grid
     (; betar) = state.sponge
     (; g_ndim) = state.constants
     (; rhobar, n2) = state.atmosphere
@@ -699,7 +728,7 @@ end
         upper_gradient = compute_pressure_gradient(state, pip, i, j, k, W())
         upper_force = compute_volume_force(state, i, j, k, W())
 
-        if (ko + k == k0 && vertical_boundary_condition === :SolidWall)
+        if ko + k == k0 && vertical_boundary_condition === :SolidWall
             lower_gradient = 0.0
             lower_force = 0.0
         elseif (
@@ -738,9 +767,9 @@ end
                 factor *
                 0.5 *
                 (
-                    met[i, j, k, 1, 3] *
+                    met13[i, j, k] *
                     (u[i, j, k] / jpedger + u[i - 1, j, k] / jpedgel) +
-                    met[i, j, k, 2, 3] *
+                    met23[i, j, k] *
                     (v[i, j, k] / jpedgef + v[i, j - 1, k] / jpedgeb)
                 )
             )
@@ -748,7 +777,7 @@ end
         rhop[i, j, k] = -b * (rho[i, j, k] + rhobar[i, j, k]) / g_ndim
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -757,7 +786,7 @@ end
     m::Integer,
     variable::U,
     side::LHS,
-)
+)::Nothing
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
@@ -827,7 +856,7 @@ end
         u[i, j, k] = uast
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -836,7 +865,7 @@ end
     variable::U,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; rho, u, pip) = state.variables.predictands
@@ -855,7 +884,7 @@ end
         u[i, j, k] += dt * (-gradient + force / rhoedger) * jpedger
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -865,7 +894,7 @@ end
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -875,7 +904,7 @@ end
 
     kmin = k0
     kmax =
-        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
 
     for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
@@ -904,7 +933,7 @@ end
             (u[i, j, k] + dt * (-gradient + force / rhoedger) * jpedger)
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -913,7 +942,7 @@ end
     m::Integer,
     variable::V,
     side::LHS,
-)
+)::Nothing
     (; z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
@@ -980,7 +1009,7 @@ end
         v[i, j, k] = vast
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -989,7 +1018,7 @@ end
     variable::V,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; rhobar) = state.atmosphere
     (; rho, v, pip) = state.variables.predictands
@@ -1008,7 +1037,7 @@ end
         v[i, j, k] += dt * (-gradient + force / rhoedgef) * jpedgef
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -1018,7 +1047,7 @@ end
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -1028,7 +1057,7 @@ end
 
     kmin = k0
     kmax =
-        (ko + nz == z_size || vertical_boundary_condition === :Periodic) ? k1 :
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
         k1 + 1
 
     for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
@@ -1057,7 +1086,7 @@ end
             (v[i, j, k] + dt * (-gradient + force / rhoedgef) * jpedgef)
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -1066,14 +1095,14 @@ end
     m::Integer,
     variable::W,
     side::LHS,
-)
+)::Nothing
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; alphark, betark) = state.time
     (; tref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; grid) = state
-    (; dx, dy, dz, jac, met) = grid
+    (; dx, dy, dz, jac, met13, met23, met33) = grid
     (; rhobar) = state.atmosphere
     (; dw) = state.variables.increments
     (; phiu, phiv, phiw) = state.variables.fluxes
@@ -1089,7 +1118,7 @@ end
         dw .= 0.0
     end
 
-    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 : k0 - 1
     kmax =
         (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
         k1 - 1 : k1
@@ -1167,21 +1196,21 @@ end
         volforce =
             fc * (
                 jac[i, j, k + 1] *
-                met[i, j, k, 1, 3] *
+                met13[i, j, k] *
                 (rhoold[i, j, k] + rhobar[i, j, k]) *
                 vc +
                 jac[i, j, k] *
-                met[i, j, k + 1, 1, 3] *
+                met13[i, j, k + 1] *
                 (rhoold[i, j, k + 1] + rhobar[i, j, k + 1]) *
                 vu
             ) / (jac[i, j, k] + jac[i, j, k + 1]) -
             fc * (
                 jac[i, j, k + 1] *
-                met[i, j, k, 2, 3] *
+                met23[i, j, k] *
                 (rhoold[i, j, k] + rhobar[i, j, k]) *
                 uc +
                 jac[i, j, k] *
-                met[i, j, k + 1, 2, 3] *
+                met23[i, j, k + 1] *
                 (rhoold[i, j, k + 1] + rhobar[i, j, k + 1]) *
                 uu
             ) / (jac[i, j, k] + jac[i, j, k + 1])
@@ -1219,7 +1248,7 @@ end
         w[i, j, k] = wast
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -1228,7 +1257,7 @@ end
     variable::W,
     side::RHS,
     integration::Explicit,
-)
+)::Nothing
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; g_ndim) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
@@ -1237,7 +1266,7 @@ end
     (; rhopold) = state.variables.backups
     (; rho, w, pip) = state.variables.predictands
 
-    kmin = (ko == 0 && vertical_boundary_condition === :SolidWall) ? k0 : k0 - 1
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 : k0 - 1
     kmax =
         (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
         k1 - 1 : k1
@@ -1274,7 +1303,7 @@ end
         w[i, j, k] += dt * (b - gradient + force / rhoedgeu) * jpedgeu
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -1284,16 +1313,16 @@ end
     side::RHS,
     integration::Implicit,
     rayleigh_factor::AbstractFloat,
-)
+)::Nothing
     (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; g_ndim) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met) = state.grid
+    (; jac, met13, met23) = state.grid
     (; rhobar, n2) = state.atmosphere
     (; betar) = state.sponge
     (; rho, rhop, u, v, w, pip) = state.variables.predictands
 
-    kmin = (ko == 0 || vertical_boundary_condition === :Periodic) ? k0 : k0 - 1
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 : k0 - 1
     kmax =
         (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ?
         k1 - 1 : k1
@@ -1366,20 +1395,20 @@ end
                 dt^2.0 *
                 (
                     jac[i, j, k + 1] *
-                    (met[i, j, k, 1, 3] * uc + met[i, j, k, 2, 3] * vc) +
+                    (met13[i, j, k] * uc + met23[i, j, k] * vc) +
                     jac[i, j, k] *
-                    (met[i, j, k + 1, 1, 3] * uu + met[i, j, k + 1, 2, 3] * vu)
+                    (met13[i, j, k + 1] * uu + met23[i, j, k + 1] * vu)
                 ) / (jac[i, j, k] + jac[i, j, k + 1])
             )
     end
 
-    return
+    nothing
 end
 
-function update!(state::State, dt::AbstractFloat, variable::PiP)
+function update!(state::State, dt::AbstractFloat, variable::PiP)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model update!(state, dt, variable, Val(model))
-    return
+    nothing
 end
 
 function update!(
@@ -1387,8 +1416,8 @@ function update!(
     dt::AbstractFloat,
     variable::PiP,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function update!(
@@ -1396,7 +1425,7 @@ end
     dt::AbstractFloat,
     variable::PiP,
     model::Val{:Compressible},
-)
+)::Nothing
     (; gamma, rsp, pref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
@@ -1422,13 +1451,18 @@ end
         pip[i, j, k] -= dt * (fluxdiff - heating) / dpdpi
     end
 
-    return
+    nothing
 end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, variable::P)
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::P,
+)::Nothing
     (; model) = state.namelists.atmosphere
     @dispatch_model update!(state, dt, m, variable, Val(model))
-    return
+    nothing
 end
 
 function update!(
@@ -1437,8 +1471,8 @@ function update!(
     m::Integer,
     variable::P,
     model::Union{Val{:Boussinesq}, Val{:PseudoIncompressible}},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function update!(
@@ -1447,7 +1481,7 @@ end
     m::Integer,
     variable::P,
     model::Val{:Compressible},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
@@ -1478,14 +1512,19 @@ end
         p[i, j, k] += betark[m] * dp[i, j, k]
     end
 
-    return
+    nothing
 end
 
-function update!(state::State, dt::AbstractFloat, m::Integer, variable::Chi)
+function update!(
+    state::State,
+    dt::AbstractFloat,
+    m::Integer,
+    variable::Chi,
+)::Nothing
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup update!(state, dt, m, variable, Val(tracer_setup))
-    return
+    nothing
 end
 
 function update!(
@@ -1494,8 +1533,8 @@ function update!(
     m::Integer,
     variable::Chi,
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function update!(
@@ -1504,7 +1543,7 @@ end
     m::Integer,
     variable::Chi,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
@@ -1539,7 +1578,7 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function update!(
@@ -1547,7 +1586,7 @@ end
     dt::AbstractFloat,
     m::Integer,
     variable::TKE,
-)
+)::Nothing
     (; i0, i1, j0, j1, k0, k1) = state.domain
     (; dx, dy, dz, jac) = state.grid
     (; alphark, betark) = state.time
@@ -1576,5 +1615,5 @@ end
         tke[i, j, k] += betark[m] * dtke[i, j, k]
     end
 
-    return
+    nothing
 end

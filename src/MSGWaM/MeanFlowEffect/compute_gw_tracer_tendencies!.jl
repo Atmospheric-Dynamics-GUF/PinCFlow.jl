@@ -1,6 +1,11 @@
 """
 ```julia
-compute_gw_tracer_tendencies!(state::State, i::Integer, j::Integer, k::Integer)
+compute_gw_tracer_tendencies!(
+    state::State,
+    i::Integer,
+    j::Integer,
+    k::Integer,
+)::Nothing
 ```
 
 Compute the tracer forcing by dispatching to the appropriate method.
@@ -12,7 +17,7 @@ compute_gw_tracer_tendencies!(
     j::Integer,
     k::Integer,
     tracer_setup::Val{:NoTracer},
-)
+)::Nothing
 ```
 
 Return for configurations without tracer transport.
@@ -24,7 +29,7 @@ compute_gw_tracer_tendencies!(
     j::Integer,
     k::Integer,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
 ```
 
 Compute and return the leading- and next-order tracer forcing at ``\\left(i, j, k\\right)^{(0)}``.
@@ -86,7 +91,7 @@ function compute_gw_tracer_tendencies!(
     i::Integer,
     j::Integer,
     k::Integer,
-)
+)::Nothing
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup compute_gw_tracer_tendencies!(
@@ -96,7 +101,7 @@ function compute_gw_tracer_tendencies!(
         k,
         Val(tracer_setup),
     )
-    return
+    nothing
 end
 
 function compute_gw_tracer_tendencies!(
@@ -105,8 +110,8 @@ function compute_gw_tracer_tendencies!(
     j::Integer,
     k::Integer,
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_gw_tracer_tendencies!(
@@ -115,9 +120,9 @@ end
     j::Integer,
     k::Integer,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; x_size, y_size) = state.namelists.domain
-    (; dx, dy, dz, jac, met) = state.grid
+    (; dx, dy, dz, jac, met13, met23) = state.grid
     (; uchi0, vchi0, wchi0, uchi1, vchi1, wchi1, qchi) =
         state.tracer.tracerwkbintegrals
     (; dchidt0, dchidt1, dchidtq) = state.tracer.tracerwkbtendencies
@@ -130,7 +135,7 @@ end
         if x_size > 1
             dchiu0 =
                 (uchi0[i + 1, j, k] - uchi0[i - 1, j, k]) / (2.0 * dx) +
-                met[i, j, k, 1, 3] * (uchi0[i, j, k + 1] - uchi0[i, j, k - 1]) /
+                met13[i, j, k] * (uchi0[i, j, k + 1] - uchi0[i, j, k - 1]) /
                 (2.0 * dz)
         else
             dchiu0 = 0.0
@@ -139,7 +144,7 @@ end
         if y_size > 1
             dchiv0 =
                 (vchi0[i, j + 1, k] - vchi0[i, j - 1, k]) / (2.0 * dy) +
-                met[i, j, k, 2, 3] * (vchi0[i, j, k + 1] - vchi0[i, j, k - 1]) /
+                met23[i, j, k] * (vchi0[i, j, k + 1] - vchi0[i, j, k - 1]) /
                 (2.0 * dz)
         else
             dchiv0 = 0.0
@@ -165,7 +170,7 @@ end
                     thetabar[i - 1, j, k] *
                     uchi1[i - 1, j, k]
                 ) / (2.0 * dx) +
-                met[i, j, k, 1, 3] * (
+                met13[i, j, k] * (
                     rhobar[i, j, k + 1] *
                     thetabar[i, j, k + 1] *
                     uchi1[i, j, k + 1] -
@@ -187,7 +192,7 @@ end
                     thetabar[i, j - 1, k] *
                     vchi1[i, j - 1, k]
                 ) / (2.0 * dy) +
-                met[i, j, k, 2, 3] * (
+                met23[i, j, k] * (
                     rhobar[i, j, k + 1] *
                     thetabar[i, j, k + 1] *
                     vchi1[i, j, k + 1] -
@@ -221,5 +226,5 @@ end
             (qchi[i, j, k + 1] - qchi[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
     end
 
-    return
+    nothing
 end

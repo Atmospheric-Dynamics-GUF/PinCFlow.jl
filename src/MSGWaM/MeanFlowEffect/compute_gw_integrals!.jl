@@ -1,12 +1,12 @@
 """
 ```julia
-compute_gw_integrals!(state::State)
+compute_gw_integrals!(state::State)::Nothing
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact by dispatching to a WKB-mode-specific method.
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
+compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})::Nothing
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in multi-column mode.
@@ -55,7 +55,7 @@ Furthermore, the leading-order gravity-wave-tracer fluxes ``\\bar{\\rho}\\left\\
 In the case of turbulence parameterization, the gravity-wave shear ``\\mathcal{S}_\\mathrm{w}`` is calculated with `compute_gw_turbulence_integrals!`.
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
+compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})::Nothing
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in single-column mode.
@@ -63,7 +63,7 @@ Compute the gravity-wave integrals needed for the computation of the mean-flow i
 This method computes ``\\bar{\\rho} \\left\\langle \\tilde{u} \\tilde{w} \\right\\rangle``, ``\\bar{\\rho} \\left\\langle \\tilde{v} \\tilde{w} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{u} \\right\\rangle``, ``\\left\\langle \\tilde{\\theta} \\tilde{v} \\right\\rangle``, ``\\mathcal{E}``, ``\\bar{\\rho}\\left\\langle\\tilde{u}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{v}\\tilde{\\chi}\\right\\rangle``, ``\\bar{\\rho}\\left\\langle\\tilde{w}\\tilde{\\chi}\\right\\rangle`` and ``\\mathcal{S}_\\mathrm{w}`` (see above for details).
 
 ```julia
-compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
+compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})::Nothing
 ```
 
 Compute the gravity-wave integrals needed for the computation of the mean-flow impact in steady-state mode.
@@ -129,22 +129,24 @@ Compute the next-order gravity-wave tracer integrals.
 """
 function compute_gw_integrals! end
 
-function compute_gw_integrals!(state::State)
+function compute_gw_integrals!(state::State)::Nothing
     (; wkb_mode) = state.namelists.wkb
     @dispatch_wkb_mode compute_gw_integrals!(state, Val(wkb_mode))
-    return
+    nothing
 end
 
-@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:MultiColumn})
+@ivy function compute_gw_integrals!(
+    state::State,
+    wkb_mode::Val{:MultiColumn},
+)::Nothing
     (; domain, grid) = state
-    (; x_size, y_size, z_size, vertical_boundary_condition) =
-        state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; tref, g_ndim) = state.constants
     (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
-    (; n2, rhobar, thetabar) = state.atmosphere
+    (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
@@ -246,14 +248,12 @@ end
                         ),
                     )
 
-                    (ko != 0 || vertical_boundary_condition === :Periodic) &&
+                    ko != 0 &&
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
-                    (
-                            ko + nz != z_size ||
-                            vertical_boundary_condition === :Periodic
-                        ) &&
+
+                    ko + nz != z_size &&
                         k < k1 &&
                         kmax > k1 &&
                         error("Vertical index is too large!")
@@ -373,6 +373,19 @@ end
                             kray,
                         )
 
+                        compute_gw_turbulence_integrals!(
+                            state,
+                            fc,
+                            omir,
+                            kr,
+                            lr,
+                            mr,
+                            wadr,
+                            iray,
+                            jray,
+                            kray,
+                        )
+
                         compute_gw_tracer_integrals!(
                             state,
                             LeadingOrder(),
@@ -384,19 +397,21 @@ end
         end
     end
 
-    return
+    nothing
 end
 
-@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SingleColumn})
+@ivy function compute_gw_integrals!(
+    state::State,
+    wkb_mode::Val{:SingleColumn},
+)::Nothing
     (; domain, grid) = state
-    (; x_size, y_size, z_size, vertical_boundary_condition) =
-        state.namelists.domain
+    (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch) = state.namelists.wkb
     (; g_ndim, tref) = state.constants
     (; i0, i1, j0, j1, k0, k1, ko, nz) = domain
     (; dx, dy, dz, x, y, zctilde, jac) = grid
-    (; n2, rhobar, thetabar) = state.atmosphere
+    (; rhobar, thetabar) = state.atmosphere
     (; nray, rays, integrals) = state.wkb
 
     # Set Coriolis parameter.
@@ -407,6 +422,8 @@ end
     end
 
     set_turbulence_fields_zero!(state)
+
+    reset_tracer_fields!(state)
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -449,8 +466,12 @@ end
                     )
 
                     fcpspx = dkr * dxi / dx
+                    factor = dxi / dx
+                    dklm = dkr
                 else
                     fcpspx = 1.0
+                    factor = 1.0
+                    dklm = 1.0
                 end
 
                 for jray in jmin:jmax
@@ -461,8 +482,12 @@ end
                         )
 
                         fcpspy = dlr * dyi / dy
+                        factor *= dyi / dy
+                        dklm *= dlr
                     else
                         fcpspy = 1.0
+                        factor *= 1.0
+                        dklm *= 1.0
                     end
 
                     kmin = max(
@@ -486,14 +511,12 @@ end
                         ),
                     )
 
-                    (ko != 0 || vertical_boundary_condition === :Periodic) &&
+                    ko != 0 &&
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
-                    (
-                            ko + nz != z_size ||
-                            vertical_boundary_condition === :Periodic
-                        ) &&
+
+                    ko + nz != z_size &&
                         k < k1 &&
                         kmax > k1 &&
                         error("Vertical index is too large!")
@@ -504,6 +527,8 @@ end
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
 
                         fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
+                        factor *= dzi / jac[iray, jray, kray] / dz
+                        dklm *= dmr
 
                         wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
@@ -543,6 +568,25 @@ end
 
                         integrals.e[iray, jray, kray] += wadr * omir
 
+                        parameters = (
+                            fc = fc,
+                            n2r = n2r,
+                            omir = omir,
+                            kr = kr,
+                            lr = lr,
+                            mr = mr,
+                            wadr = wadr,
+                            factor = factor,
+                            dklm = dklm,
+                            dens = rays.dens[r, i, j, k],
+                            xr = xr,
+                            yr = yr,
+                            zr = zr,
+                            iray = iray,
+                            jray = jray,
+                            kray = kray,
+                        )
+
                         compute_gw_turbulence_integrals!(
                             state,
                             fc,
@@ -558,18 +602,8 @@ end
 
                         compute_gw_tracer_integrals!(
                             state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            xr,
-                            yr,
-                            zr,
-                            iray,
-                            jray,
-                            kray,
+                            LeadingOrder(),
+                            parameters,
                         )
                     end
                 end
@@ -577,11 +611,13 @@ end
         end
     end
 
-    return
+    nothing
 end
 
-@ivy function compute_gw_integrals!(state::State, wkb_mode::Val{:SteadyState})
-    (; domain, grid) = state
+@ivy function compute_gw_integrals!(
+    state::State,
+    wkb_mode::Val{:SteadyState},
+)::Nothing
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -589,7 +625,6 @@ end
     (; x_size, y_size) = state.namelists.domain
     (; branch) = state.namelists.wkb
     (; nray, rays, integrals) = state.wkb
-    (; n2) = state.atmosphere
 
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
@@ -599,6 +634,8 @@ end
     end
 
     set_turbulence_fields_zero!(state)
+
+    reset_tracer_fields!(state)
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
@@ -641,8 +678,12 @@ end
                     )
 
                     fcpspx = dkr * dxi / dx
+                    factor = dxi / dx
+                    dklm = dkr
                 else
                     fcpspx = 1.0
+                    factor = 1.0
+                    dklm = 1.0
                 end
 
                 for jray in jmin:jmax
@@ -653,8 +694,12 @@ end
                         )
 
                         fcpspy = dlr * dyi / dy
+                        factor *= dyi / dy
+                        dklm *= dlr
                     else
                         fcpspy = 1.0
+                        factor *= 1.0
+                        dklm *= 1.0
                     end
 
                     kmin = get_next_half_level(
@@ -678,12 +723,33 @@ end
                             max((zr - dzr / 2), zctilde[iray, jray, kray - 1])
 
                         fcpspz = dmr * dzi / jac[iray, jray, kray] / dz
+                        factor *= dzi / jac[iray, jray, kray] / dz
+                        dklm *= dmr
 
                         wadr = fcpspx * fcpspy * fcpspz * rays.dens[r, i, j, k]
 
                         integrals.uw[iray, jray, kray] += wadr * kr * cgirz
 
                         integrals.vw[iray, jray, kray] += wadr * lr * cgirz
+
+                        parameters = (
+                            fc = fc,
+                            n2r = n2r,
+                            omir = omir,
+                            kr = kr,
+                            lr = lr,
+                            mr = mr,
+                            wadr = wadr,
+                            factor = factor,
+                            dklm = dklm,
+                            dens = rays.dens[r, i, j, k],
+                            xr = xr,
+                            yr = yr,
+                            zr = zr,
+                            iray = iray,
+                            jray = jray,
+                            kray = kray,
+                        )
 
                         compute_gw_turbulence_integrals!(
                             state,
@@ -700,18 +766,8 @@ end
 
                         compute_gw_tracer_integrals!(
                             state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            xr,
-                            yr,
-                            zr,
-                            iray,
-                            jray,
-                            kray,
+                            LeadingOrder(),
+                            parameters,
                         )
                     end
                 end
@@ -719,29 +775,29 @@ end
         end
     end
 
-    return
+    nothing
 end
 
-function compute_gw_integrals!(state::State, dt::AbstractFloat)
+function compute_gw_integrals!(state::State, dt::AbstractFloat)::Nothing
     (; tracer_setup) = state.namelists.tracer
 
     @dispatch_tracer_setup compute_gw_integrals!(state, dt, Val(tracer_setup))
-    return
+    nothing
 end
 
 function compute_gw_integrals!(
     state::State,
     dt::AbstractFloat,
     tracer_setup::Val{:NoTracer},
-)
-    return
+)::Nothing
+    nothing
 end
 
 @ivy function compute_gw_integrals!(
     state::State,
     dt::AbstractFloat,
     tracer_setup::Val{:TracerOn},
-)
+)::Nothing
     (; next_order_impact) = state.namelists.tracer
     (; domain, grid) = state
     (; x_size, y_size, z_size, vertical_boundary_condition) =
@@ -754,7 +810,7 @@ end
     (; nray, rays) = state.wkb
 
     if !next_order_impact
-        return
+        return nothing
     end
 
     # Set Coriolis parameter.
@@ -891,5 +947,5 @@ end
         end
     end
 
-    return
+    nothing
 end

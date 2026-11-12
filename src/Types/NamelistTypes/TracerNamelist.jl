@@ -59,7 +59,7 @@ function TracerNamelist(;
     apply_lhs_sponge_to_tracer::Bool = true,
     background_tracer_gradient::AbstractFloat = 1.0,
 )::TracerNamelist
-    return TracerNamelist(
+    TracerNamelist(
         tracer_setup,
         leading_order_impact,
         next_order_impact,

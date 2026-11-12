@@ -86,7 +86,7 @@ function TurbulencePredictands(
 )::TurbulencePredictands
     (; turbulence_scheme) = namelists.turbulence
 
-    @dispatch_turbulence_scheme return TurbulencePredictands(
+    @dispatch_turbulence_scheme TurbulencePredictands(
         namelists,
         constants,
         domain,
@@ -108,7 +108,7 @@ function TurbulencePredictands(
 )::TurbulencePredictands
     tke = zeros(0, 0, 0)
 
-    return TurbulencePredictands(tke)
+    TurbulencePredictands(tke)
 end
 
 @ivy function TurbulencePredictands(
@@ -120,7 +120,7 @@ end
     turbulence_scheme::Val{:TKEScheme},
     variables::Variables,
 )::TurbulencePredictands
-    (; i0, i1, j0, j1, nxx, nyy, nzz) = domain
+    (; i0, i1, j0, j1, k0, k1, nxx, nyy, nzz) = domain
     (; rhobar) = atmosphere
     (; x, y, zc) = grid
     (; rho) = variables.predictands
@@ -129,7 +129,7 @@ end
 
     tke = zeros(nxx, nyy, nzz)
 
-    for k in 1:nzz, j in j0:j1, i in i0:i1
+    for k in k0:k1, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
@@ -144,5 +144,7 @@ end
         f!(tke, namelists, domain)
     end
 
-    return TurbulencePredictands(tke)
+    set_vertical_boundaries_of_field!(tke, namelists, domain)
+
+    TurbulencePredictands(tke)
 end

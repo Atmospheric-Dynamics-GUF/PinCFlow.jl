@@ -1,3 +1,22 @@
+"""
+```julia
+Examples
+```
+
+Module that defines PinCFlow.jl's example functions.
+
+# See also
+
+  - [`PinCFlow.Examples.WavePacketTools`](@ref)
+
+  - [`PinCFlow.Macros`](@ref)
+
+  - [`PinCFlow.Types`](@ref)
+
+  - [`PinCFlow.Integration`](@ref)
+
+  - [`PinCFlow.PinCFlow`](@ref)
+"""
 module Examples
 
 include("WavePacketTools/WavePacketTools.jl")

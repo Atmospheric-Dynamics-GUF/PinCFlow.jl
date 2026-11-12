@@ -1,15 +1,18 @@
 """
-```julia 
-thomas_algorithm!(state::State)
+```julia
+thomas_algorithm!(state::State)::Nothing
 ```
 
 Solves a tridiagonal system in ``\\hat{z}``-direction by dispatching to the appropriate vertical boundary condition method.
 
 ```julia
-thomas_algorithm!(state::State, vertical_boundary_condition::Val{:Periodic})
+thomas_algorithm!(
+    state::State,
+    vertical_boundary_condition::Val{:Periodic},
+)::Nothing
 ```
 
-Solves a tridiagonal system in ``\\hat{z}``-direction for periodic vertical boundary conditions using the Thomas tridiagonal matrix algorithm (see [Durran, 2010](https://doi.org/10.1007/978-1-4419-6412-0)) . Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
+Solves a tridiagonal system in ``\\hat{z}``-direction for periodic vertical boundary conditions using the Thomas tridiagonal matrix algorithm (see [Durran, 2010](https://doi.org/10.1007/978-1-4419-6412-0)). Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
 
 The system is defined as:
 
@@ -20,10 +23,13 @@ a_k \\phi_{k-1} + b_k\\phi_k + c_k\\phi_{k+1} = f_k\\;.
 The result is stored in `state.variables.auxiliaries.fth`.
 
 ```julia
-thomas_algorithm!(state::State, vertical_boundary_condition::Val{:SolidWall})
+thomas_algorithm!(
+    state::State,
+    vertical_boundary_condition::Val{:SolidWall},
+)::Nothing
 ```
 
-Solves a tridiagonal system in ``\\hat{z}``-direction for solid wall vertical boundary conditions using the Thomas tridiagonal matrix algorithm (see [Durran, 2010](https://doi.org/10.1007/978-1-4419-6412-0)) . Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
+Solves a tridiagonal system in ``\\hat{z}``-direction for solid wall vertical boundary conditions using the Thomas tridiagonal matrix algorithm (see [Durran, 2010](https://doi.org/10.1007/978-1-4419-6412-0)). Since the Thomas algorithm consists of an upward elimination sweep and a downward pass, this method performs sequential one-way MPI communication if the domain is parallelized in the vertical.
 
 The system is defined as for the method above with the result stored in `state.variables.auxiliaries.fth`.
 
@@ -33,7 +39,7 @@ The system is defined as for the method above with the result stored in `state.v
 """
 function thomas_algorithm! end
 
-function thomas_algorithm!(state::State)
+function thomas_algorithm!(state::State)::Nothing
     (; vertical_boundary_condition) = state.namelists.domain
 
     @dispatch_vertical_boundary_condition thomas_algorithm!(
@@ -41,15 +47,15 @@ function thomas_algorithm!(state::State)
         Val(vertical_boundary_condition),
     )
 
-    return
+    nothing
 end
 
 @ivy function thomas_algorithm!(
     state::State,
     vertical_boundary_condition::Val{:Periodic},
-)
+)::Nothing
     (; comm, nz, ko, up, down) = state.domain
-    (; z_size) = state.namelists.domain
+    (; z_size, npz) = state.namelists.domain
     (; ath, bth, cth, fth, qth, sth, pth, fth_bc, qth_bc, sth_bc, fthnz) =
         state.variables.auxiliaries
 
@@ -123,21 +129,28 @@ end
             )
 
         fth_bc .= fth[:, :, nz]
-
-        MPI.Bcast!(fth_bc, comm; root = MPI.Comm_rank(comm))
     end
 
-    for k in 1:(nz - 1)
-        fth[:, :, k] .= fth_bc .* sth[:, :, k] .+ qth[:, :, k]
+    comm_col = MPI.Cart_sub(comm, [false, false, true])
+    MPI.Bcast!(fth_bc, comm_col; root = npz - 1)
+
+    if ko + nz == z_size
+        for k in 1:(nz - 1)
+            fth[:, :, k] .= fth_bc .* sth[:, :, k] .+ qth[:, :, k]
+        end
+    else
+        for k in 1:nz
+            fth[:, :, k] .= fth_bc .* sth[:, :, k] .+ qth[:, :, k]
+        end
     end
 
-    return
+    nothing
 end
 
 @ivy function thomas_algorithm!(
     state::State,
     vertical_boundary_condition::Val{:SolidWall},
-)
+)::Nothing
     (; comm, nz, ko, up, down) = state.domain
     (; z_size) = state.namelists.domain
     (; ath, bth, cth, fth, qth, pth, fth_bc, qth_bc) =
@@ -184,5 +197,5 @@ end
         MPI.Send(fth_bc, comm; dest = down)
     end
 
-    return
+    nothing
 end

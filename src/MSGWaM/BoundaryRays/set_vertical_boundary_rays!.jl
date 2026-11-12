@@ -1,6 +1,6 @@
 """
 ```julia
-set_vertical_boundary_rays!(state::State)
+set_vertical_boundary_rays!(state::State)::Nothing
 ```
 
 Enforce vertical boundary conditions for ray volumes by dispatching to the vertical boundary condition appropriate method.
@@ -9,7 +9,7 @@ Enforce vertical boundary conditions for ray volumes by dispatching to the verti
 set_vertical_boundary_rays!(
     state::State,
     vertical_boundary_condition::Val{:Periodic},
-)
+)::Nothing
 ```
 
 Enforce periodic vertical boundary conditions for ray volumes.
@@ -20,7 +20,7 @@ This method first enforces vertical boundary conditions for `state.wkb.nray` (by
 set_vertical_boundary_rays!(
     state::State,
     vertical_boundary_condition::Val{:SolidWall},
-)
+)::Nothing
 ```
 
 Enforce solid wall vertical boundary conditions for ray volumes.
@@ -43,48 +43,30 @@ If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray vol
 """
 function set_vertical_boundary_rays! end
 
-function set_vertical_boundary_rays!(state::State)
+function set_vertical_boundary_rays!(state::State)::Nothing
     (; vertical_boundary_condition) = state.namelists.domain
+    (; namelists, domain) = state
+    (; nray) = state.wkb
+
+    set_vertical_halos_of_field!(nray, namelists, domain; layers = (1, 1, 1))
+    set_vertical_halo_rays!(state)
 
     @dispatch_vertical_boundary_condition set_vertical_boundary_rays!(
         state,
         Val(vertical_boundary_condition),
     )
-    return
+    nothing
 end
 
 @ivy function set_vertical_boundary_rays!(
     state::State,
     vertical_boundary_condition::Val{:Periodic},
-)
+)::Nothing
     (; namelists, domain) = state
     (; z_size) = namelists.domain
     (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lz, zc) = state.grid
     (; nray, rays) = state.wkb
-
-    # Set ray-volume count.
-    set_vertical_boundaries_of_field!(
-        nray,
-        namelists,
-        domain,
-        +;
-        layers = (1, 1, 1),
-    )
-
-    if z_size > 1
-        set_vertical_halo_rays!(state)
-    else
-        for j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k0 - 1]
-                copy_rays!(rays, r => r, i => i, j => j, k1 => k0 - 1)
-            end
-
-            for r in 1:nray[i, j, k1 + 1]
-                copy_rays!(rays, r => r, i => i, j => j, k0 => k1 + 1)
-            end
-        end
-    end
 
     if ko == 0
         for k in (k0 - 1):k0, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
@@ -116,13 +98,13 @@ end
         end
     end
 
-    return
+    nothing
 end
 
 @ivy function set_vertical_boundary_rays!(
     state::State,
     vertical_boundary_condition::Val{:SolidWall},
-)
+)::Nothing
     (; namelists, domain) = state
     (; z_size, npz) = namelists.domain
     (; nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
@@ -130,15 +112,6 @@ end
     (; nray, rays) = state.wkb
 
     # Set ray-volume count and ray-volumes properties.
-    if z_size > 1
-        set_vertical_halos_of_field!(
-            nray,
-            namelists,
-            domain;
-            layers = (1, 1, 1),
-        )
-        set_vertical_halo_rays!(state)
-    end
 
     # Reflect ray volumes at the lower boundary.
     if ko == 0
@@ -190,5 +163,5 @@ end
         end
     end
 
-    return
+    nothing
 end
