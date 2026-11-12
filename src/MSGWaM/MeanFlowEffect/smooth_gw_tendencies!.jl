@@ -534,8 +534,7 @@ function smooth_gw_tendencies!(
     turbulence_scheme::Val{:TKEScheme},
 )::Nothing
     (; x_size, y_size) = state.namelists.domain
-    (; wkb_mode) = state.namelists.wkb
-    (; smooth_tendencies, filter_type) = state.namelists.wkb
+    (; filter_type) = state.namelists.wkb
     (; dtkedt) = state.turbulence.turbulencewkbtendencies
 
     @dispatch_filter_type if x_size == y_size == 1

@@ -181,7 +181,7 @@ function WKB(
         dlr_factor,
         dmr_factor,
     ) = namelists.wkb
-    (; x_size, y_size, z_size) = namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) = namelists.domain
     (; nxx, nyy, nzz) = domain
 
     # Check if the spectral-extent factors are set correctly.
@@ -220,6 +220,11 @@ function WKB(
     # Set the total number of bins and work size of the ray-volume array.
     if wkb_mode === Val(:SteadyState)
         bins = nray_wrk = n_sfc
+        if vertical_boundary_condition === :Periodic
+            error(
+                "Periodic vertical boundary conditions not possible in steady state mode.",
+            )
+        end
     else
         # Set the total number of bins.
         bins = k_bins * l_bins * m_bins

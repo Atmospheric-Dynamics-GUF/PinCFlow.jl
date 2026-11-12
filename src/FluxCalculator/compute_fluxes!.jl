@@ -626,7 +626,7 @@ end
     variable::U,
 )::Nothing
     (; grid) = state
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; re, uref, lref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
     (; jac, met13, met23, met33) = grid
@@ -639,7 +639,9 @@ end
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
-    kmax = ko + nz == z_size ? k1 : k1 + 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
+        k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -933,10 +935,10 @@ end
     variable::V,
 )::Nothing
     (; grid) = state
-    (; z_size) = state.namelists.domain
+    (; z_size, vertical_boundary_condition) = state.namelists.domain
     (; re, uref, lref) = state.constants
     (; nz, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met13, met23, met33) = grid
+    (; jac, met13, met23) = grid
     (; pbar, rhobar) = state.atmosphere
     (; vtilde) = state.variables.reconstructions
     (; phiv) = state.variables.fluxes
@@ -946,7 +948,9 @@ end
     (u0, v0, w0) = (old_predictands.u, old_predictands.v, old_predictands.w)
 
     kmin = k0
-    kmax = ko + nz == z_size ? k1 : k1 + 1
+    kmax =
+        (ko + nz == z_size && vertical_boundary_condition === :SolidWall) ? k1 :
+        k1 + 1
 
     #-----------------------------------------
     #             Zonal fluxes
@@ -1242,7 +1246,7 @@ end
     (; grid) = state
     (; re, uref, lref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
-    (; jac, met13, met23, met33) = grid
+    (; jac, met13, met23) = grid
     (; pbar, rhobar) = state.atmosphere
     (; wtilde) = state.variables.reconstructions
     (; phiw) = state.variables.fluxes

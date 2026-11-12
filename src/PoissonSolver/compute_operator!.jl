@@ -42,7 +42,7 @@ function compute_operator! end
     dt::AbstractFloat,
     rayleigh_factor::AbstractFloat,
 )::Nothing
-    (; z_size, nbz) = state.namelists.domain
+    (; z_size, nbz, vertical_boundary_condition) = state.namelists.domain
     (; damp_horizontal_wind_on_rhs) = state.namelists.sponge
     (; model) = state.namelists.atmosphere
     (; gamma, rsp, pref, kappa) = state.constants
@@ -414,9 +414,17 @@ function compute_operator! end
         impveredged = 1.0 / (facedged + fwd * n2edged * dt^2.0)
 
         # Compute gradient coefficients
+        first_layer = ko + k == k0 && vertical_boundary_condition === :SolidWall
+        second_layer =
+            ko + k == k0 + 1 && vertical_boundary_condition === :SolidWall
+        second_to_last_layer =
+            ko + k == z_size + nbz - 1 &&
+            vertical_boundary_condition === :SolidWall
+        last_layer =
+            ko + k == z_size + nbz && vertical_boundary_condition === :SolidWall
 
         # G(i + 1 / 2)
-        if ko + k == k0
+        if first_layer
             gedger =
                 jacinv / dx * pedgerdiv * imphoredger / rhoedger +
                 jacinv / dz *
@@ -429,7 +437,7 @@ function compute_operator! end
                 met13[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredger / rhoedger
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             gedger =
                 jacinv / dx * pedgerdiv * imphoredger / rhoedger -
                 jacinv / dz *
@@ -468,7 +476,7 @@ function compute_operator! end
         end
 
         # G(i - 1 / 2)
-        if ko + k == k0
+        if first_layer
             gedgel =
                 -jacinv / dx * pedgeldiv * imphoredgel / rhoedgel +
                 jacinv / dz *
@@ -481,7 +489,7 @@ function compute_operator! end
                 met13[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgel / rhoedgel
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             gedgel =
                 -jacinv / dx * pedgeldiv * imphoredgel / rhoedgel -
                 jacinv / dz *
@@ -520,7 +528,7 @@ function compute_operator! end
         end
 
         # G(j + 1 / 2)
-        if ko + k == k0
+        if first_layer
             gedgef =
                 jacinv / dy * pedgefdiv * imphoredgef / rhoedgef +
                 jacinv / dz *
@@ -533,7 +541,7 @@ function compute_operator! end
                 met23[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgef / rhoedgef
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             gedgef =
                 jacinv / dy * pedgefdiv * imphoredgef / rhoedgef -
                 jacinv / dz *
@@ -572,7 +580,7 @@ function compute_operator! end
         end
 
         # G(j - 1 / 2)
-        if ko + k == k0
+        if first_layer
             gedgeb =
                 -jacinv / dy * pedgebdiv * imphoredgeb / rhoedgeb +
                 jacinv / dz *
@@ -585,7 +593,7 @@ function compute_operator! end
                 met23[i, j, k] *
                 jac[i, j, k + 1] / (jac[i, j, k] + jac[i, j, k + 1]) *
                 imphoredgeb / rhoedgeb
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             gedgeb =
                 -jacinv / dy * pedgebdiv * imphoredgeb / rhoedgeb -
                 jacinv / dz *
@@ -624,21 +632,21 @@ function compute_operator! end
         end
 
         # G(k + 1 / 2)
-        if ko + k == z_size + nbz
+        if last_layer
             gedgeu = 0.0
         else
             gedgeu = jacinv / dz * pedgeudiv * impveredgeu / rhoedgeu
         end
 
         # G(k - 1 / 2)
-        if ko + k == k0
+        if first_layer
             gedged = 0.0
         else
             gedged = -jacinv / dz * pedgeddiv * impveredged / rhoedged
         end
 
         # G(i + 1 / 2, k + 1)
-        if ko + k == z_size + nbz
+        if last_layer
             guedger = 0.0
         else
             guedger =
@@ -655,7 +663,7 @@ function compute_operator! end
         end
 
         # G(i - 1 / 2, k + 1)
-        if ko + k == z_size + nbz
+        if last_layer
             guedgel = 0.0
         else
             guedgel =
@@ -672,7 +680,7 @@ function compute_operator! end
         end
 
         # G(j + 1 / 2, k + 1)
-        if ko + k == z_size + nbz
+        if last_layer
             guedgef = 0.0
         else
             guedgef =
@@ -689,7 +697,7 @@ function compute_operator! end
         end
 
         # G(j - 1 / 2, k + 1)
-        if ko + k == z_size + nbz
+        if last_layer
             guedgeb = 0.0
         else
             guedgeb =
@@ -706,7 +714,7 @@ function compute_operator! end
         end
 
         # G(i + 1 / 2, k - 1)
-        if ko + k == k0
+        if first_layer
             gdedger = 0.0
         else
             gdedger =
@@ -723,7 +731,7 @@ function compute_operator! end
         end
 
         # G(i - 1 / 2, k - 1)
-        if ko + k == k0
+        if first_layer
             gdedgel = 0.0
         else
             gdedgel =
@@ -740,7 +748,7 @@ function compute_operator! end
         end
 
         # G(j + 1 / 2, k - 1)
-        if ko + k == k0
+        if first_layer
             gdedgef = 0.0
         else
             gdedgef =
@@ -757,7 +765,7 @@ function compute_operator! end
         end
 
         # G(j - 1 / 2, k - 1)
-        if ko + k == k0
+        if first_layer
             gdedgeb = 0.0
         else
             gdedgeb =
@@ -777,7 +785,7 @@ function compute_operator! end
 
         # ------------------- A(i,j,k) --------------------#
 
-        if ko + k == k0
+        if first_layer
             ac =
                 -gedger * pedgergra * (1.0 / dx + 0.75 * met13edger / dz) +
                 gedgel * pedgelgra * (1.0 / dx - 0.75 * met13edgel / dz) -
@@ -788,7 +796,7 @@ function compute_operator! end
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz -
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz -
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif ko + k == k0 + 1
+        elseif second_layer
             ac =
                 -gedger * pedgergra / dx + gedgel * pedgelgra / dx -
                 gedgef * pedgefgra / dy + gedgeb * pedgebgra / dy -
@@ -802,7 +810,7 @@ function compute_operator! end
                 gdedgel * pdedgelgra * met13dedgel / dz +
                 gdedgef * pdedgefgra * met23dedgef / dz +
                 gdedgeb * pdedgebgra * met23dedgeb / dz
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             ac =
                 -gedger * pedgergra / dx + gedgel * pedgelgra / dx -
                 gedgef * pedgefgra / dy + gedgeb * pedgebgra / dy -
@@ -816,7 +824,7 @@ function compute_operator! end
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz +
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz +
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             ac =
                 -gedger * pedgergra * (1.0 / dx - 0.75 * met13edger / dz) +
                 gedgel * pedgelgra * (1.0 / dx + 0.75 * met13edgel / dz) -
@@ -853,14 +861,14 @@ function compute_operator! end
 
         # ------------------ A(i+1,j,k) -------------------#
 
-        if ko + k == k0
+        if first_layer
             ar =
                 gedger * pedgergra * (1.0 / dx - 0.75 * met13edger / dz) +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
                 jac[i + 1, j, k + 1] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) -
                 guedger * puedgergra * 0.25 * met13uedger / dz
-        elseif ko + k == k0 + 1
+        elseif second_layer
             ar =
                 gedger * pedgergra / dx +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
@@ -870,7 +878,7 @@ function compute_operator! end
                 jac[i + 1, j, k - 1] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) -
                 guedger * puedgergra * 0.25 * met13uedger / dz +
                 gdedger * pdedgergra * met13dedger / dz
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             ar =
                 gedger * pedgergra / dx +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
@@ -880,7 +888,7 @@ function compute_operator! end
                 jac[i + 1, j, k - 1] / (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) -
                 guedger * puedgergra * met13uedger / dz +
                 gdedger * pdedgergra * 0.25 * met13dedger / dz
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             ar =
                 gedger * pedgergra * (1.0 / dx + 0.75 * met13edger / dz) +
                 gedged * pedgedgra * 0.5 * met13edged / dx *
@@ -901,14 +909,14 @@ function compute_operator! end
 
         # ------------------ A(i-1,j,k) -------------------#
 
-        if ko + k == k0
+        if first_layer
             al =
                 -gedgel * pedgelgra * (1.0 / dx + 0.75 * met13edgel / dz) -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
                 jac[i - 1, j, k + 1] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz
-        elseif ko + k == k0 + 1
+        elseif second_layer
             al =
                 -gedgel * pedgelgra / dx -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
@@ -919,7 +927,7 @@ function compute_operator! end
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz +
                 gdedgel * pdedgelgra * met13dedgel / dz
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             al =
                 -gedgel * pedgelgra / dx -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx *
@@ -930,7 +938,7 @@ function compute_operator! end
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 guedgel * puedgelgra * met13uedgel / dz +
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             al =
                 -gedgel * pedgelgra * (1.0 / dx - 0.75 * met13edgel / dz) -
                 gedged * pedgedgra * 0.5 * met13edged / dx *
@@ -952,14 +960,14 @@ function compute_operator! end
 
         # ------------------ A(i,j+1,k) -------------------#
 
-        if ko + k == k0
+        if first_layer
             af =
                 gedgef * pedgefgra * (1.0 / dy - 0.75 * met23edgef / dz) +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
                 jac[i, j + 1, k + 1] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) -
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz
-        elseif ko + k == k0 + 1
+        elseif second_layer
             af =
                 gedgef * pedgefgra / dy +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
@@ -969,7 +977,7 @@ function compute_operator! end
                 jac[i, j + 1, k - 1] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) -
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz +
                 gdedgef * pdedgefgra * met23dedgef / dz
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             af =
                 gedgef * pedgefgra / dy +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
@@ -979,7 +987,7 @@ function compute_operator! end
                 jac[i, j + 1, k - 1] / (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) -
                 guedgef * puedgefgra * met23uedgef / dz +
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             af =
                 gedgef * pedgefgra * (1.0 / dy + 0.75 * met23edgef / dz) +
                 gedged * pedgedgra * 0.5 * met23edged / dy *
@@ -1000,14 +1008,14 @@ function compute_operator! end
 
         # ------------------ A(i,j-1,k) -------------------#
 
-        if ko + k == k0
+        if first_layer
             ab =
                 -gedgeb * pedgebgra * (1.0 / dy + 0.75 * met23edgeb / dz) -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
                 jac[i, j - 1, k + 1] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif ko + k == k0 + 1
+        elseif second_layer
             ab =
                 -gedgeb * pedgebgra / dy -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
@@ -1018,7 +1026,7 @@ function compute_operator! end
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz +
                 gdedgeb * pdedgebgra * met23dedgeb / dz
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             ab =
                 -gedgeb * pedgebgra / dy -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy *
@@ -1029,7 +1037,7 @@ function compute_operator! end
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 guedgeb * puedgebgra * met23uedgeb / dz +
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             ab =
                 -gedgeb * pedgebgra * (1.0 / dy - 0.75 * met23edgeb / dz) -
                 gedged * pedgedgra * 0.5 * met23edged / dy *
@@ -1051,7 +1059,7 @@ function compute_operator! end
 
         # ------------------ A(i,j,k+1) -------------------#
 
-        if ko + k == k0
+        if first_layer
             au =
                 gedger * pedgergra * met13edger / dz +
                 gedgel * pedgelgra * met13edgel / dz +
@@ -1060,7 +1068,7 @@ function compute_operator! end
                 gedgeu * pedgeugra * met33edgeu / dz -
                 guedger * puedgergra / dx + guedgel * puedgelgra / dx -
                 guedgef * puedgefgra / dy + guedgeb * puedgebgra / dy
-        elseif ko + k == k0 + 1
+        elseif second_layer
             au =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgel * pedgelgra * 0.25 * met13edgel / dz +
@@ -1073,7 +1081,7 @@ function compute_operator! end
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz -
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz -
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             au =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgel * pedgelgra * 0.25 * met13edgel / dz +
@@ -1084,7 +1092,7 @@ function compute_operator! end
                 guedgel * puedgelgra * (1.0 / dx + 0.75 * met13uedgel / dz) -
                 guedgef * puedgefgra * (1.0 / dy - 0.75 * met23uedgef / dz) +
                 guedgeb * puedgebgra * (1.0 / dy + 0.75 * met23uedgeb / dz)
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             au = 0.0
         else
             au =
@@ -1099,9 +1107,9 @@ function compute_operator! end
 
         # ------------------ A(i,j,k-1) -------------------#
 
-        if ko + k == k0
+        if first_layer
             ad = 0.0
-        elseif ko + k == k0 + 1
+        elseif second_layer
             ad =
                 -gedger * pedgergra * 0.25 * met13edger / dz -
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
@@ -1112,7 +1120,7 @@ function compute_operator! end
                 gdedgel * pdedgelgra * (1.0 / dx - 0.75 * met13dedgel / dz) -
                 gdedgef * pdedgefgra * (1.0 / dy + 0.75 * met23dedgef / dz) +
                 gdedgeb * pdedgebgra * (1.0 / dy - 0.75 * met23dedgeb / dz)
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             ad =
                 -gedger * pedgergra * 0.25 * met13edger / dz -
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
@@ -1126,7 +1134,7 @@ function compute_operator! end
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             ad =
                 -gedger * pedgergra * met13edger / dz -
                 gedgel * pedgelgra * met13edgel / dz -
@@ -1148,26 +1156,26 @@ function compute_operator! end
 
         # ----------------- A(i+1,j,k+1) ------------------#
 
-        if ko + k == k0
+        if first_layer
             aru =
                 gedger * pedgergra * met13edger / dz +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) +
                 guedger * puedgergra / dx
-        elseif ko + k == k0 + 1
+        elseif second_layer
             aru =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) +
                 guedger * puedgergra / dx -
                 gdedger * pdedgergra * 0.25 * met13dedger / dz
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             aru =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k + 1]) +
                 guedger * puedgergra * (1.0 / dx + 0.75 * met13uedger / dz)
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             aru = 0.0
         else
             aru =
@@ -1179,22 +1187,22 @@ function compute_operator! end
 
         # ----------------- A(i+1,j,k-1) ------------------#
 
-        if ko + k == k0
+        if first_layer
             ard = 0.0
-        elseif ko + k == k0 + 1
+        elseif second_layer
             ard =
                 -gedger * pedgergra * 0.25 * met13edger / dz +
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) +
                 gdedger * pdedgergra * (1.0 / dx - 0.75 * met13dedger / dz)
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             ard =
                 -gedger * pedgergra * 0.25 * met13edger / dz +
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i + 1, j, k] /
                 (jac[i + 1, j, k] + jac[i + 1, j, k - 1]) +
                 gdedger * pdedgergra / dx +
                 guedger * puedgergra * 0.25 * met13uedger / dz
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             ard =
                 -gedger * pedgergra * met13edger / dz +
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i + 1, j, k] /
@@ -1210,26 +1218,26 @@ function compute_operator! end
 
         # ----------------- A(i-1,j,k+1) ------------------#
 
-        if ko + k == k0
+        if first_layer
             alu =
                 gedgel * pedgelgra * met13edgel / dz -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
                 guedgel * puedgelgra / dx
-        elseif ko + k == k0 + 1
+        elseif second_layer
             alu =
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
                 guedgel * puedgelgra / dx -
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             alu =
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gedgeu * pedgeugra * 0.5 * met13edgeu / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k + 1]) -
                 guedgel * puedgelgra * (1.0 / dx - 0.75 * met13uedgel / dz)
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             alu = 0.0
         else
             alu =
@@ -1241,22 +1249,22 @@ function compute_operator! end
 
         # ----------------- A(i-1,j,k-1) ------------------#
 
-        if ko + k == k0
+        if first_layer
             ald = 0.0
-        elseif ko + k == k0 + 1
+        elseif second_layer
             ald =
                 -gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 gdedgel * pdedgelgra * (1.0 / dx + 0.75 * met13dedgel / dz)
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             ald =
                 -gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i - 1, j, k] /
                 (jac[i - 1, j, k] + jac[i - 1, j, k - 1]) -
                 gdedgel * pdedgelgra / dx +
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             ald =
                 -gedgel * pedgelgra * met13edgel / dz -
                 gedged * pedgedgra * 0.5 * met13edged / dx * jac[i - 1, j, k] /
@@ -1272,26 +1280,26 @@ function compute_operator! end
 
         # ----------------- A(i,j+1,k+1) ------------------#
 
-        if ko + k == k0
+        if first_layer
             afu =
                 gedgef * pedgefgra * met23edgef / dz +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) +
                 guedgef * puedgefgra / dy
-        elseif ko + k == k0 + 1
+        elseif second_layer
             afu =
                 gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) +
                 guedgef * puedgefgra / dy -
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             afu =
                 gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k + 1]) +
                 guedgef * puedgefgra * (1.0 / dy + 0.75 * met23uedgef / dz)
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             afu = 0.0
         else
             afu =
@@ -1303,22 +1311,22 @@ function compute_operator! end
 
         # ----------------- A(i,j+1,k-1) ------------------#
 
-        if ko + k == k0
+        if first_layer
             afd = 0.0
-        elseif ko + k == k0 + 1
+        elseif second_layer
             afd =
                 -gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) +
                 gdedgef * pdedgefgra * (1.0 / dy - 0.75 * met23dedgef / dz)
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             afd =
                 -gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j + 1, k] /
                 (jac[i, j + 1, k] + jac[i, j + 1, k - 1]) +
                 gdedgef * pdedgefgra / dy +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             afd =
                 -gedgef * pedgefgra * met23edgef / dz +
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j + 1, k] /
@@ -1334,26 +1342,26 @@ function compute_operator! end
 
         # ----------------- A(i,j-1,k+1) ------------------#
 
-        if ko + k == k0
+        if first_layer
             abu =
                 gedgeb * pedgebgra * met23edgeb / dz -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
                 guedgeb * puedgebgra / dy
-        elseif ko + k == k0 + 1
+        elseif second_layer
             abu =
                 gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
                 guedgeb * puedgebgra / dy -
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             abu =
                 gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gedgeu * pedgeugra * 0.5 * met23edgeu / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k + 1]) -
                 guedgeb * puedgebgra * (1.0 / dy - 0.75 * met23uedgeb / dz)
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             abu = 0.0
         else
             abu =
@@ -1365,22 +1373,22 @@ function compute_operator! end
 
         # ----------------- A(i,j-1,k-1) ------------------#
 
-        if ko + k == k0
+        if first_layer
             abd = 0.0
-        elseif ko + k == k0 + 1
+        elseif second_layer
             abd =
                 -gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 gdedgeb * pdedgebgra * (1.0 / dy + 0.75 * met23dedgeb / dz)
-        elseif ko + k == z_size + nbz - 1
+        elseif second_to_last_layer
             abd =
                 -gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j - 1, k] /
                 (jac[i, j - 1, k] + jac[i, j - 1, k - 1]) -
                 gdedgeb * pdedgebgra / dy +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             abd =
                 -gedgeb * pedgebgra * met23edgeb / dz -
                 gedged * pedgedgra * 0.5 * met23edged / dy * jac[i, j - 1, k] /
@@ -1396,7 +1404,7 @@ function compute_operator! end
 
         # ------------------ A(i,j,k+2) -------------------#
 
-        if ko + k == k0
+        if first_layer
             auu =
                 -gedger * pedgergra * 0.25 * met13edger / dz -
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
@@ -1406,7 +1414,8 @@ function compute_operator! end
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif ko + k >= z_size + nbz - 1
+        elseif ko + k >= z_size + nbz - 1 &&
+               vertical_boundary_condition === :SolidWall
             auu = 0.0
         else
             auu =
@@ -1418,9 +1427,9 @@ function compute_operator! end
 
         # ------------------ A(i,j,k-2) -------------------#
 
-        if ko + k <= k0 + 1
+        if ko + k <= k0 + 1 && vertical_boundary_condition === :SolidWall
             add = 0.0
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             add =
                 gedger * pedgergra * 0.25 * met13edger / dz +
                 gedgel * pedgelgra * 0.25 * met13edgel / dz +
@@ -1440,11 +1449,12 @@ function compute_operator! end
 
         # ----------------- A(i+1,j,k+2) ------------------#
 
-        if ko + k == k0
+        if first_layer
             aruu =
                 -gedger * pedgergra * 0.25 * met13edger / dz +
                 guedger * puedgergra * 0.25 * met13uedger / dz
-        elseif ko + k >= z_size + nbz - 1
+        elseif ko + k >= z_size + nbz - 1 &&
+               vertical_boundary_condition === :SolidWall
             aruu = 0.0
         else
             aruu = guedger * puedgergra * 0.25 * met13uedger / dz
@@ -1452,9 +1462,9 @@ function compute_operator! end
 
         # ----------------- A(i+1,j,k-2) ------------------#
 
-        if ko + k <= k0 + 1
+        if ko + k <= k0 + 1 && vertical_boundary_condition === :SolidWall
             ardd = 0.0
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             ardd =
                 gedger * pedgergra * 0.25 * met13edger / dz -
                 gdedger * pdedgergra * 0.25 * met13dedger / dz
@@ -1464,11 +1474,12 @@ function compute_operator! end
 
         # ----------------- A(i-1,j,k+2) ------------------#
 
-        if ko + k == k0
+        if first_layer
             aluu =
                 -gedgel * pedgelgra * 0.25 * met13edgel / dz +
                 guedgel * puedgelgra * 0.25 * met13uedgel / dz
-        elseif ko + k >= z_size + nbz - 1
+        elseif ko + k >= z_size + nbz - 1 &&
+               vertical_boundary_condition === :SolidWall
             aluu = 0.0
         else
             aluu = guedgel * puedgelgra * 0.25 * met13uedgel / dz
@@ -1476,9 +1487,9 @@ function compute_operator! end
 
         # ----------------- A(i-1,j,k-2) ------------------#
 
-        if ko + k <= k0 + 1
+        if ko + k <= k0 + 1 && vertical_boundary_condition === :SolidWall
             aldd = 0.0
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             aldd =
                 gedgel * pedgelgra * 0.25 * met13edgel / dz -
                 gdedgel * pdedgelgra * 0.25 * met13dedgel / dz
@@ -1488,11 +1499,12 @@ function compute_operator! end
 
         # ----------------- A(i,j+1,k+2) ------------------#
 
-        if ko + k == k0
+        if first_layer
             afuu =
                 -gedgef * pedgefgra * 0.25 * met23edgef / dz +
                 guedgef * puedgefgra * 0.25 * met23uedgef / dz
-        elseif ko + k >= z_size + nbz - 1
+        elseif ko + k >= z_size + nbz - 1 &&
+               vertical_boundary_condition === :SolidWall
             afuu = 0.0
         else
             afuu = guedgef * puedgefgra * 0.25 * met23uedgef / dz
@@ -1500,9 +1512,9 @@ function compute_operator! end
 
         # ----------------- A(i,j+1,k-2) ------------------#
 
-        if ko + k <= k0 + 1
+        if ko + k <= k0 + 1 && vertical_boundary_condition === :SolidWall
             afdd = 0.0
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             afdd =
                 gedgef * pedgefgra * 0.25 * met23edgef / dz -
                 gdedgef * pdedgefgra * 0.25 * met23dedgef / dz
@@ -1512,11 +1524,12 @@ function compute_operator! end
 
         # ----------------- A(i,j-1,k+2) ------------------#
 
-        if ko + k == k0
+        if first_layer
             abuu =
                 -gedgeb * pedgebgra * 0.25 * met23edgeb / dz +
                 guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
-        elseif ko + k >= z_size + nbz - 1
+        elseif ko + k >= z_size + nbz - 1 &&
+               vertical_boundary_condition === :SolidWall
             abuu = 0.0
         else
             abuu = guedgeb * puedgebgra * 0.25 * met23uedgeb / dz
@@ -1524,9 +1537,9 @@ function compute_operator! end
 
         # ----------------- A(i,j-1,k-2) ------------------#
 
-        if ko + k <= k0 + 1
+        if ko + k <= k0 + 1 && vertical_boundary_condition === :SolidWall
             abdd = 0.0
-        elseif ko + k == z_size + nbz
+        elseif last_layer
             abdd =
                 gedgeb * pedgebgra * 0.25 * met23edgeb / dz -
                 gdedgeb * pdedgebgra * 0.25 * met23dedgeb / dz

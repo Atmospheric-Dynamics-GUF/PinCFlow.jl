@@ -214,6 +214,7 @@ end
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
+
                     ko + nz != z_size &&
                         k < k1 &&
                         kmax > k1 &&
@@ -356,6 +357,8 @@ end
 
     set_turbulence_fields_zero!(state)
 
+    set_tracer_fields_zero!(state)
+
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]
             if rays.dens[r, i, j, k] == 0
@@ -438,6 +441,7 @@ end
                         k > k0 &&
                         kmin < k0 &&
                         error("Vertical index is too small!")
+
                     ko + nz != z_size &&
                         k < k1 &&
                         kmax > k1 &&
@@ -529,7 +533,6 @@ end
     state::State,
     wkb_mode::Val{:SteadyState},
 )::Nothing
-    (; domain, grid) = state
     (; coriolis_frequency) = state.namelists.atmosphere
     (; tref) = state.constants
     (; i0, i1, j0, j1, k0, k1) = state.domain
@@ -546,6 +549,8 @@ end
     end
 
     set_turbulence_fields_zero!(state)
+
+    set_tracer_fields_zero!(state)
 
     for k in (k0 - 1):(k1 + 1), j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
         for r in 1:nray[i, j, k]

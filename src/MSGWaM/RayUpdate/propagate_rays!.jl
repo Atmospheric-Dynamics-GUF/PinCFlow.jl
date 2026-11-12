@@ -192,7 +192,7 @@ end
     wkb_mode::Union{Val{:SingleColumn}, Val{:MultiColumn}},
 )::Nothing
     (; branch, impact_altitude, blocking) = state.namelists.wkb
-    (; x_size, y_size) = state.namelists.domain
+    (; x_size, y_size, vertical_boundary_condition) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; lref, tref) = state.constants
     (; nray, cgx_max, cgy_max, cgz_max, rays, deltazb) = state.wkb
@@ -205,7 +205,7 @@ end
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    kmin = ko == 0 ? k0 - 1 : k0
+    kmin = ko == 0 && vertical_boundary_condition === :SolidWall ? k0 - 1 : k0
     kmax = k1
 
     # Initialize the WKB increments and maximum group velocities at the first
@@ -279,13 +279,20 @@ end
             # Determine if horizontal propagation and refraction are allowed.
             multi_column = wkb_mode === Val(:MultiColumn)
             launch_layer = k == k0 - 1
-            blocked_layer = blocking && zr1 < hb[i, j] + deltazb[i, j] / 2
+            blocked_layer =
+                vertical_boundary_condition === :SolidWall &&
+                blocking &&
+                zr1 < hb[i, j] + deltazb[i, j] / 2
+
             zonal_propagation =
                 x_size > 1 && multi_column && !launch_layer && !blocked_layer
             meridional_propagation =
                 y_size > 1 && multi_column && !launch_layer && !blocked_layer
             refraction =
-                zr > impact_altitude / lref && !launch_layer && !blocked_layer
+                vertical_boundary_condition === :SolidWall &&
+                zr > impact_altitude / lref &&
+                !launch_layer &&
+                !blocked_layer
 
             # Compute intrinsic zonal group velocity.
             if x_size > 1
@@ -490,7 +497,8 @@ end
     rkstage::Integer,
     wkb_mode::Val{:SteadyState},
 )::Nothing
-    (; x_size, y_size, z_size) = state.namelists.domain
+    (; x_size, y_size, z_size, vertical_boundary_condition) =
+        state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
     (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
     (; tref) = state.constants
@@ -509,7 +517,7 @@ end
 
     activate_orographic_source!(state)
 
-    if ko != 0
+    if ko != 0 || vertical_boundary_condition === :Periodic
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
         nray[i0:i1, j0:j1, k0 - 1] .= nray_down
@@ -562,7 +570,9 @@ end
             khr = sqrt(kr^2 + lr^2)
 
             # Set the reference level.
-            kref = ko == 0 ? max(k0, k - 1) : k - 1
+            kref =
+                (ko == 0 && vertical_boundary_condition === :SolidWall) ?
+                max(k0, k - 1) : k - 1
 
             # Compute the vertical group velocity at the level below.
             n2r = interpolate_stratification(rays.z[r, i, j, kref], state, N2())
@@ -688,7 +698,7 @@ end
         end
     end
 
-    if ko + nz != z_size
+    if ko + nz != z_size || vertical_boundary_condition === :Periodic
         nray_up = nray[i0:i1, j0:j1, k1]
         MPI.Send(nray_up, comm; dest = up)
 
