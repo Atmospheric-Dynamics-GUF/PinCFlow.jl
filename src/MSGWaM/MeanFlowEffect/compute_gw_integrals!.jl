@@ -373,19 +373,6 @@ end
                             kray,
                         )
 
-                        compute_gw_turbulence_integrals!(
-                            state,
-                            fc,
-                            omir,
-                            kr,
-                            lr,
-                            mr,
-                            wadr,
-                            iray,
-                            jray,
-                            kray,
-                        )
-
                         compute_gw_tracer_integrals!(
                             state,
                             LeadingOrder(),

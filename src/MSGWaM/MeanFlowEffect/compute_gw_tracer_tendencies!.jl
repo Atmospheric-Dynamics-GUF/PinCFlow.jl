@@ -132,6 +132,8 @@ end
         state.namelists.tracer
 
     if leading_order_impact
+        dchidt0[i, j, k] = 0.0
+
         if x_size > 1
             dchiu0 =
                 (uchi0[i + 1, j, k] - uchi0[i - 1, j, k]) / (2.0 * dx) +
@@ -151,8 +153,7 @@ end
         end
 
         dchiw0 =
-            (wchi0[i, j, k + 1] - wchi0[i, j, k - 1]) /
-            (2.0 * jac[i, j, k] * dz)
+            (wchi0[i, j, k + 1] - wchi0[i, j, k - 1]) / (2.0 * jac[i, j, k] * dz)
 
         dchidt0[i, j, k] =
             -(rho[i, j, k] + rhobar[i, j, k]) / rhobar[i, j, k] *
