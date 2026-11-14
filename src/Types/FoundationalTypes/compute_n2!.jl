@@ -34,7 +34,7 @@ N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}
 
   - `n2`: Squared buoyancy frequency.
 
-# See also
+# Calls
 
   - [`PinCFlow.Types.FoundationalTypes.set_vertical_boundaries_of_field!`](@ref)
 """

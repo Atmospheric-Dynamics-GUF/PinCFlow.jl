@@ -4,6 +4,12 @@ Macros
 ```
 
 Module that contains PinCFlow.jl's convenience macros.
+
+# Exports
+
+  - [`PinCFlow.Macros.@dispatch`](@ref)
+
+  - [`PinCFlow.Macros.@ivy`](@ref)
 """
 module Macros
 

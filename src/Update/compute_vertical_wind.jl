@@ -20,7 +20,9 @@ Compute and return the Cartesian vertical wind at the grid point ``\\left(i, j, 
 
   - `state`: Model state.
 
-# See also
+# Calls
+
+  - [`PinCFlow.Update.Cartesian`](@ref)
 
   - [`PinCFlow.Update.transform`](@ref)
 """

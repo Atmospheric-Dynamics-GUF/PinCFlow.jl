@@ -17,11 +17,11 @@ This method first calls `compute_orographic_modes!` and then launches correspond
 
   - `state`: Model state.
 
-# See also
-
-  - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
+# Calls
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
 """
 function activate_orographic_source! end
 

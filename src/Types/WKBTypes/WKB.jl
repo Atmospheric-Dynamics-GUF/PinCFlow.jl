@@ -87,9 +87,15 @@ This method primarily determines the size of the spectral dimension of ray-volum
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
+
+  - [`PinCFlow.Types.WKBTypes.ElasticModeSelection`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes.MergedRays`](@ref)
 
   - [`PinCFlow.Types.WKBTypes.Rays`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes.Spectrum`](@ref)
 
   - [`PinCFlow.Types.WKBTypes.SurfaceIndices`](@ref)
 
@@ -98,10 +104,6 @@ This method primarily determines the size of the spectral dimension of ray-volum
   - [`PinCFlow.Types.WKBTypes.WKBIntegrals`](@ref)
 
   - [`PinCFlow.Types.WKBTypes.WKBTendencies`](@ref)
-
-  - [`PinCFlow.Types.WKBTypes.Spectrum`](@ref)
-
-  - [`PinCFlow.Types.WKBTypes.ElasticModeSelection`](@ref)
 """
 struct WKB{
     A <: Integer,

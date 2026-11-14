@@ -5,13 +5,21 @@ BlockedLayer
 
 Module for the blocked-layer scheme.
 
-# See also
+# Scopes
 
   - [`PinCFlow.MSGWaM.Interpolation`](@ref)
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
+
+# Exports
+
+  - [`PinCFlow.MSGWaM.BlockedLayer.compute_blocked_layer!`](@ref)
+
+  - [`PinCFlow.MSGWaM.BlockedLayer.compute_orographic_flow`](@ref)
+
+  - [`PinCFlow.MSGWaM.BlockedLayer.include_blocked_flow_drag!`](@ref)
 """
 module BlockedLayer
 

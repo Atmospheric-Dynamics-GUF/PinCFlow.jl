@@ -27,7 +27,7 @@ where ``A_0`` and ``m`` are taken from `parameters` and ``N^2`` and ``E`` are ca
 
   - `z`: Vertical position.
 
-# See also
+# Calls
 
   - [`PinCFlow.Examples.WavePacketTools.envelope`](@ref)
 

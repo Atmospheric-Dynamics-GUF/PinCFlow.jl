@@ -7,11 +7,7 @@ Module for the integration of the ray equations.
 
 In addition to ray-volume initialization and propagation, functions for tracking ray volumes on the model grid and controlling their count, as well as a saturation scheme for capturing wave breaking, are provided.
 
-# See also
-
-  - [`PinCFlow.Macros`](@ref)
-
-  - [`PinCFlow.Types`](@ref)
+# Scopes
 
   - [`PinCFlow.MSGWaM.BoundaryRays`](@ref)
 
@@ -20,6 +16,24 @@ In addition to ray-volume initialization and propagation, functions for tracking
   - [`PinCFlow.MSGWaM.RayOperations`](@ref)
 
   - [`PinCFlow.MSGWaM.RaySources`](@ref)
+
+  - [`PinCFlow.Macros`](@ref)
+
+  - [`PinCFlow.Types`](@ref)
+
+# Exports
+
+  - [`PinCFlow.MSGWaM.RayUpdate.apply_saturation_scheme!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.initialize_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.propagate_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.shift_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.split_rays!`](@ref)
 """
 module RayUpdate
 

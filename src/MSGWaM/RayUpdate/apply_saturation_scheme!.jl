@@ -55,11 +55,13 @@ is such that wave action is reduced exactly to the saturation threshold. The two
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
 
-  - [`PinCFlow.MSGWaM.RayOperations.compute_saturation_integrals`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.N2`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_saturation_integrals`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
 """

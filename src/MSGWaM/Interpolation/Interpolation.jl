@@ -7,13 +7,47 @@ Module for interpolating mean-flow quantities to ray-volume positions.
 
 Provides functions that find the grid points closest to a given ray-volume position and perform trilinear interpolation of mean-flow quantities.
 
-# See also
+# Scopes
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 
   - [`PinCFlow.Update`](@ref)
+
+# Exports
+
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDX`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDY`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DChiDZ`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DN2DZ`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DUDX`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DUDY`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DUDZ`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DVDX`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DVDY`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.DVDZ`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.N2`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 """
 module Interpolation
 

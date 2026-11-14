@@ -11,7 +11,7 @@ If the domain is parallelized in ``\\hat{z}``, ray-volume counts and the ray vol
 
   - `state`: Model state.
 
-# See also
+# Calls
 
   - [`PinCFlow.MPIOperations.set_vertical_halos_of_field!`](@ref)
 

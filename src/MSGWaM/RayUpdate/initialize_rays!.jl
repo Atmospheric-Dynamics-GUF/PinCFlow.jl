@@ -28,13 +28,19 @@ In each grid cell, `wave_modes` wave modes are computed, using `state.namelists.
 
   - `wkb_mode`: Approximations used by MS-GWaM.
 
-# See also
+# Calls
 
-  - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.N2`](@ref)
+
+  - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_stratification`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation.interpolate_mean_flow`](@ref)
+  - [`PinCFlow.MSGWaM.RaySources.compute_orographic_modes!`](@ref)
+
+  - [`PinCFlow.Types.U`](@ref)
+
+  - [`PinCFlow.Types.V`](@ref)
 """
 function initialize_rays! end
 

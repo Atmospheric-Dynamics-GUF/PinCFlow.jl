@@ -11,7 +11,7 @@ Add a scatter plot to `figure` using the data in `input`.
 
   - `input`: Data and specifications for the plot.
 
-# See also
+# Calls
 
   - [`PinCFlow.symmetric_contours`](@ref)
 

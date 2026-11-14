@@ -11,7 +11,7 @@ In each grid cell, this method moves all ray volumes as far to the front of the 
 
   - `state`: Model state.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 """

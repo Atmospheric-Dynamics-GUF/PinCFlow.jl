@@ -5,11 +5,63 @@ PinCFlow
 
 Main module of PinCFlow.jl.
 
-# See also
+# Scopes
+
+  - [`PinCFlow.Examples`](@ref)
+
+  - [`PinCFlow.Integration`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 
-  - [`PinCFlow.Integration`](@ref)
+# Exports
+
+  - [`PinCFlow.Examples.cold_bubble`](@ref)
+
+  - [`PinCFlow.Examples.hot_bubble`](@ref)
+
+  - [`PinCFlow.Examples.mountain_wave`](@ref)
+
+  - [`PinCFlow.Examples.periodic_hill`](@ref)
+
+  - [`PinCFlow.Examples.vortex`](@ref)
+
+  - [`PinCFlow.Examples.wave_packet`](@ref)
+
+  - [`PinCFlow.Examples.wkb_mountain_wave`](@ref)
+
+  - [`PinCFlow.Examples.wkb_wave_packet`](@ref)
+
+  - [`PinCFlow.Integration.integrate`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.AtmosphereNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.DiscretizationNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.DomainNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.GridNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.Namelists`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.OutputNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.PoissonNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.SpongeNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.TracerNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.TurbulenceNamelist`](@ref)
+
+  - [`PinCFlow.Types.NamelistTypes.WKBNamelist`](@ref)
+
+  - [`PinCFlow.Types.State`](@ref)
+
+  - [`PinCFlow.plot_output`](@ref)
+
+  - [`PinCFlow.set_visualization_theme!`](@ref)
+
+  - [`PinCFlow.symmetric_contours`](@ref)
 """
 module PinCFlow
 
