@@ -30,6 +30,7 @@ WKBNamelist(;
     saturation_violated_message::Bool = false,
     saturation_threshold::Real = 1.0E+0,
     wkb_mode::Symbol = :NoWKB,
+    check_propagation::Bool = false,
     orographic_flow::Symbol = :Average,
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
@@ -97,6 +98,8 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `wkb_mode::Symbol`: Approximations used by MS-GWaM.
 
+  - `check_propagation::Bool`: Switch for safety checks that will throw an error if a ray propagates faster than one grid spacing per time step in any direction.
+
   - `orographic_flow::Symbol`: Method used to approximate quantities of the mountain-wave-generating background flow.
 
   - `blocking::Bool`: Switch for parameterizing blocking in WKB-mountain-wave simulations.
@@ -156,6 +159,7 @@ struct WKBNamelist
     saturation_violated_message::Bool
     saturation_threshold::Float64
     wkb_mode::Symbol
+    check_propagation::Bool
     orographic_flow::Symbol
     blocking::Bool
     long_threshold::Float64
@@ -198,6 +202,7 @@ function WKBNamelist(;
     saturation_violated_message::Bool = false,
     saturation_threshold::Real = 1.0E+0,
     wkb_mode::Symbol = :NoWKB,
+    check_propagation::Bool = false,
     orographic_flow::Symbol = :Average,
     blocking::Bool = false,
     long_threshold::Real = 2.5E-1,
@@ -237,6 +242,7 @@ function WKBNamelist(;
         saturation_violated_message,
         Float64(saturation_threshold),
         wkb_mode,
+        check_propagation,
         orographic_flow,
         blocking,
         Float64(long_threshold),
