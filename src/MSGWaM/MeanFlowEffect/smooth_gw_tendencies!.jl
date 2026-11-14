@@ -192,9 +192,21 @@ Return for configurations without tracer transport.
 
   - `tracer_setup`: General tracer-transport configuration.
 
-# See also
+# Calls
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect.apply_shapiro_filter!`](@ref)
+
+  - [`PinCFlow.Types.X`](@ref)
+
+  - [`PinCFlow.Types.XYZ`](@ref)
+
+  - [`PinCFlow.Types.XZ`](@ref)
+
+  - [`PinCFlow.Types.Y`](@ref)
+
+  - [`PinCFlow.Types.YZ`](@ref)
+
+  - [`PinCFlow.Types.Z`](@ref)
 """
 function smooth_gw_tendencies! end
 

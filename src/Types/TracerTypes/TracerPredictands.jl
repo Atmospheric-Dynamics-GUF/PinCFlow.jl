@@ -66,11 +66,11 @@ Construct a `TracerPredictands` instance with a tracer initialized by the functi
 
   - `variables`: Container for arrays needed for the prediction of the prognostic variables.
 
-# See also
-
-  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
+# Calls
 
   - [`PinCFlow.Types.FoundationalTypes.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Types.FoundationalTypes.set_zonal_boundaries_of_field!`](@ref)
 """
 struct TracerPredictands{A <: AbstractArray{<:AbstractFloat, 3}}
     chi::A

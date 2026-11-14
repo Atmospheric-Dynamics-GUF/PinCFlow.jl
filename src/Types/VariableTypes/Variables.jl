@@ -50,19 +50,19 @@ Construct a `Variables` instance, with array dimensions and initial values set a
 
   - `atmosphere`: Atmospheric-background fields.
 
-# See also
-
-  - [`PinCFlow.Types.VariableTypes.Predictands`](@ref)
-
-  - [`PinCFlow.Types.VariableTypes.Increments`](@ref)
-
-  - [`PinCFlow.Types.VariableTypes.Backups`](@ref)
+# Calls
 
   - [`PinCFlow.Types.VariableTypes.Auxiliaries`](@ref)
 
-  - [`PinCFlow.Types.VariableTypes.Reconstructions`](@ref)
+  - [`PinCFlow.Types.VariableTypes.Backups`](@ref)
 
   - [`PinCFlow.Types.VariableTypes.Fluxes`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.Increments`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.Predictands`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.Reconstructions`](@ref)
 
   - [`PinCFlow.Types.VariableTypes.StressTensor`](@ref)
 """

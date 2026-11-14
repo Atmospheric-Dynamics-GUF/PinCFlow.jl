@@ -12,6 +12,22 @@ In the first step, MS-GWaM's saturation scheme is applied to account for the imp
   - `state`: Model state.
 
   - `dtstage`: Time step.
+
+# Calls
+
+  - [`PinCFlow.MSGWaM.BoundaryRays.set_boundary_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.MeanFlowEffect.compute_mean_flow_effect!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.apply_saturation_scheme!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.merge_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.propagate_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.shift_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayUpdate.split_rays!`](@ref)
 """
 function wkb_integration! end
 

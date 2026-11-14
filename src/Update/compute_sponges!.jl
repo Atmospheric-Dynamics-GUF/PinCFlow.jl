@@ -15,11 +15,11 @@ The coefficients are computed with the functions `lhs_sponge` and `rhs_sponge` i
 
   - `time`: Simulation time.
 
-# See also
-
-  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
+# Calls
 
   - [`PinCFlow.Boundaries.set_meridional_boundaries_of_field!`](@ref)
+
+  - [`PinCFlow.Boundaries.set_zonal_boundaries_of_field!`](@ref)
 """
 function compute_sponges! end
 

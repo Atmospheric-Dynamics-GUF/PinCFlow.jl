@@ -62,29 +62,29 @@ This method first uses the parameters specified in `namelists` to construct inst
 
   - `base_comm`: MPI communicator which is used to create the Cartesian communicator for the integration.
 
-# See also
+# Calls
+
+  - [`PinCFlow.Types.FoundationalTypes.Atmosphere`](@ref)
 
   - [`PinCFlow.Types.FoundationalTypes.Constants`](@ref)
-
-  - [`PinCFlow.Types.FoundationalTypes.Time`](@ref)
 
   - [`PinCFlow.Types.FoundationalTypes.Domain`](@ref)
 
   - [`PinCFlow.Types.FoundationalTypes.Grid`](@ref)
 
-  - [`PinCFlow.Types.FoundationalTypes.Atmosphere`](@ref)
-
   - [`PinCFlow.Types.FoundationalTypes.Sponge`](@ref)
 
+  - [`PinCFlow.Types.FoundationalTypes.Time`](@ref)
+
   - [`PinCFlow.Types.PoissonTypes.Poisson`](@ref)
-
-  - [`PinCFlow.Types.VariableTypes.Variables`](@ref)
-
-  - [`PinCFlow.Types.WKBTypes.WKB`](@ref)
 
   - [`PinCFlow.Types.TracerTypes.Tracer`](@ref)
 
   - [`PinCFlow.Types.TurbulenceTypes.Turbulence`](@ref)
+
+  - [`PinCFlow.Types.VariableTypes.Variables`](@ref)
+
+  - [`PinCFlow.Types.WKBTypes.WKB`](@ref)
 """
 struct State{
     A <: Namelists,

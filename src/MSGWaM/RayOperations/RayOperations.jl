@@ -5,13 +5,45 @@ RayOperations
 
 Module for various ray-volume operations needed throughout `PinCFlow.MSGWaM`.
 
-# See also
+# Scopes
+
+  - [`PinCFlow.MSGWaM.Interpolation`](@ref)
 
   - [`PinCFlow.Macros`](@ref)
 
   - [`PinCFlow.Types`](@ref)
 
-  - [`PinCFlow.MSGWaM.Interpolation`](@ref)
+# Exports
+
+  - [`PinCFlow.MSGWaM.RayOperations.check_rays`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_merge_index`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_saturation_integrals`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_spectral_bounds`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_turbulent_velocity`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.compute_wave_action_integral`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_extent`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_physical_position`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_extent`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_spectral_position`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.get_surfaces`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.remove_rays!`](@ref)
+
+  - [`PinCFlow.MSGWaM.RayOperations.update_merged_rays!`](@ref)
 """
 module RayOperations
 
@@ -47,7 +79,6 @@ export check_rays,
     get_spectral_extent,
     get_spectral_position,
     get_surfaces,
-    merge_wave_action,
     remove_rays!,
     update_merged_rays!,
     compute_turbulent_velocity
