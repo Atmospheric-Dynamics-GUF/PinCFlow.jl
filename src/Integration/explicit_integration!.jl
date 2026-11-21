@@ -44,12 +44,30 @@ function explicit_integration!(
     p0::Predictands,
     dtstage::AbstractFloat,
     time::AbstractFloat,
-    side::LHS,
+    side::LHS;
+    boundary_start_time::Real = time - dtstage,
 )
     (; nstages, stepfrac) = state.time
     (; tracer_setup) = state.namelists.tracer
 
+    # Optional prescribed lower-boundary source.
+    incoming_boundary = state.namelists.domain.lower_boundary == :incoming_igw
+    rk_fraction = 0.0
+
+    if incoming_boundary
+        set_boundary_time!(state, boundary_start_time * state.constants.tref)
+        set_boundaries!(state, BoundaryPredictands())
+    end
+
     @ivy for rkstage in 1:nstages
+
+        # The flux calculator uses transporting velocities from p0.
+        # Update only its physical lower-boundary normal velocity.
+        if incoming_boundary && state.domain.ko == 0
+            kface = state.domain.k0 - 1
+            @views p0.w[:, :, kface] .= state.variables.predictands.w[:, :, kface]
+        end
+
         reconstruct!(state)
         set_boundaries!(state, BoundaryReconstructions())
 
@@ -84,6 +102,15 @@ function explicit_integration!(
         apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, U())
         apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, V())
         apply_lhs_sponge!(state, stepfrac[rkstage] * dtstage, time, W())
+
+        # Advance the prescribed boundary to the next RK stage.
+        if incoming_boundary
+            rk_fraction += stepfrac[rkstage]
+
+            stage_time = boundary_start_time + rk_fraction * dtstage
+
+            set_boundary_time!(state, stage_time * state.constants.tref)
+        end
 
         set_boundaries!(state, BoundaryPredictands())
     end
@@ -161,8 +188,16 @@ function explicit_integration!(
     p0::Predictands,
     dtstage::AbstractFloat,
     time::AbstractFloat,
-    side::RHS,
+    side::RHS;
+    boundary_start_time::Real = time - dtstage,
 )
+
+    incoming_boundary = state.namelists.domain.lower_boundary == :incoming_igw
+
+    if incoming_boundary
+        set_boundary_time!(state, boundary_start_time * state.constants.tref)
+    end
+
     synchronize_compressible_atmosphere!(state, state.variables.predictands)
 
     modify_compressible_wind!(state, *)
@@ -180,6 +215,10 @@ function explicit_integration!(
     update!(state, dtstage, PiP())
 
     modify_compressible_wind!(state, /)
+
+    if incoming_boundary
+        set_boundary_time!(state, (boundary_start_time + dtstage) * state.constants.tref)
+    end
 
     set_boundaries!(state, BoundaryPredictands())
 

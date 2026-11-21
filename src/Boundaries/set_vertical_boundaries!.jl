@@ -193,6 +193,12 @@ function set_vertical_boundaries!(
     set_vertical_boundaries_of_field!(w, namelists, domain, -; staggered = true)
     set_vertical_boundaries_of_field!(pip, namelists, domain, +)
 
+    # Optional prescribed incoming-field boundary.
+    # This overrides only the physical lower-boundary values.
+    if namelists.domain.lower_boundary == :incoming_igw
+        set_prescribed_lower_predictands!(state)
+    end
+
     return
 end
 
@@ -271,22 +277,42 @@ function set_vertical_boundaries!(
     return
 end
 
+
 function set_vertical_boundaries!(
     state::State,
     variables::BoundaryFluxes,
     model::Boussinesq,
 )
-    (; z_size) = state.namelists.domain
+    (; z_size, lower_boundary) = state.namelists.domain
     (; nz, ko, k0, k1) = state.domain
     (; fluxes) = state.variables
 
     @ivy if ko == 0
-        for field in (:phirhop, :phiu, :phiv, :phitheta)
-            getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
+
+        if lower_boundary == :solid_wall
+
+            # Original solid-wall conditions.
+            for field in (:phirhop, :phiu, :phiv, :phitheta)
+                getfield(fluxes, field)[:, :, k0 - 1, 3] .= 0.0
+            end
+
+        elseif lower_boundary == :incoming_igw
+
+            # Preserve computed vertical fluxes:
+            #   phirhop, phiu, phiv
+            #
+            # No advective potential-temperature flux is
+            # computed in the Boussinesq implementation.
+            fluxes.phitheta[:, :, k0 - 1, 3] .= 0.0
+
         end
+
+        # Retain the original lower vertical-momentum
+        # flux condition. The boundary w-face is prescribed.
         fluxes.phiw[:, :, k0 - 2, 3] .= 0.0
     end
 
+    # Original upper-boundary treatment (unchanged).
     @ivy if ko + nz == z_size
         for field in (:phirhop, :phiu, :phiv, :phiw, :phitheta)
             getfield(fluxes, field)[:, :, k1, 3] .= 0.0
@@ -295,6 +321,7 @@ function set_vertical_boundaries!(
 
     return
 end
+
 
 function set_vertical_boundaries!(
     state::State,

@@ -20,6 +20,7 @@ DomainNamelist(;
     npy::Integer = 1,
     npz::Integer = 1,
     base_comm::MPI.Comm = MPI.COMM_WORLD,
+    lower_boundary::Symbol = :solid_wall,
 )::DomainNamelist
 ```
 
@@ -52,6 +53,10 @@ Construct a `DomainNamelist` instance with the given keyword arguments as proper
   - `npz::A`: Number of MPI processes in ``\\widehat{z}``-direction.
 
   - `base_comm::C`: MPI base communicator.
+    
+  - `lower_boundary::Symbol`: Lower-boundary condition.
+    `:solid_wall` retains the existing impermeable boundary.
+    `:incoming_igw` selects the WRS-B incoming-wave boundary.
 """
 struct DomainNamelist{A <: Int, B <: Float64, C <: MPI.Comm}
     x_size::A
@@ -67,6 +72,7 @@ struct DomainNamelist{A <: Int, B <: Float64, C <: MPI.Comm}
     npy::A
     npz::A
     base_comm::C
+    lower_boundary::Symbol
 end
 
 function DomainNamelist(;
@@ -83,7 +89,12 @@ function DomainNamelist(;
     npy::Integer = 1,
     npz::Integer = 1,
     base_comm::MPI.Comm = MPI.COMM_WORLD,
+    lower_boundary::Symbol = :solid_wall,
 )::DomainNamelist
+
+    lower_boundary in (:solid_wall, :incoming_igw) ||
+        throw(ArgumentError("Unsupported lower_boundary: $lower_boundary"))
+
     return DomainNamelist(
         Int(x_size),
         Int(y_size),
@@ -98,5 +109,6 @@ function DomainNamelist(;
         Int(npy),
         Int(npz),
         base_comm,
+        lower_boundary,
     )
 end

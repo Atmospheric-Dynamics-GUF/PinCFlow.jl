@@ -87,9 +87,11 @@ include("set_tracer_zonal_boundaries!.jl")
 include("set_meridional_boundaries_of_field!.jl")
 include("set_meridional_boundaries!.jl")
 include("set_vertical_boundaries_of_field!.jl")
+include("set_prescribed_lower_predictands!.jl")
 include("set_vertical_boundaries!.jl")
 include("set_zonal_boundaries_of_field!.jl")
 include("set_zonal_boundaries!.jl")
+include("incoming_igw_interface.jl")
 
 export BoundaryPredictands,
     BoundaryReconstructions,
@@ -105,4 +107,5 @@ export set_boundaries!,
     set_zonal_boundaries_of_field!,
     set_zonal_boundaries!
 
+export set_boundary_time!, evaluate_boundary_source
 end

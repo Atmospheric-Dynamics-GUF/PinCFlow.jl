@@ -89,7 +89,8 @@ struct State{
     I <: Variables,
     J <: WKB,
     K <: Tracer,
-    L <: TriadTendencies
+    L <: TriadTendencies,
+    M
 }
     namelists::A
     time::B
@@ -103,9 +104,22 @@ struct State{
     wkb::J
     tracer::K
     spec_tend::L
+    boundary_source::M
+    boundary_time::Base.RefValue{Float64}
 end
 
-function State(namelists::Namelists)::State
+function State(namelists::Namelists; boundary_source=nothing)::State
+    (; lower_boundary) = namelists.domain
+    if lower_boundary == :incoming_igw
+        boundary_source === nothing &&
+            throw(ArgumentError(
+                "An boundary_source must be provided when lower_boundary=:incoming_igw"
+            ))
+    elseif boundary_source !== nothing
+        throw(ArgumentError(
+            "boundary_source requires lower_boundary=:incoming_igw"
+        ))
+    end
     constants = Constants(namelists)
     time = Time()
     domain = Domain(namelists)
@@ -131,5 +145,7 @@ function State(namelists::Namelists)::State
         wkb,
         tracer,
         spec_tend,
+        boundary_source,
+        Ref(0.0),
     )
 end

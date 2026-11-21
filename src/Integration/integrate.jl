@@ -65,7 +65,8 @@ Therein, the left-hand sides of the equations include advective fluxes, diffusio
 """
 function integrate end
 
-function integrate(namelists::Namelists; resolved_source = nothing)
+function integrate(namelists::Namelists; resolved_source=nothing, resolved_diagnostic=nothing, boundary_source=nothing)
+
 
     #-------------------------------------------------
     #                     Setup
@@ -89,7 +90,7 @@ function integrate(namelists::Namelists; resolved_source = nothing)
     naveragebicg = 0.0
 
     # Initialize the model state.
-    state = State(namelists)
+    state = State(namelists; boundary_source=boundary_source)
 
     # Save machine start time.
     machine_start_time = now()
@@ -239,6 +240,8 @@ function integrate(namelists::Namelists; resolved_source = nothing)
         end
 
         time += dt
+        # Beginning of the current full timestep (nondimensional).
+        boundary_start_time = time - dt
 
         #-----------------------------------------------------------------
         #                           Sponges
@@ -271,6 +274,10 @@ function integrate(namelists::Namelists; resolved_source = nothing)
 
         synchronize_density_fluctuations!(state)
 
+        if namelists.domain.lower_boundary == :incoming_igw
+            set_boundary_time!(state, boundary_start_time * tref)
+        end
+
         set_boundaries!(state, BoundaryPredictands())
 
         (p0, chi0) = backup_predictands(state)
@@ -282,11 +289,15 @@ function integrate(namelists::Namelists; resolved_source = nothing)
             println("")
         end
 
-        explicit_integration!(state, p0, 0.5 * dt, time, LHS())
+        explicit_integration!(state, p0, 0.5 * dt, time, LHS(); boundary_start_time=boundary_start_time)
 
         if master
             println("(2) Implicit integration of RHS over dt/2...")
             println("")
+        end
+
+        if namelists.domain.lower_boundary == :incoming_igw
+            set_boundary_time!(state, (time - 0.5 * dt) * tref)
         end
 
         ntotalbicg = implicit_integration!(
@@ -300,6 +311,10 @@ function integrate(namelists::Namelists; resolved_source = nothing)
             machine_start_time,
         )
 
+        if resolved_diagnostic !== nothing
+            resolved_diagnostic(state, time, dt, :after_first_implicit)
+        end
+
         p1 = deepcopy(state.variables.predictands)
 
         if master
@@ -309,7 +324,7 @@ function integrate(namelists::Namelists; resolved_source = nothing)
 
         reset_predictands!(state, p0, chi0)
 
-        explicit_integration!(state, p0, 0.5 * dt, time, RHS())
+        explicit_integration!(state, p0, 0.5 * dt, time, RHS(); boundary_start_time=boundary_start_time)
 
         if master
             println("(4) Explicit integration of LHS over dt...")
@@ -320,13 +335,17 @@ function integrate(namelists::Namelists; resolved_source = nothing)
 
         synchronize_compressible_atmosphere!(state, p0)
 
-        explicit_integration!(state, p0, dt, time, LHS())
+        explicit_integration!(state, p0, dt, time, LHS(); boundary_start_time=boundary_start_time)
 
         if master
             println("(5) Implicit integration of RHS over dt/2...")
             println("")
         end
 
+        if namelists.domain.lower_boundary == :incoming_igw
+            set_boundary_time!(state, time * tref)
+        end
+        
         ntotalbicg = implicit_integration!(
             state,
             0.5 * dt,
@@ -337,6 +356,10 @@ function integrate(namelists::Namelists; resolved_source = nothing)
             iout,
             machine_start_time,
         )
+
+        if resolved_diagnostic !== nothing
+            resolved_diagnostic(state, time, dt, :after_step)
+        end
 
         if master
             println("...the semi-implicit time step is done.")
@@ -509,6 +532,10 @@ function integrate(namelists::Namelists, shear::AbstractArray)
         end
 
         time = read_input!(state)
+
+        if namelists.domain.lower_boundary == :incoming_igw
+            set_boundary_time!(state, time * tref)
+        end
 
         if tmax < time * tref
             error("Restart error: tmax < time!")

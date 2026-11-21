@@ -14,7 +14,7 @@ function interaction_matrix(
     v_k12_p = - sqrt(kpr * kp1 * kp2 / (abs(mr * m1 * m2))) *    #for the hydrostatic case
             (kp1 * m2 - kp2 * m1) * 
             (sign(kpr * kp2) * abs(mr * m2) - sign(kpr * kp1) * abs(mr * m1) - mr * m1 + mr * m2) /
-            2 / sqrt(2)  / kpr / abs(m1 * m2)
+            4 / sqrt(2)  / kpr / abs(m1 * m2)
     #omegar = compute_omega_hat(kpr, mr)
     #omega1 = compute_omega_hat(kp1, m1) 
     #omega2 = compute_omega_hat(kp2, m2) 
@@ -39,7 +39,7 @@ function interaction_matrix(
     v_k12_m = - sqrt(kpr * kp1 * kp2 / (abs(mr * m1 * m2))) *
             (kp1 * m2 - kp2 * m1) * 
             (sign(kpr * kp2) * abs(mr * m2) - sign(kpr * kp1) * abs(mr * m1) - mr * m1 - mr * m2) /
-            2 / sqrt(2)  / kpr / abs(m1 * m2)  
+            4 / sqrt(2)  / kpr / abs(m1 * m2)  
     #omegar = compute_omega_hat(kpr, mr)
     #omega1 = compute_omega_hat(kp1, m1) 
     #omega2 = compute_omega_hat(kp2, m2) 
