@@ -141,7 +141,8 @@ end
             wadr / omir / rhobar[i, j, k] * mr^2 * n2r * (kr^2 + lr^2) /
             (kr^2 + lr^2 + mr^2)
 
-        convectiveq1[i, j, k] += lb * mr / 2 * real(1im * bamp * conj(q1r)) * factor
+        convectiveq1[i, j, k] +=
+            lb * mr / 2 * real(1im * bamp * conj(q1r)) * factor
 
         convectiveq2[i, j, k] -=
             lb * mr^2 / 4 * real(conj(q2r) * bamp * bamp / n2r) * factor

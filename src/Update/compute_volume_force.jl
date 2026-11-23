@@ -415,5 +415,6 @@ end
 
     dtapedt0[i, j, k] = dtapedt
 
-    dtapedt + convectiveq1[i, j, k] + convectiveq2[i, j, k] - buoyancyq1[i, j, k]
+    dtapedt + convectiveq1[i, j, k] + convectiveq2[i, j, k] -
+    buoyancyq1[i, j, k]
 end
