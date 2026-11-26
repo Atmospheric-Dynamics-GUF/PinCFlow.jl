@@ -114,6 +114,7 @@ jobs:
       # (and list files for debugging).
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
+      - uses: julia-actions/setup-julia@v3
       - run: ls -R
       # Next, we merge the individual coverage files and upload
       # the combined results to Coveralls.
