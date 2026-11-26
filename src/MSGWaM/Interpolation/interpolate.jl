@@ -1,30 +1,65 @@
 """
 ```julia
 interpolate(
-    state::State;
-    philbd::AbstractFloat = NaN,
-    philbu::AbstractFloat = NaN,
-    philfd::AbstractFloat = NaN,
-    philfu::AbstractFloat = NaN,
-    phirbd::AbstractFloat = NaN,
-    phirbu::AbstractFloat = NaN,
-    phirfd::AbstractFloat = NaN,
-    phirfu::AbstractFloat = NaN,
-    zlbd::AbstractFloat = NaN,
-    zlbu::AbstractFloat = NaN,
-    zlfd::AbstractFloat = NaN,
-    zlfu::AbstractFloat = NaN,
-    zrbd::AbstractFloat = NaN,
-    zrbu::AbstractFloat = NaN,
-    zrfd::AbstractFloat = NaN,
-    zrfu::AbstractFloat = NaN,
-    zlc::AbstractFloat = NaN,
-    yb::AbstractFloat = NaN,
-    yf::AbstractFloat = NaN,
-    ylc::AbstractFloat = NaN,
-    xl::AbstractFloat = NaN,
-    xr::AbstractFloat = NaN,
-    xlc::AbstractFloat = NaN,
+    input::NamedTuple{
+        (:phid, :phiu, :zd, :zu, :zlc),
+        <:NTuple{5, <:AbstractFloat},
+    },
+)::AbstractFloat
+```
+
+Perform linear interpolation to `zlc` with the values `(phid, phiu)` at the positions `(zd, zu)`.
+
+The result is given by
+
+```math
+\\phi_\\mathrm{C} = f_z \\phi_\\mathrm{D} + (1 - f_z) \\phi_\\mathrm{U}
+```
+
+Therein, ``\\mathrm{D}`` and ``\\mathrm{U}`` denote grid points downward and upward of the location of interest (denoted by ``\\mathrm{C}``), respectively, and
+
+```math
+f_z = \\begin{cases}
+0 & \\mathrm{if} \\quad z_\\mathrm{D} = z_\\mathrm{U},\\\\
+1 & \\mathrm{if} \\quad z_\\mathrm{C} < z_\\mathrm{D},\\\\
+\\frac{z_\\mathrm{U} - z_\\mathrm{C}}{z_\\mathrm{U} - z_\\mathrm{D}} & \\mathrm{if} \\quad z_\\mathrm{D} \\leq z_\\mathrm{C} \\leq z_\\mathrm{U},\\\\
+0 & \\mathrm{if} \\quad z_\\mathrm{U} < z_\\mathrm{C},
+\\end{cases}
+```
+
+where ``\\left(\\alpha, \\beta, \\gamma\\right) \\in \\left\\{\\left(x, \\mathrm{L}, \\mathrm{R}\\right), \\left(y, \\mathrm{B}, \\mathrm{F}\\right), \\left(z, \\mathrm{D}, \\mathrm{U}\\right)\\right\\}``.
+
+```julia
+interpolate(
+    state::State,
+    input::NamedTuple{
+        (
+            :philbd,
+            :philbu,
+            :philfd,
+            :philfu,
+            :phirbd,
+            :phirbu,
+            :phirfd,
+            :phirfu,
+            :zlbd,
+            :zlbu,
+            :zlfd,
+            :zlfu,
+            :zrbd,
+            :zrbu,
+            :zrfd,
+            :zrfu,
+            :zlc,
+            :yb,
+            :yf,
+            :ylc,
+            :xl,
+            :xr,
+            :xlc,
+        ),
+        <:NTuple{22, <:AbstractFloat},
+    },
 )::AbstractFloat
 ```
 
@@ -60,102 +95,147 @@ The exact algorithm is as follows.
     \\phi_\\mathrm{C} = f_z \\phi_\\mathrm{D} + (1 - f_z) \\phi_\\mathrm{U}
     ```
 
-Therein, ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}`` denote grid points to the left, to the right, forward, backward, downward and upward of the location of interest (denoted by ``\\mathrm{C}``), respectively, ``\\psi = \\left(\\phi, z\\right)`` and
-
-```math
-f_\\alpha = \\begin{cases}
-0 & \\mathrm{if} \\quad \\alpha_\\beta = \\alpha_\\gamma,\\\\
-1 & \\mathrm{if} \\quad \\alpha_\\mathrm{C} < \\alpha_\\beta,\\\\
-\\frac{\\alpha_\\gamma - \\alpha_\\mathrm{C}}{\\alpha_\\gamma - \\alpha_\\beta} & \\mathrm{if} \\quad \\alpha_\\beta \\leq \\alpha_\\mathrm{C} \\leq \\alpha_\\gamma,\\\\
-0 & \\mathrm{if} \\quad \\alpha_\\gamma < \\alpha_\\mathrm{C},
-\\end{cases}
-```
-
-where ``\\left(\\alpha, \\beta, \\gamma\\right) \\in \\left\\{\\left(x, \\mathrm{L}, \\mathrm{R}\\right), \\left(y, \\mathrm{B}, \\mathrm{F}\\right), \\left(z, \\mathrm{D}, \\mathrm{U}\\right)\\right\\}``.
-
-Due to their large number, the positions and values are given as keyword arguments with the default value `NaN`, so that their order does not matter and calls with missing arguments are easy to detect.
+Therein, ``\\mathrm{L}``, ``\\mathrm{R}``, ``\\mathrm{B}``, ``\\mathrm{F}``, ``\\mathrm{D}`` and ``\\mathrm{U}`` denote grid points to the left, to the right, forward, backward, downward and upward of the location of interest (denoted by ``\\mathrm{C}``), respectively, ``\\psi = \\left(\\phi, z\\right)`` and the definitions of ``f_x`` and ``f_y`` are analogous to the above definition of ``f_z``.
 
 # Arguments
 
   - `state`: Model state.
 
-# Keywords
+  - `input`: Values and positions for the interpolation:
 
-  - `philbd`: Value at the point to the left, behind and below.
+      - `philbd`: Value at the point to the left, behind and below.
 
-  - `philbu`: Value at the point to the left, behind and above.
+      - `philbu`: Value at the point to the left, behind and above.
 
-  - `philfd`: Value at the point to the left, in front and below.
+      - `philfd`: Value at the point to the left, in front and below.
 
-  - `philfu`: Value at the point to the left, in front and above.
+      - `philfu`: Value at the point to the left, in front and above.
 
-  - `phirbd`: Value at the point to the right, behind and below.
+      - `phirbd`: Value at the point to the right, behind and below.
 
-  - `phirbu`: Value at the point to the right, behind and above.
+      - `phirbu`: Value at the point to the right, behind and above.
 
-  - `phirfd`: Value at the point to the right, in front and below.
+      - `phirfd`: Value at the point to the right, in front and below.
 
-  - `phirfu`: Value at the point to the right, in front and above.
+      - `phirfu`: Value at the point to the right, in front and above.
 
-  - `zlbd`: Vertical coordinate of the point to the left, behind and below.
+      - `zlbd`: Vertical coordinate of the point to the left, behind and below.
 
-  - `zlbu`: Vertical coordinate of the point to the left, behind and above.
+      - `zlbu`: Vertical coordinate of the point to the left, behind and above.
 
-  - `zlfd`: Vertical coordinate of the point to the left, in front and below.
+      - `zlfd`: Vertical coordinate of the point to the left, in front and below.
 
-  - `zlfu`: Vertical coordinate of the point to the left, in front and above.
+      - `zlfu`: Vertical coordinate of the point to the left, in front and above.
 
-  - `zrbd`: Vertical coordinate of the point to the right, behind and below.
+      - `zrbd`: Vertical coordinate of the point to the right, behind and below.
 
-  - `zrbu`: Vertical coordinate of the point to the right, behind and above.
+      - `zrbu`: Vertical coordinate of the point to the right, behind and above.
 
-  - `zrfd`: Vertical coordinate of the point to the right, in front and below.
+      - `zrfd`: Vertical coordinate of the point to the right, in front and below.
 
-  - `zrfu`: Vertical coordinate of the point to the right, in front and above.
+      - `zrfu`: Vertical coordinate of the point to the right, in front and above.
 
-  - `zlc`: Vertical position of interest.
+      - `zlc`: Vertical position of interest.
 
-  - `yb`: Meridional coordinate of the points behind.
+      - `yb`: Meridional coordinate of the points behind.
 
-  - `yf`: Meridional coordinate of the points in front.
+      - `yf`: Meridional coordinate of the points in front.
 
-  - `ylc`: Meridional position of interest.
+      - `ylc`: Meridional position of interest.
 
-  - `xl`: Zonal coordinate of the points to the left.
+      - `xl`: Zonal coordinate of the points to the left.
 
-  - `xr`: Zonal coordinate of the points to the right.
+      - `xr`: Zonal coordinate of the points to the right.
 
-  - `xlc`: Zonal position of interest.
+      - `xlc`: Zonal position of interest.
 """
 function interpolate end
 
 function interpolate(
-    state::State;
-    philbd::AbstractFloat = NaN,
-    philbu::AbstractFloat = NaN,
-    philfd::AbstractFloat = NaN,
-    philfu::AbstractFloat = NaN,
-    phirbd::AbstractFloat = NaN,
-    phirbu::AbstractFloat = NaN,
-    phirfd::AbstractFloat = NaN,
-    phirfu::AbstractFloat = NaN,
-    zlbd::AbstractFloat = NaN,
-    zlbu::AbstractFloat = NaN,
-    zlfd::AbstractFloat = NaN,
-    zlfu::AbstractFloat = NaN,
-    zrbd::AbstractFloat = NaN,
-    zrbu::AbstractFloat = NaN,
-    zrfd::AbstractFloat = NaN,
-    zrfu::AbstractFloat = NaN,
-    zlc::AbstractFloat = NaN,
-    yb::AbstractFloat = NaN,
-    yf::AbstractFloat = NaN,
-    ylc::AbstractFloat = NaN,
-    xl::AbstractFloat = NaN,
-    xr::AbstractFloat = NaN,
-    xlc::AbstractFloat = NaN,
+    input::NamedTuple{
+        (:phid, :phiu, :zd, :zu, :zlc),
+        <:NTuple{5, <:AbstractFloat},
+    },
+)::AbstractFloat
+    (; phid, phiu, zd, zu, zlc) = input
+
+    if zu < zd
+        error(
+            "Incorrect vertical-interpolation points: zu = ",
+            zu,
+            " < zd = ",
+            zd,
+        )
+    elseif zu == zd
+        factor = 0.0
+    elseif zlc > zu
+        factor = 0.0
+    elseif zlc > zd
+        factor = (zu - zlc) / (zu - zd)
+    else
+        factor = 1.0
+    end
+
+    factor * phid + (1.0 - factor) * phiu
+end
+
+function interpolate(
+    state::State,
+    input::NamedTuple{
+        (
+            :philbd,
+            :philbu,
+            :philfd,
+            :philfu,
+            :phirbd,
+            :phirbu,
+            :phirfd,
+            :phirfu,
+            :zlbd,
+            :zlbu,
+            :zlfd,
+            :zlfu,
+            :zrbd,
+            :zrbu,
+            :zrfd,
+            :zrfu,
+            :zlc,
+            :yb,
+            :yf,
+            :ylc,
+            :xl,
+            :xr,
+            :xlc,
+        ),
+        <:NTuple{23, <:AbstractFloat},
+    },
 )::AbstractFloat
     (; x_size, y_size) = state.namelists.domain
+    (;
+        philbd,
+        philbu,
+        philfd,
+        philfu,
+        phirbd,
+        phirbu,
+        phirfd,
+        phirfu,
+        zlbd,
+        zlbu,
+        zlfd,
+        zlfu,
+        zrbd,
+        zrbu,
+        zrfd,
+        zrfu,
+        zlc,
+        yb,
+        yf,
+        ylc,
+        xl,
+        xr,
+        xlc,
+    ) = input
 
     # Interpolate in x.
     if x_size == 1
@@ -233,25 +313,5 @@ function interpolate(
         zu = factor * zbu + (1.0 - factor) * zfu
     end
 
-    # Interpolate in z.
-    if zu < zd
-        error(
-            "Incorrect vertical-interpolation points: zu = ",
-            zu,
-            " < zd = ",
-            zd,
-        )
-    elseif zu == zd
-        factor = 0.0
-    elseif zlc > zu
-        factor = 0.0
-    elseif zlc > zd
-        factor = (zu - zlc) / (zu - zd)
-    else
-        factor = 1.0
-    end
-
-    phi = factor * phid + (1.0 - factor) * phiu
-
-    phi
+    interpolate((; phid, phiu, zd, zu, zlc))
 end

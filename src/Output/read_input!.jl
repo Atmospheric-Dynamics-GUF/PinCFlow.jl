@@ -1,9 +1,9 @@
 """
 ```julia
-read_input!(state::State)::Nothing
+read_input!(state::State)::AbstractFloat
 ```
 
-Read initial values for all prognostic variables from an HDF5 input file.
+Read the time and initial values for all prognostic variables from an HDF5 input file and return the time.
 
 # Arguments
 
@@ -11,7 +11,7 @@ Read initial values for all prognostic variables from an HDF5 input file.
 """
 function read_input! end
 
-@ivy function read_input!(state::State)::Nothing
+@ivy function read_input!(state::State)::AbstractFloat
     (; x_size, y_size) = state.namelists.domain
     (; iin, input_file) = state.namelists.output
     (; model) = state.namelists.atmosphere

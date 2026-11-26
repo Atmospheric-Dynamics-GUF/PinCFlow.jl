@@ -19,6 +19,7 @@ WKBNamelist(;
     dkr_factor::Real = 1.0E-1,
     dlr_factor::Real = 1.0E-1,
     dmr_factor::Real = 1.0E-1,
+    vertical_multiplication_factor::Integer = 2,
     branch::Integer = -1,
     merge_mode::Symbol = :ConstantWaveAction,
     filter_order::Integer = 2,
@@ -26,6 +27,7 @@ WKBNamelist(;
     filter_type::Symbol = :ShapiroFilter,
     impact_altitude::Real = 0.0E+0,
     use_saturation::Bool = true,
+    saturation_violated_message::Bool = false,
     saturation_threshold::Real = 1.0E+0,
     wkb_mode::Symbol = :NoWKB,
     orographic_flow::Symbol = :Average,
@@ -73,6 +75,8 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
 
   - `dmr_factor::Float64`: Relative initial ray-volume extent in ``m``.
 
+  - `vertical_multiplication_factor::Integer`: Factor that controls the size of the ray-volume arrays by accounting for ray-volume multiplication in the vertical.
+
   - `branch::Int`: Frequency branch.
 
   - `merge_mode::Symbol`: Ray-volume merging strategy (conserved quantity).
@@ -86,6 +90,8 @@ Construct a `WKBNamelist` instance with the given keyword arguments as propertie
   - `impact_altitude::Float64`: Minimum altitude for ray-tracing and mean-flow impact.
 
   - `use_saturation::Bool`: Switch for the saturation scheme.
+
+  - `saturation_violated_message::Bool`: Switch for printing a warning when the saturation criterion is locally violated directly after the saturation scheme was applied. Setting this to true when using multiple MPI processes can result in a jumbled standard output.
 
   - `saturation_threshold::Float64`: Relative saturation threshold.
 
@@ -139,6 +145,7 @@ struct WKBNamelist
     dkr_factor::Float64
     dlr_factor::Float64
     dmr_factor::Float64
+    vertical_multiplication_factor::Int
     branch::Int
     merge_mode::Symbol
     filter_order::Int
@@ -146,6 +153,7 @@ struct WKBNamelist
     filter_type::Symbol
     impact_altitude::Float64
     use_saturation::Bool
+    saturation_violated_message::Bool
     saturation_threshold::Float64
     wkb_mode::Symbol
     orographic_flow::Symbol
@@ -179,6 +187,7 @@ function WKBNamelist(;
     dkr_factor::Real = 1.0E-1,
     dlr_factor::Real = 1.0E-1,
     dmr_factor::Real = 1.0E-1,
+    vertical_multiplication_factor::Integer = 2,
     branch::Integer = -1,
     merge_mode::Symbol = :ConstantWaveAction,
     filter_order::Integer = 2,
@@ -186,6 +195,7 @@ function WKBNamelist(;
     filter_type::Symbol = :ShapiroFilter,
     impact_altitude::Real = 0.0E+0,
     use_saturation::Bool = true,
+    saturation_violated_message::Bool = false,
     saturation_threshold::Real = 1.0E+0,
     wkb_mode::Symbol = :NoWKB,
     orographic_flow::Symbol = :Average,
@@ -216,6 +226,7 @@ function WKBNamelist(;
         Float64(dkr_factor),
         Float64(dlr_factor),
         Float64(dmr_factor),
+        Int(vertical_multiplication_factor),
         Int(branch),
         merge_mode,
         Int(filter_order),
@@ -223,6 +234,7 @@ function WKBNamelist(;
         filter_type,
         Float64(impact_altitude),
         use_saturation,
+        saturation_violated_message,
         Float64(saturation_threshold),
         wkb_mode,
         orographic_flow,
