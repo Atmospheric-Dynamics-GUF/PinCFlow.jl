@@ -47,30 +47,30 @@ function include_blocked_flow_drag! end
     for k in k0:k1, j in j0:j1, i in i0:i1
         bf = blocked_fraction(state, i, j, k)
 
-        if bf > 0
-            (kh, lh) = compute_slope(state, i, j)
+        bf <= 0 && continue
 
-            projection =
-                (
-                    (u[i, j, k] + u[i - 1, j, k]) * kh +
-                    (v[i, j, k] + v[i, j - 1, k]) * lh
-                ) / 2
+        (kh, lh) = compute_slope(state, i, j)
 
-            up = projection * kh / (kh^2 + lh^2)
-            vp = projection * lh / (kh^2 + lh^2)
+        projection =
+            (
+                (u[i, j, k] + u[i - 1, j, k]) * kh +
+                (v[i, j, k] + v[i, j - 1, k]) * lh
+            ) / 2
 
-            drag_factor =
-                -drag_coefficient *
-                (rho[i, j, k] + rhobar[i, j, k]) *
-                sqrt(kh^2 + lh^2) / (2 * pi) * sqrt(up^2 + vp^2)
+        up = projection * kh / (kh^2 + lh^2)
+        vp = projection * lh / (kh^2 + lh^2)
 
-            dudtb = drag_factor * up
-            dvdtb = drag_factor * vp
+        drag_factor =
+            -drag_coefficient *
+            (rho[i, j, k] + rhobar[i, j, k]) *
+            sqrt(kh^2 + lh^2) / (2 * pi) * sqrt(up^2 + vp^2)
 
-            dudt[i, j, k] = bf * dudtb + (1 - bf) * dudt[i, j, k]
-            dvdt[i, j, k] = bf * dvdtb + (1 - bf) * dvdt[i, j, k]
-            dthetadt[i, j, k] = (1 - bf) * dthetadt[i, j, k]
-        end
+        dudtb = drag_factor * up
+        dvdtb = drag_factor * vp
+
+        dudt[i, j, k] = bf * dudtb + (1 - bf) * dudt[i, j, k]
+        dvdt[i, j, k] = bf * dvdtb + (1 - bf) * dvdt[i, j, k]
+        dthetadt[i, j, k] = (1 - bf) * dthetadt[i, j, k]
     end
 
     nothing
