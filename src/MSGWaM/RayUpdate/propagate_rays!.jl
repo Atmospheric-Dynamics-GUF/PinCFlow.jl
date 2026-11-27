@@ -655,32 +655,33 @@ end
             diffusion = (m2b2 - saturation_threshold^2 * n2r^2) / (2 * m2b2k2)
         end
 
+        # Continue if the saturation scheme is switched off.
+        if !saturation
+            continue
+        end
+
         # Reduce the wave action density.
-        if saturation
-            for r in 1:nray[i, j, k]
-                if rays.dens[r, i, j, k] == 0
-                    continue
-                end
-                (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
-                khr = sqrt(kr^2 + lr^2)
-                n2r =
-                    interpolate_stratification(rays.z[r, i, j, k], state, N2())
-                omir =
-                    -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
-                    (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
-                if fc < branch * omir < sqrt(n2r)
-                    cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
-                else
-                    rays.dens[r, i, j, kref] = 0.0
-                    rays.dens[r, i, j, k] = 0.0
-                    continue
-                end
-                rays.dens[r, i, j, k] *= max(
-                    0,
-                    1 -
-                    jac[i, j, k] * dz / cgirz * 2 * diffusion * (khr^2 + mr^2),
-                )
+        for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
+                continue
             end
+            (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
+            khr = sqrt(kr^2 + lr^2)
+            n2r = interpolate_stratification(rays.z[r, i, j, k], state, N2())
+            omir =
+                -(u[i, j, k] + u[i - 1, j, k]) / 2 * kr -
+                (v[i, j, k] + v[i, j - 1, k]) / 2 * lr
+            if fc < branch * omir < sqrt(n2r)
+                cgirz = mr * (fc^2 - n2r) * khr^2 / omir / (khr^2 + mr^2)^2
+            else
+                rays.dens[r, i, j, kref] = 0.0
+                rays.dens[r, i, j, k] = 0.0
+                continue
+            end
+            rays.dens[r, i, j, k] *= max(
+                0,
+                1 - jac[i, j, k] * dz / cgirz * 2 * diffusion * (khr^2 + mr^2),
+            )
         end
     end
 
