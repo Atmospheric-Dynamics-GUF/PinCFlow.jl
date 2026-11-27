@@ -28,7 +28,7 @@ Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for r
 
 # See also
 
-  - [`PinCFlow.FluxCalculator.apply_1d_muscl!`](@ref)
+  - [`PinCFlow.FluxCalculator.muscl`](@ref)
 """
 function apply_3d_muscl! end
 
