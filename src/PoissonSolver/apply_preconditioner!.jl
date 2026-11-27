@@ -47,6 +47,7 @@ function apply_preconditioner!(
     state::State,
 )::Nothing
     (; dtau, preconditioner_iterations) = state.namelists.poisson
+    (; nx, ny, nz) = state.domain
     (; dx, dy) = state.grid
     (; au_b, ac_b, ad_b) = state.poisson.tensor
     (; ath, bth, cth, fth, qth) = state.variables.auxiliaries
@@ -56,19 +57,19 @@ function apply_preconditioner!(
     # Set pseudo-time step.
     deta = dtau / (2 * (1 / dx^2 + 1 / dy^2))
 
-    ath .= .-deta .* ad_b
-    bth .= 1.0 .- deta .* ac_b
-    cth .= .-deta .* au_b
+    @fuse ath = -deta * ad_b
+    @fuse bth = 1.0 - deta * ac_b
+    @fuse cth = -deta * au_b
 
     # Iterate.
     for niter in 1:preconditioner_iterations
         apply_operator!(fth, qth, Horizontal(), state)
-        fth .+= deta .* (qth .- sin)
+        @fuse fth += deta * (qth - sin)
 
         thomas_algorithm!(state)
     end
 
-    sout .= fth
+    @fuse sout = fth
 
     nothing
 end

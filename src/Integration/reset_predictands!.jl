@@ -66,7 +66,7 @@ function reset_predictands!(
 )::Nothing
     (; chi) = state.tracer.tracerpredictands
 
-    chi .= tracerpredictands.chi
+    @fuse chi = tracerpredictands.chi
 
     nothing
 end
@@ -78,10 +78,10 @@ function reset_predictands!(
 )::Nothing
     (; rhop, u, v, w) = state.variables.predictands
 
-    rhop .= predictands.rhop
-    u .= predictands.u
-    v .= predictands.v
-    w .= predictands.w
+    @fuse rhop = predictands.rhop
+    @fuse u = predictands.u
+    @fuse v = predictands.v
+    @fuse w = predictands.w
 
     nothing
 end
@@ -93,11 +93,11 @@ function reset_predictands!(
 )::Nothing
     (; rho, rhop, u, v, w) = state.variables.predictands
 
-    rho .= predictands.rho
-    rhop .= predictands.rhop
-    u .= predictands.u
-    v .= predictands.v
-    w .= predictands.w
+    @fuse rho = predictands.rho
+    @fuse rhop = predictands.rhop
+    @fuse u = predictands.u
+    @fuse v = predictands.v
+    @fuse w = predictands.w
 
     nothing
 end
@@ -109,13 +109,13 @@ function reset_predictands!(
 )::Nothing
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
 
-    rho .= predictands.rho
-    rhop .= predictands.rhop
-    u .= predictands.u
-    v .= predictands.v
-    w .= predictands.w
-    pip .= predictands.pip
-    p .= predictands.p
+    @fuse rho = predictands.rho
+    @fuse rhop = predictands.rhop
+    @fuse u = predictands.u
+    @fuse v = predictands.v
+    @fuse w = predictands.w
+    @fuse pip = predictands.pip
+    @fuse p = predictands.p
 
     nothing
 end

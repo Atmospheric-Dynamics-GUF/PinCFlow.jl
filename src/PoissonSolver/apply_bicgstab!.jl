@@ -28,7 +28,7 @@ function apply_bicgstab!(
     (; x_size, y_size, z_size) = state.namelists.domain
     (; tolerance, poisson_iterations, preconditioner, tolerance_is_relative) =
         state.namelists.poisson
-    (; master, comm) = state.domain
+    (; master, comm, nx, ny, nz) = state.domain
     (; lhs, solution) = state.poisson
     (; p, r0, rold, r, s, t, v, matvec, v_pc) = state.poisson.bicgstab
 
@@ -41,7 +41,7 @@ function apply_bicgstab!(
     end
 
     # Initialize solution.
-    solution .= 0.0
+    @fuse solution = 0.0
 
     # Set parameters.
     maxit = poisson_iterations
@@ -56,11 +56,11 @@ function apply_bicgstab!(
     errflag = false
 
     apply_operator!(solution, matvec, Total(), state)
-    r0 .= lhs .- matvec
-    p .= r0
-    r .= r0
+    @fuse r0 = lhs - matvec
+    @fuse p = r0
+    @fuse r = r0
 
-    res = sum(a -> a^2, r)
+    res = sum(rijk -> rijk^2, r)
     res = MPI.Allreduce(res, +, comm)
     res = sqrt(res / x_size / y_size / z_size)
 
@@ -85,38 +85,37 @@ function apply_bicgstab!(
         if preconditioner
             apply_preconditioner!(p, v_pc, state)
         else
-            v_pc .= p
+            @fuse v_pc = p
         end
         apply_operator!(v_pc, matvec, Total(), state)
-        v .= matvec
+        @fuse v = matvec
 
         alpha =
             compute_global_dot_product(r, r0, state) /
             compute_global_dot_product(v, r0, state)
-        s .= r .- alpha .* v
+        @fuse s = r - alpha * v
 
         # t = A*s
         if preconditioner
             apply_preconditioner!(s, v_pc, state)
         else
-            v_pc .= s
+            @fuse v_pc = s
         end
         apply_operator!(v_pc, matvec, Total(), state)
-        t .= matvec
+        @fuse t = matvec
 
         omega =
             compute_global_dot_product(t, s, state) /
             compute_global_dot_product(t, t, state)
-        solution .+= alpha .* p .+ omega .* s
-
-        rold .= r
-        r .= s .- omega .* t
+        @fuse solution += alpha * p + omega * s
+        @fuse rold = r
+        @fuse r = s - omega * t
 
         #-----------------------
         #   Abort criterion
         #-----------------------
 
-        res = sum(a -> a^2, r)
+        res = sum(rijk -> rijk^2, r)
         res = MPI.Allreduce(res, +, comm)
         res = sqrt(res / x_size / y_size / z_size)
 
@@ -130,7 +129,7 @@ function apply_bicgstab!(
             niter = j_b
 
             if preconditioner
-                s .= solution
+                @fuse s = solution
                 apply_preconditioner!(s, solution, state)
             end
 
@@ -140,7 +139,7 @@ function apply_bicgstab!(
         beta =
             alpha / omega * compute_global_dot_product(r, r0, state) /
             compute_global_dot_product(rold, r0, state)
-        p .= r .+ beta .* (p .- omega .* v)
+        @fuse p = r + beta * (p - omega * v)
     end
 
     errflag = true

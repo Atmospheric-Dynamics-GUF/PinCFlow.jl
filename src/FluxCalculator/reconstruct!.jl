@@ -149,7 +149,7 @@ end
 
     kk = (k0 - 1):(k1 + 1)
 
-    phi[:, :, kk] .= rho[:, :, kk] ./ pbar[:, :, kk]
+    @fuse phi[:, :, kk] = rho[:, :, kk] / pbar[:, :, kk]
 
     @dispatch_limiter_type apply_3d_muscl!(
         phi,
@@ -173,7 +173,7 @@ end
 
     kk = (k0 - 1):(k1 + 1)
 
-    phi[:, :, kk] .= rhop[:, :, kk] ./ pbar[:, :, kk]
+    @fuse phi[:, :, kk] = rhop[:, :, kk] / pbar[:, :, kk]
 
     @dispatch_limiter_type apply_3d_muscl!(
         phi,
@@ -195,7 +195,7 @@ end
     (; utilde) = state.variables.reconstructions
     (; rhobar, pbar) = state.atmosphere
 
-    for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:(nxx - 1)
+    @fuse for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:(nxx - 1)
         rhoedge =
             0.5 * (
                 rho[i, j, k] +
@@ -227,7 +227,7 @@ end
     (; vtilde) = state.variables.reconstructions
     (; rhobar, pbar) = state.atmosphere
 
-    for k in (k0 - 1):(k1 + 1), j in 1:(nyy - 1), i in 1:nxx
+    @fuse for k in (k0 - 1):(k1 + 1), j in 1:(nyy - 1), i in 1:nxx
         rhoedge =
             0.5 * (
                 rho[i, j, k] +
@@ -262,16 +262,16 @@ end
     (; wtilde) = state.variables.reconstructions
     (; rhobar, pbar) = state.atmosphere
 
-    phi[:, :, (k0 - 1):(k1 + 1)] .= w[:, :, (k0 - 1):(k1 + 1)]
+    @fuse phi[:, :, (k0 - 1):(k1 + 1)] = w[:, :, (k0 - 1):(k1 + 1)]
 
-    for k in (k0 - 1):(k1 + 1), j in j0:j1, i in i0:i1
+    @fuse for k in (k0 - 1):(k1 + 1), j in j0:j1, i in i0:i1
         phi[i, j, k] = compute_vertical_wind(i, j, k, state)
     end
 
     set_zonal_boundaries_of_field!(phi, namelists, domain)
     set_meridional_boundaries_of_field!(phi, namelists, domain)
 
-    for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
+    @fuse for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
         rhoedgeu =
             (
                 jac[i, j, k + 1] * (rho[i, j, k] + rhobar[i, j, k]) +
@@ -308,11 +308,11 @@ end
     (; pbar) = state.atmosphere
     (; tracerreconstructions, tracerpredictands) = state.tracer
 
+    kk = (k0 - 1):(k1 + 1)
+
     @dispatch_limiter_type for field in 1:fieldcount(TracerPredictands)
         chi = getfield(tracerpredictands, field)[:, :, :]
-        for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
-            phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]
-        end
+        @fuse phi[:, :, kk] = chi[:, :, kk] / pbar[:, :, kk]
         apply_3d_muscl!(
             phi,
             getfield(tracerreconstructions, field),
@@ -333,11 +333,11 @@ end
     (; pbar) = state.atmosphere
     (; turbulencereconstructions, turbulencepredictands) = state.turbulence
 
+    kk = (k0 - 1):(k1 + 1)
+
     @dispatch_limiter_type for field in 1:fieldcount(TurbulencePredictands)
         chi = getfield(turbulencepredictands, field)[:, :, :]
-        for k in (k0 - 1):(k1 + 1), j in 1:nyy, i in 1:nxx
-            phi[i, j, k] = chi[i, j, k] / pbar[i, j, k]
-        end
+        @fuse phi[:, :, kk] = chi[:, :, kk] / pbar[:, :, kk]
         apply_3d_muscl!(
             phi,
             getfield(turbulencereconstructions, field),

@@ -12,15 +12,16 @@ Read the time and initial values for all prognostic variables from an HDF5 input
 function read_input! end
 
 @ivy function read_input!(state::State)::AbstractFloat
-    (; x_size, y_size) = state.namelists.domain
-    (; iin, input_file) = state.namelists.output
-    (; model) = state.namelists.atmosphere
-    (; wkb_mode) = state.namelists.wkb
-    (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = state.domain
-    (; lref, tref, rhoref, uref, thetaref) = state.constants
+    (; namelists, constants, domain, grid, atmosphere) = state
+    (; x_size, y_size) = namelists.domain
+    (; iin, input_file) = namelists.output
+    (; model) = namelists.atmosphere
+    (; wkb_mode) = namelists.wkb
+    (; comm, nx, ny, nz, io, jo, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; lref, tref, rhoref, uref, thetaref) = constants
     (; rho, rhop, u, v, w, pip, p) = state.variables.predictands
     (; bins, nray, rays) = state.wkb
-    (; rhobar) = state.atmosphere
+    (; rhobar) = atmosphere
 
     # Determine dimensionality.
     dim = 1
@@ -47,24 +48,36 @@ function read_input! end
         # Read the time.
         time = file["t"][iin == -1 ? end : iin] / tref
 
+        # Update the grid.
+        compute_grid!(namelists, constants, domain, grid, time)
+
+        # Update the background fields.
+        compute_background_fields!(
+            namelists,
+            constants,
+            domain,
+            grid,
+            atmosphere,
+        )
+
         # Read the density fluctuations.
         rhop[ii, jj, kk] =
-            file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref
+            @fuse file["rhop"][iid, jjd, kkd, iin == -1 ? end : iin] / rhoref
         if model !== :Boussinesq
-            rho[ii, jj, kk] .= rhop[ii, jj, kk]
+            @fuse rho[ii, jj, kk] = rhop[ii, jj, kk]
         end
 
         # Read the staggered zonal wind.
         u[ii, jj, kk] =
-            file["us"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+            @fuse file["us"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
 
         # Read the staggered meridional wind.
         v[ii, jj, kk] =
-            file["vs"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+            @fuse file["vs"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
 
         # Read the staggered transformed vertical wind.
         w[ii, jj, kk] =
-            file["wts"][iid, jjd, kkd, iin == -1 ? end : iin] ./ uref
+            @fuse file["wts"][iid, jjd, kkd, iin == -1 ? end : iin] / uref
 
         # Read the Exner-pressure fluctuations.
         pip[ii, jj, kk] = file["pip"][iid, jjd, kkd, iin == -1 ? end : iin]
@@ -72,21 +85,25 @@ function read_input! end
         # Read the mass-weighted potential temperature.
         if model === :Compressible
             p[ii, jj, kk] =
-                file["p"][iid, jjd, kkd, iin == -1 ? end : iin] ./ rhoref ./
-                thetaref
+                @fuse file["p"][iid, jjd, kkd, iin == -1 ? end : iin] / rhoref / thetaref
         end
 
         if state.namelists.tracer.tracer_setup !== :NoTracer
             for field in fieldnames(TracerPredictands)
-                getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] =
-                    file[string(field)][iid, jjd, kkd, iin == -1 ? end : iin] .* (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+                field_string = string(field)
+                getfield(state.tracer.tracerpredictands, field)[ii, jj, kk] = @fuse file[field_string][
+                    iid,
+                    jjd,
+                    kkd,
+                    iin == -1 ? end : iin,
+                ] * (rhobar[ii, jj, kk] + rho[ii, jj, kk])
             end
         end
 
         if state.namelists.turbulence.turbulence_scheme !== :NoTurbulence
             state.turbulence.turbulencepredictands.tke[ii, jj, kk] =
-                file["tke"][iid, jjd, kkd, iin == -1 ? end : iin] .*
-                (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) ./ uref .^ 2
+                @fuse file["tke"][iid, jjd, kkd, iin == -1 ? end : iin] *
+                      (rhobar[ii, jj, kk] + rho[ii, jj, kk]) / uref^2
         end
 
         # Read ray-volume properties.
@@ -96,13 +113,13 @@ function read_input! end
                 (:x, :y, :z, :dxray, :dyray, :dzray),
             )
                 getproperty(rays, field_name)[rr, ii, jj, kkr] =
-                    file[output_name][
+                    @fuse file[output_name][
                         rr,
                         iid,
                         jjd,
                         kkrd,
                         iin == -1 ? end : iin,
-                    ] ./ lref
+                    ] / lref
             end
 
             for (output_name, field_name) in zip(
@@ -110,18 +127,22 @@ function read_input! end
                 (:k, :l, :m, :dkray, :dlray, :dmray),
             )
                 getproperty(rays, field_name)[rr, ii, jj, kkr] =
-                    file[output_name][
+                    @fuse file[output_name][
                         rr,
                         iid,
                         jjd,
                         kkrd,
                         iin == -1 ? end : iin,
-                    ] .* lref
+                    ] * lref
             end
 
-            rays.dens[rr, ii, jj, kkr] =
-                file["nr"][rr, iid, jjd, kkrd, iin == -1 ? end : iin] ./
-                rhoref ./ uref .^ 2 ./ tref ./ lref .^ dim
+            rays.dens[rr, ii, jj, kkr] = @fuse file["nr"][
+                rr,
+                iid,
+                jjd,
+                kkrd,
+                iin == -1 ? end : iin,
+            ] / rhoref / uref^2 / tref / lref^dim
 
             # Determine nray.
             for k in kkr, j in jj, i in ii

@@ -45,7 +45,7 @@ is the squared gravity-wave amplitude of the buoyancy. Therein, ``N_r^2`` is the
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_half_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_half_levels`](@ref)
 
   - [`PinCFlow.MSGWaM.RayOperations.compute_intrinsic_frequency`](@ref)
 
@@ -72,11 +72,7 @@ function compute_saturation_integrals end
 
     # Loop over ray volumes.
     for r in 1:nray[i, j, k]
-
-        # Skip ray volumes with zero wave-action density.
-        if rays.dens[r, i, j, k] == 0
-            continue
-        end
+        rays.dens[r, i, j, k] == 0 && continue
 
         xr = rays.x[r, i, j, k]
         yr = rays.y[r, i, j, k]
@@ -98,7 +94,7 @@ function compute_saturation_integrals end
             jray = j0
         end
 
-        kray = get_next_half_level(iray, jray, zr, state)
+        kray = get_half_levels(iray, jray, zr, state)[2]
 
         n2r = interpolate_stratification(zr, state, N2())
 

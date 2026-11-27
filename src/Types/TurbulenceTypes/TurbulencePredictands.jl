@@ -129,7 +129,7 @@ end
 
     tke = zeros(nxx, nyy, nzz)
 
-    for k in 1:nzz, j in j0:j1, i in i0:i1
+    @fuse for k in 1:nzz, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref

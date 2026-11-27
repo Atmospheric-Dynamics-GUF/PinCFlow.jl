@@ -59,7 +59,7 @@ function mountain_wave(;
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
-        resolved_topography = (x, y) -> h0 / (1 + (x^2 + y^2) / l0^2),
+        resolved_topography = (x, y, t) -> h0 / (1 + (x^2 + y^2) / l0^2),
     )
 
     output = OutputNamelist(;

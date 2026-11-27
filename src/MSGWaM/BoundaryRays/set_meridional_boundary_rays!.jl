@@ -53,7 +53,7 @@ function set_meridional_boundary_rays! end
 
     if jo == 0
         for k in (k0 - 1):(k1 + 1), j in (j0 - 1):j0, i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k]
+            @fuse for r in 1:nray[i, j, k]
                 yr = rays.y[r, i, j, k]
                 yrt = yr - ly
 
@@ -68,7 +68,7 @@ function set_meridional_boundary_rays! end
 
     if jo + ny == y_size
         for k in (k0 - 1):(k1 + 1), j in j1:(j1 + 1), i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k]
+            @fuse for r in 1:nray[i, j, k]
                 yr = rays.y[r, i, j, k]
                 yrt = yr + ly
 

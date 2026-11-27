@@ -26,42 +26,42 @@ function thomas_algorithm! end
         state.variables.auxiliaries
 
     if ko == 0
-        qth[:, :, 1] .= .-cth[:, :, 1] ./ bth[:, :, 1]
-        fth[:, :, 1] .= fth[:, :, 1] ./ bth[:, :, 1]
+        @fuse qth[:, :, 1] = -cth[:, :, 1] / bth[:, :, 1]
+        @fuse fth[:, :, 1] = fth[:, :, 1] / bth[:, :, 1]
     else
         MPI.Recv!(qth_bc, comm; source = down, tag = 1)
         MPI.Recv!(fth_bc, comm; source = down, tag = 2)
 
-        pth .= 1.0 ./ (bth[:, :, 1] .+ ath[:, :, 1] .* qth_bc)
-        qth[:, :, 1] .= .-cth[:, :, 1] .* pth
-        fth[:, :, 1] .= (fth[:, :, 1] .- ath[:, :, 1] .* fth_bc) .* pth
+        @fuse pth = 1.0 / (bth[:, :, 1] + ath[:, :, 1] * qth_bc)
+        @fuse qth[:, :, 1] = -cth[:, :, 1] * pth
+        @fuse fth[:, :, 1] = (fth[:, :, 1] - ath[:, :, 1] * fth_bc) * pth
     end
 
     for k in 2:nz
-        pth .= 1.0 ./ (bth[:, :, k] .+ ath[:, :, k] .* qth[:, :, k - 1])
-        qth[:, :, k] .= .-cth[:, :, k] .* pth
-        fth[:, :, k] .=
-            (fth[:, :, k] .- ath[:, :, k] .* fth[:, :, k - 1]) .* pth
+        @fuse pth = 1.0 / (bth[:, :, k] + ath[:, :, k] * qth[:, :, k - 1])
+        @fuse qth[:, :, k] = -cth[:, :, k] * pth
+        @fuse fth[:, :, k] =
+            (fth[:, :, k] - ath[:, :, k] * fth[:, :, k - 1]) * pth
     end
 
     if ko + nz != z_size
-        qth_bc .= qth[:, :, nz]
-        fth_bc .= fth[:, :, nz]
+        @fuse qth_bc = qth[:, :, nz]
+        @fuse fth_bc = fth[:, :, nz]
 
         MPI.Send(qth_bc, comm; dest = up, tag = 1)
         MPI.Send(fth_bc, comm; dest = up, tag = 2)
 
         MPI.Recv!(fth_bc, comm; source = up)
 
-        fth[:, :, nz] .+= qth[:, :, nz] .* fth_bc
+        @fuse fth[:, :, nz] += qth[:, :, nz] * fth_bc
     end
 
     for k in (nz - 1):-1:1
-        fth[:, :, k] .+= qth[:, :, k] .* fth[:, :, k + 1]
+        @fuse fth[:, :, k] += qth[:, :, k] * fth[:, :, k + 1]
     end
 
     if ko != 0
-        fth_bc .= fth[:, :, 1]
+        @fuse fth_bc = fth[:, :, 1]
 
         MPI.Send(fth_bc, comm; dest = down)
     end

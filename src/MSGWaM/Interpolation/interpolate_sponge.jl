@@ -24,7 +24,7 @@ This method first determines the two points in ``\\hat{x}`` and ``\\hat{y}`` tha
 
 # See also
 
-  - [`PinCFlow.MSGWaM.Interpolation.get_next_level`](@ref)
+  - [`PinCFlow.MSGWaM.Interpolation.get_levels`](@ref)
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate`](@ref)
 """
@@ -67,23 +67,19 @@ function interpolate_sponge end
     # Determine closest points in vertical direction and set interpolation
     # values.
 
-    klbu = get_next_level(il, jb, zlc, state; dkd = 1)
-    klbd = klbu - 1
+    (klbd, klbu) = get_levels(il, jb, zlc, state)
     zlbd = zc[il, jb, klbd]
     zlbu = zc[il, jb, klbu]
 
-    klfu = get_next_level(il, jf, zlc, state; dkd = 1)
-    klfd = klfu - 1
+    (klfd, klfu) = get_levels(il, jf, zlc, state)
     zlfd = zc[il, jf, klfd]
     zlfu = zc[il, jf, klfu]
 
-    krbu = get_next_level(ir, jb, zlc, state; dkd = 1)
-    krbd = krbu - 1
+    (krbd, krbu) = get_levels(ir, jb, zlc, state)
     zrbd = zc[ir, jb, krbd]
     zrbu = zc[ir, jb, krbu]
 
-    krfu = get_next_level(ir, jf, zlc, state; dkd = 1)
-    krfd = krfu - 1
+    (krfd, krfu) = get_levels(ir, jf, zlc, state)
     zrfd = zc[ir, jf, krfd]
     zrfu = zc[ir, jf, krfu]
 

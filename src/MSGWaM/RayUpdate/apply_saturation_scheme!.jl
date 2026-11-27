@@ -110,8 +110,11 @@ end
                 (mb2 - saturation_threshold^2 * n2r^2) / (2 * dt * mb2k2)
         end
 
+        # Account for blocking.
+        diffusion[i, j, k] *= (1 - blocked_fraction(state, i, j, k))
+
         # Reduce the wave-action density.
-        for r in 1:nray[i, j, k]
+        @fuse for r in 1:nray[i, j, k]
             wnrk = rays.k[r, i, j, k]
             wnrl = rays.l[r, i, j, k]
             wnrm = rays.m[r, i, j, k]

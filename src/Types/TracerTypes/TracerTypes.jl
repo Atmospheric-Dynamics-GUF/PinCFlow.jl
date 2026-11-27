@@ -20,6 +20,7 @@ module TracerTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
+using ..WKBTypes
 using ...Macros
 
 include("TracerPredictands.jl")
@@ -28,6 +29,7 @@ include("TracerReconstructions.jl")
 include("TracerFluxes.jl")
 include("TracerWKBIntegrals.jl")
 include("TracerWKBTendencies.jl")
+include("TracerBackups.jl")
 include("Tracer.jl")
 
 export TracerPredictands,
@@ -36,5 +38,6 @@ export TracerPredictands,
     TracerFluxes,
     TracerWKBIntegrals,
     TracerWKBTendencies,
+    TracerBackups,
     Tracer
 end

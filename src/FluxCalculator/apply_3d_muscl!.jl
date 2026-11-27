@@ -28,7 +28,7 @@ Apply the Monotonic Upstream-centered Scheme for Conservation Laws (MUSCL) for r
 
 # See also
 
-  - [`PinCFlow.FluxCalculator.apply_1d_muscl!`](@ref)
+  - [`PinCFlow.FluxCalculator.muscl`](@ref)
 """
 function apply_3d_muscl! end
 
@@ -42,33 +42,39 @@ function apply_3d_muscl! end
 )::Nothing
 
     # Reconstruct in x.
-    for k in 2:(nzz - 1), j in 2:(nyy - 1)
-        apply_1d_muscl!(
-            phi[:, j, k],
-            phitilde[:, j, k, 1, :],
-            nxx,
+    @fuse for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
+        (left, right) = muscl(
+            phi[i - 1, j, k],
+            phi[i, j, k],
+            phi[i + 1, j, k],
             limiter_type,
         )
+        phitilde[i, j, k, 1, 1] = left
+        phitilde[i, j, k, 1, 2] = right
     end
 
     # Reconstruct in y.
-    for k in 2:(nzz - 1), i in 2:(nxx - 1)
-        apply_1d_muscl!(
-            phi[i, :, k],
-            phitilde[i, :, k, 2, :],
-            nyy,
+    @fuse for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
+        (back, front) = muscl(
+            phi[i, j - 1, k],
+            phi[i, j, k],
+            phi[i, j + 1, k],
             limiter_type,
         )
+        phitilde[i, j, k, 2, 1] = back
+        phitilde[i, j, k, 2, 2] = front
     end
 
     # Reconstruct in z.
-    for j in 2:(nyy - 1), i in 2:(nxx - 1)
-        apply_1d_muscl!(
-            phi[i, j, :],
-            phitilde[i, j, :, 3, :],
-            nzz,
+    @fuse for k in 2:(nzz - 1), j in 2:(nyy - 1), i in 2:(nxx - 1)
+        (down, up) = muscl(
+            phi[i, j, k - 1],
+            phi[i, j, k],
+            phi[i, j, k + 1],
             limiter_type,
         )
+        phitilde[i, j, k, 3, 1] = down
+        phitilde[i, j, k, 3, 2] = up
     end
 
     nothing

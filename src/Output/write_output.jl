@@ -10,7 +10,7 @@ write_output(
 
 Write the current simulation state to a previously created HDF5 output file and return the advanced output counter `iout`.
 
-The output is written in parallel, using the chunking prepared by `create_output`. The grid, i.e. the fields `x`, `y` and `zc` of `state.grid`, as well as the fields of `state.atmosphere` are only written if `iout == 1` (which should only be the case for the initial output). In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. In compressible mode, the mass-weighted potential temperature and squared buoyancy frequency have a temporal dependence and are therefore written even if `iout != 1`. Any other field is only written if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
+The output is written in parallel, using the chunking prepared by `create_output`. The fields `x` and `y` of `state.grid` are only written if `iout == 1` (which is only the case for the initial output). Because of the potentially changing orography (and the time dependence of `pbar` in compressible mode), the vertical grid (`zc` and `zctilde` in `state.grid`) and the atmospheric background fields are written for any `iout`. In Boussinesq mode, the fields of `state.atmosphere` do not have a spatial dependence and are therefore not written at all. Any other field is written for any `iout`, but only if it is listed in `state.namelists.output.output_variables` or if it is essential for restarts and `state.namelists.output.prepare_restart == true`.
 
 The list of available output variables (as specified in `state.namelists.output.output_variables`) is as follows.
 
@@ -73,7 +73,7 @@ The list of available output variables (as specified in `state.namelists.output.
   - `:buoyancy_production`: Turbulent kinetic energy production/destruction due to buoyancy.
 
   - `:gw_shear::A`: Shear of unresolved gravity waves.
-  
+
   - `:dtkedt::A`: Turbulence impact of unresolved gravity waves.
 
   - `:launch_mode_count`: Numbers of modes selected by the elastic-mode-selection algorithm.
@@ -117,7 +117,7 @@ function write_output end
     (; x, y, zc, zctilde) = grid
     (; rhobar, thetabar, n2, pbar) = state.atmosphere
     (; predictands) = state.variables
-    (; rho, rhop, u, v, w, pip, p) = predictands
+    (; rho, rhop, u, v, w, pip) = predictands
     (; bins, rays, tendencies, integrals) = state.wkb
 
     # Print information.
@@ -161,137 +161,148 @@ function write_output end
 
         # Write the horizontal grid.
         if iout == 1
-            file["x"][iid] = x[ii] .* lref
-            file["y"][jjd] = y[jj] .* lref
+            file["x"][iid] = @fuse x[ii] * lref
+            file["y"][jjd] = @fuse y[jj] * lref
         end
 
         # Write the vertical grid.
-        if iout == 1
-            file["z"][iid, jjd, kkd] = zc[ii, jj, kk] .* lref
-            file["ztilde"][iid, jjd, kkrd] = zctilde[ii, jj, kkr] .* lref
-        end
+        HDF5.set_extent_dims(file["z"], (x_size, y_size, z_size, iout))
+        HDF5.set_extent_dims(file["ztilde"], (x_size, y_size, z_size + 1, iout))
+        file["z"][iid, jjd, kkd, iout] = @fuse zc[ii, jj, kk] * lref
+        file["ztilde"][iid, jjd, kkrd, iout] = @fuse zctilde[ii, jj, kkr] * lref
 
-        # Write the background density.
-        if model !== :Boussinesq && iout == 1
-            file["rhobar"][iid, jjd, kkd] = rhobar[ii, jj, kk] .* rhoref
-        end
+        # Write the atmospheric background fields.
+        if model !== :Boussinesq
 
-        # Write the background potential temperature.
-        if model !== :Boussinesq && iout == 1
-            file["thetabar"][iid, jjd, kkd] = thetabar[ii, jj, kk] .* thetaref
-        end
+            # Write the background density.
+            HDF5.set_extent_dims(file["rhobar"], (x_size, y_size, z_size, iout))
+            file["rhobar"][iid, jjd, kkd, iout] =
+                @fuse rhobar[ii, jj, kk] * rhoref
 
-        # Write the squared buoyancy frequency.
-        if model !== :Boussinesq && iout == 1
-            file["n2"][iid, jjd, kkd] = n2[ii, jj, kk] ./ tref .^ 2
-        end
+            # Write the background potential temperature.
+            HDF5.set_extent_dims(
+                file["thetabar"],
+                (x_size, y_size, z_size, iout),
+            )
+            file["thetabar"][iid, jjd, kkd, iout] =
+                @fuse thetabar[ii, jj, kk] * thetaref
 
-        # Write the mass-weighted potential temperature.
-        if model === :Compressible
+            # Write the squared buoyancy frequency.
+            HDF5.set_extent_dims(file["n2"], (x_size, y_size, z_size, iout))
+            file["n2"][iid, jjd, kkd, iout] = @fuse n2[ii, jj, kk] / tref^2
+
+            # Write the mass-weighted potential temperature.
             HDF5.set_extent_dims(file["p"], (x_size, y_size, z_size, iout))
-            file["p"][iid, jjd, kkd, iout] = p[ii, jj, kk] .* rhoref .* thetaref
-        elseif model !== :Boussinesq && iout == 1
-            file["p"][iid, jjd, kkd] = pbar[ii, jj, kk] .* rhoref .* thetaref
+            file["p"][iid, jjd, kkd, iout] =
+                @fuse pbar[ii, jj, kk] * rhoref * thetaref
         end
 
         # Write the density fluctuations.
         if prepare_restart || :rhop in output_variables
             HDF5.set_extent_dims(file["rhop"], (x_size, y_size, z_size, iout))
             if model === :Boussinesq
-                file["rhop"][iid, jjd, kkd, iout] = rhop[ii, jj, kk] .* rhoref
+                file["rhop"][iid, jjd, kkd, iout] =
+                    @fuse rhop[ii, jj, kk] * rhoref
             else
-                file["rhop"][iid, jjd, kkd, iout] = rho[ii, jj, kk] .* rhoref
+                file["rhop"][iid, jjd, kkd, iout] =
+                    @fuse rho[ii, jj, kk] * rhoref
             end
         end
 
         # Write the zonal winds.
         if :u in output_variables
-            HDF5.set_extent_dims(file["u"], (x_size, y_size, z_size, iout))
-            file["u"][iid, jjd, kkd, iout] =
-                map(CartesianIndices((ii, jj, kk))) do ijk
-                    (i, j, k) = Tuple(ijk)
+            uc = zeros(nx, ny, nz)
+            @fuse for k in kk, j in jj, i in ii
+                uc[i - i0 + 1, j - j0 + 1, k - k0 + 1] =
                     (u[i, j, k] + u[i - 1, j, k]) / 2 * uref
-                end
+            end
+
+            HDF5.set_extent_dims(file["u"], (x_size, y_size, z_size, iout))
+            file["u"][iid, jjd, kkd, iout] = uc
         end
 
         # Write the staggered zonal winds.
         if prepare_restart || :us in output_variables
             HDF5.set_extent_dims(file["us"], (x_size, y_size, z_size, iout))
-            file["us"][iid, jjd, kkd, iout] = u[ii, jj, kk] .* uref
+            file["us"][iid, jjd, kkd, iout] = @fuse u[ii, jj, kk] * uref
         end
 
         # Write the meridional winds.
         if :v in output_variables
-            HDF5.set_extent_dims(file["v"], (x_size, y_size, z_size, iout))
-            file["v"][iid, jjd, kkd, iout] =
-                map(CartesianIndices((ii, jj, kk))) do ijk
-                    (i, j, k) = Tuple(ijk)
+            vc = zeros(nx, ny, nz)
+            @fuse for k in kk, j in jj, i in ii
+                vc[i - i0 + 1, j - j0 + 1, k - k0 + 1] =
                     (v[i, j, k] + v[i, j - 1, k]) / 2 * uref
-                end
+            end
+
+            HDF5.set_extent_dims(file["v"], (x_size, y_size, z_size, iout))
+            file["v"][iid, jjd, kkd, iout] = vc
         end
 
         # Write the staggered meridional winds.
         if prepare_restart || :vs in output_variables
             HDF5.set_extent_dims(file["vs"], (x_size, y_size, z_size, iout))
-            file["vs"][iid, jjd, kkd, iout] = v[ii, jj, kk] .* uref
+            file["vs"][iid, jjd, kkd, iout] = @fuse v[ii, jj, kk] * uref
         end
 
         # Write the vertical winds.
         if :w in output_variables
-            HDF5.set_extent_dims(file["w"], (x_size, y_size, z_size, iout))
-            file["w"][iid, jjd, kkd, iout] =
-                map(CartesianIndices((ii, jj, kk))) do ijk
-                    (i, j, k) = Tuple(ijk)
+            wc = zeros(nx, ny, nz)
+            @fuse for k in kk, j in jj, i in ii
+                wc[i - i0 + 1, j - j0 + 1, k - k0 + 1] =
                     (
                         compute_vertical_wind(i, j, k, state) +
                         compute_vertical_wind(i, j, k - 1, state)
                     ) / 2 * uref
-                end
+            end
+
+            HDF5.set_extent_dims(file["w"], (x_size, y_size, z_size, iout))
+            file["w"][iid, jjd, kkd, iout] = wc
         end
 
         # Write the staggered vertical winds.
         if :ws in output_variables
-            HDF5.set_extent_dims(file["ws"], (x_size, y_size, z_size, iout))
-            file["ws"][iid, jjd, kkd, iout] =
-                map(CartesianIndices((ii, jj, kk))) do ijk
-                    (i, j, k) = Tuple(ijk)
+            wu = zeros(nx, ny, nz)
+            @fuse for k in kk, j in jj, i in ii
+                wu[i - i0 + 1, j - j0 + 1, k - k0 + 1] =
                     compute_vertical_wind(i, j, k, state) * uref
-                end
+            end
+
+            HDF5.set_extent_dims(file["ws"], (x_size, y_size, z_size, iout))
+            file["ws"][iid, jjd, kkd, iout] = wu
         end
 
         # Write the transformed vertical winds.
         if :wt in output_variables
-            HDF5.set_extent_dims(file["wt"], (x_size, y_size, z_size, iout))
-            file["wt"][iid, jjd, kkd, iout] =
-                map(CartesianIndices((ii, jj, kk))) do ijk
-                    (i, j, k) = Tuple(ijk)
+            wtc = zeros(nx, ny, nz)
+            @fuse for k in kk, j in jj, i in ii
+                wtc[i - i0 + 1, j - j0 + 1, k - k0 + 1] =
                     (w[i, j, k] + w[i, j, k - 1]) / 2 * uref
-                end
+            end
+
+            HDF5.set_extent_dims(file["wt"], (x_size, y_size, z_size, iout))
+            file["wt"][iid, jjd, kkd, iout] = wtc
         end
 
         # Write the staggered transformed vertical winds.
         if prepare_restart || :wts in output_variables
             HDF5.set_extent_dims(file["wts"], (x_size, y_size, z_size, iout))
-            file["wts"][iid, jjd, kkd, iout] = w[ii, jj, kk] .* uref
+            file["wts"][iid, jjd, kkd, iout] = @fuse w[ii, jj, kk] * uref
         end
 
         # Write the potential-temperature fluctuations.
         if :thetap in output_variables
             HDF5.set_extent_dims(file["thetap"], (x_size, y_size, z_size, iout))
             if model === :Boussinesq
-                file["thetap"][iid, jjd, kkd, iout] =
-                    (
-                        pbar[ii, jj, kk] ./
-                        (rhobar[ii, jj, kk] .+ rhop[ii, jj, kk]) .-
-                        thetabar[ii, jj, kk]
-                    ) .* thetaref
+                file["thetap"][iid, jjd, kkd, iout] = @fuse (
+                    pbar[ii, jj, kk] / (rhobar[ii, jj, kk] + rhop[ii, jj, kk]) -
+                    thetabar[ii, jj, kk]
+                ) * thetaref
             else
-                file["thetap"][iid, jjd, kkd, iout] =
-                    (
-                        pbar[ii, jj, kk] ./
-                        (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .-
-                        thetabar[ii, jj, kk]
-                    ) .* thetaref
+                file["thetap"][iid, jjd, kkd, iout] = @fuse (
+                    pbar[ii, jj, kk] / (rhobar[ii, jj, kk] + rho[ii, jj, kk]) -
+                    thetabar[ii, jj, kk]
+                ) * thetaref
             end
         end
 
@@ -302,17 +313,16 @@ function write_output end
         end
 
         if state.namelists.tracer.tracer_setup !== :NoTracer
-            for field in fieldnames(TracerPredictands)
+            for field_name in fieldnames(TracerPredictands)
+                field = getfield(state.tracer.tracerpredictands, field_name)
+
                 HDF5.set_extent_dims(
-                    file[string(field)],
+                    file[string(field_name)],
                     (x_size, y_size, z_size, iout),
                 )
-                file[string(field)][iid, jjd, kkd, iout] =
-                    getfield(state.tracer.tracerpredictands, field)[
-                        ii,
-                        jj,
-                        kk,
-                    ] ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+                file[string(field_name)][iid, jjd, kkd, iout] =
+                    @fuse field[ii, jj, kk] /
+                          (rhobar[ii, jj, kk] + rho[ii, jj, kk])
             end
 
             if state.namelists.tracer.leading_order_impact &&
@@ -323,8 +333,8 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["dchidt0"][iid, jjd, kkd, iout] =
-                    state.tracer.tracerwkbtendencies.dchidt0[ii, jj, kk] ./
-                    tref ./ (rhobar[ii, jj, kk] .+ rho[ii, jj, kk])
+                    @fuse state.tracer.tracerwkbtendencies.dchidt0[ii, jj, kk] /
+                          tref / (rhobar[ii, jj, kk] + rho[ii, jj, kk])
             end
 
             if state.namelists.tracer.leading_order_impact &&
@@ -335,8 +345,8 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["uchi0"][iid, jjd, kkd, iout] =
-                    state.tracer.tracerwkbintegrals.uchi0[ii, jj, kk] .* uref ./
-                    rhobar[ii, jj, kk]
+                    @fuse state.tracer.tracerwkbintegrals.uchi0[ii, jj, kk] *
+                          uref / rhobar[ii, jj, kk]
             end
 
             if state.namelists.tracer.leading_order_impact &&
@@ -347,8 +357,8 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["vchi0"][iid, jjd, kkd, iout] =
-                    state.tracer.tracerwkbintegrals.vchi0[ii, jj, kk] .* uref ./
-                    rhobar[ii, jj, kk]
+                    @fuse state.tracer.tracerwkbintegrals.vchi0[ii, jj, kk] *
+                          uref / rhobar[ii, jj, kk]
             end
 
             if state.namelists.tracer.leading_order_impact &&
@@ -359,8 +369,8 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["wchi0"][iid, jjd, kkd, iout] =
-                    state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] .* uref ./
-                    rhobar[ii, jj, kk]
+                    @fuse state.tracer.tracerwkbintegrals.wchi0[ii, jj, kk] *
+                          uref / rhobar[ii, jj, kk]
             end
         end
 
@@ -371,9 +381,12 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["tke"][iid, jjd, kkd, iout] =
-                    state.turbulence.turbulencepredictands.tke[ii, jj, kk] ./
-                    (rhobar[ii, jj, kk] .+ rho[ii, jj, kk]) .* (lref .^ 2.0) ./
-                    (tref .^ 2.0)
+                    @fuse state.turbulence.turbulencepredictands.tke[
+                        ii,
+                        jj,
+                        kk,
+                    ] / (rhobar[ii, jj, kk] + rho[ii, jj, kk]) * (lref^2.0) /
+                          (tref^2.0)
             end
 
             if :shear_production in output_variables
@@ -382,11 +395,11 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["shear_production"][iid, jjd, kkd, iout] =
-                    state.turbulence.turbulenceauxiliaries.shear_production[
+                    @fuse state.turbulence.turbulenceauxiliaries.shear_production[
                         ii,
                         jj,
                         kk,
-                    ] .* uref .^ 2 ./ tref
+                    ] * uref^2 / tref
             end
 
             if :buoyancy_production in output_variables
@@ -395,11 +408,11 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["buoyancy_production"][iid, jjd, kkd, iout] =
-                    state.turbulence.turbulenceauxiliaries.buoyancy_production[
+                    @fuse state.turbulence.turbulenceauxiliaries.buoyancy_production[
                         ii,
                         jj,
                         kk,
-                    ] .* uref .^ 2 ./ tref
+                    ] * uref^2 / tref
             end
 
             # Write GW shear.
@@ -411,11 +424,11 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["gw_shear"][iid, jjd, kkd, iout] =
-                    state.turbulence.turbulencewkbintegrals.gw_shear[
+                    @fuse state.turbulence.turbulencewkbintegrals.gw_shear[
                         ii,
                         jj,
                         kk,
-                    ] ./ tref .^ 2
+                    ] / tref^2
             end
 
             # Write turbulence tendencies.
@@ -427,11 +440,11 @@ function write_output end
                     (x_size, y_size, z_size, iout),
                 )
                 file["dtkedt"][iid, jjd, kkd, iout] =
-                    state.turbulence.turbulencewkbtendencies.dtkedt[
+                    @fuse state.turbulence.turbulencewkbtendencies.dtkedt[
                         ii,
                         jj,
                         kk,
-                    ] .* uref .^ 2 ./ tref
+                    ] * uref^2 / tref
             end
         end
 
@@ -444,24 +457,28 @@ function write_output end
                     ("xr", "yr", "zr", "dxr", "dyr", "dzr"),
                     (:x, :y, :z, :dxray, :dyray, :dzray),
                 )
+                    field = getproperty(rays, field_name)
+
                     HDF5.set_extent_dims(
                         file[output_name],
                         (bins, x_size, y_size, z_size + 1, iout),
                     )
                     file[output_name][1:bins, iid, jjd, kkrd, iout] =
-                        getproperty(rays, field_name)[rr, ii, jj, kkr] .* lref
+                        @fuse field[rr, ii, jj, kkr] * lref
                 end
 
                 for (output_name, field_name) in zip(
                     ("kr", "lr", "mr", "dkr", "dlr", "dmr"),
                     (:k, :l, :m, :dkray, :dlray, :dmray),
                 )
+                    field = getproperty(rays, field_name)
+
                     HDF5.set_extent_dims(
                         file[output_name],
                         (bins, x_size, y_size, z_size + 1, iout),
                     )
                     file[output_name][1:bins, iid, jjd, kkrd, iout] =
-                        getproperty(rays, field_name)[rr, ii, jj, kkr] ./ lref
+                        @fuse field[rr, ii, jj, kkr] / lref
                 end
 
                 HDF5.set_extent_dims(
@@ -469,12 +486,15 @@ function write_output end
                     (bins, x_size, y_size, z_size + 1, iout),
                 )
                 file["nr"][1:bins, iid, jjd, kkrd, iout] =
-                    rays.dens[rr, ii, jj, kkr] .* rhoref .* uref .^ 2 .* tref .*
-                    lref .^ dim
+                    @fuse rays.dens[rr, ii, jj, kkr] *
+                          rhoref *
+                          uref^2 *
+                          tref *
+                          lref^dim
             end
 
             # Write GW integrals.
-            for (field, scaling) in zip(
+            for (field_name, scaling) in zip(
                 (:uu, :uv, :uw, :vv, :vw, :utheta, :vtheta, :e),
                 (
                     (rhoref * uref^2 for index in 1:5)...,
@@ -483,18 +503,20 @@ function write_output end
                     rhoref * uref^2,
                 ),
             )
-                if field in output_variables
+                if field_name in output_variables
+                    field = getfield(integrals, field_name)
+
                     HDF5.set_extent_dims(
-                        file[string(field)],
+                        file[string(field_name)],
                         (x_size, y_size, z_size, iout),
                     )
-                    file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(integrals, field)[ii, jj, kk] .* scaling
+                    file[string(field_name)][iid, jjd, kkd, iout] =
+                        @fuse field[ii, jj, kk] * scaling
                 end
             end
 
             # Write GW tendencies.
-            for (field, scaling) in zip(
+            for (field_name, scaling) in zip(
                 (:dudt, :dvdt, :dthetadt),
                 (
                     rhoref * uref / tref,
@@ -502,13 +524,15 @@ function write_output end
                     rhoref * thetaref / tref,
                 ),
             )
-                if field in output_variables
+                if field_name in output_variables
+                    field = getfield(tendencies, field_name)
+
                     HDF5.set_extent_dims(
-                        file[string(field)],
+                        file[string(field_name)],
                         (x_size, y_size, z_size, iout),
                     )
-                    file[string(field)][iid, jjd, kkd, iout] =
-                        getfield(tendencies, field)[ii, jj, kk] .* scaling
+                    file[string(field_name)][iid, jjd, kkd, iout] =
+                        @fuse field[ii, jj, kk] * scaling
                 end
             end
 

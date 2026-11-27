@@ -87,8 +87,6 @@ The group velocities that are calculated for the propagation in physical space a
 
 The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
 
-If `rkstage == nstages`, `activate_orographic_source!` is called to launch new mountain-wave ray volumes.
-
 ```julia
 propagate_rays!(
     state::State,
@@ -100,7 +98,7 @@ propagate_rays!(
 
 Update the vertical wavenumber and wave-action density, using steady-state WKB theory.
 
-In steady-state mode, the ray volumes are stationary in physical space. In mountain-wave simulations, this method first updates the ray volumes in the launch layer by calling `activate_orographic_source!`. Subsequently, it performs a vertical sweep to update all other ray volumes. Therein, the vertical wavenumber is set to
+In steady-state mode, the ray volumes are stationary in physical space. In mountain-wave simulations, this method performs a vertical sweep to update all other ray volumes. Therein, the vertical wavenumber is set to
 
 ```math
 m_r = - \\sigma \\sqrt{\\frac{\\left(k_r^2 + l_r^2\\right) \\left(N_r^2 - \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r^2 - f^2}},
@@ -158,8 +156,6 @@ If `rkstage != 1`, this method returns immediately.
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
 
-  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
-
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayUpdate.apply_turbulent_damping!`](@ref)
@@ -212,7 +208,7 @@ end
     # RK stage.
     if rkstage == 1
         for k in kmin:kmax, j in j0:j1, i in i0:i1
-            for r in 1:nray[i, j, k]
+            @fuse for r in 1:nray[i, j, k]
                 dxray[r, i, j, k] = 0.0
                 dyray[r, i, j, k] = 0.0
                 dzray[r, i, j, k] = 0.0
@@ -232,20 +228,14 @@ end
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
+                continue
+            end
+
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
             (axk, ayl, azm) = get_surfaces(rays, r, i, j, k)
-
-            apply_turbulent_damping!(
-                state,
-                r,
-                i,
-                j,
-                k,
-                zr,
-                stepfrac[rkstage] * dt,
-            )
 
             xr1 = xr - dxr / 2
             xr2 = xr + dxr / 2
@@ -276,7 +266,6 @@ end
                 error("Horizontal wavenumber is negative!")
             end
 
-            # Determine if horizontal propagation and refraction are allowed.
             multi_column = wkb_mode === Val(:MultiColumn)
             launch_layer = k == k0 - 1
             blocked_layer = blocking && zr1 < hb[i, j] + deltazb[i, j] / 2
@@ -287,19 +276,21 @@ end
             refraction =
                 zr > impact_altitude / lref && !launch_layer && !blocked_layer
 
-            # Compute intrinsic zonal group velocity.
-            if x_size > 1
-                cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
-            end
+            #-------------------------------
+            #      Turbulent damping
+            #-------------------------------
 
-            # Compute intrinsic meridional group velocity.
-            if y_size > 1
-                cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+            if !launch_layer && !blocked_layer
+                apply_turbulent_damping!(
+                    state,
+                    r,
+                    i,
+                    j,
+                    k,
+                    zr,
+                    stepfrac[rkstage] * dt,
+                )
             end
-
-            # Compute intrinsic vertical group velocities at the vertical edges.
-            cgirz1 = -mr * (omir1^2 - fc^2) / (omir1 * (khr^2 + mr^2))
-            cgirz2 = -mr * (omir2^2 - fc^2) / (omir2 * (khr^2 + mr^2))
 
             #-------------------------------
             #      Change of position
@@ -308,6 +299,8 @@ end
             # Update zonal position.
 
             if zonal_propagation
+                cgirx = kr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+
                 uxr1 = interpolate_mean_flow(xr1, yr, zr, state, U())
                 uxr2 = interpolate_mean_flow(xr2, yr, zr, state, U())
 
@@ -332,6 +325,8 @@ end
             # Update meridional position.
 
             if meridional_propagation
+                cgiry = lr * (n2r - omir^2) / (omir * (khr^2 + mr^2))
+
                 vyr1 = interpolate_mean_flow(xr, yr1, zr, state, V())
                 vyr2 = interpolate_mean_flow(xr, yr2, zr, state, V())
 
@@ -355,6 +350,9 @@ end
 
             # Update vertical position.
 
+            cgirz1 = -mr * (omir1^2 - fc^2) / (omir1 * (khr^2 + mr^2))
+            cgirz2 = -mr * (omir2^2 - fc^2) / (omir2 * (khr^2 + mr^2))
+
             cgrz1 = cgirz1
             cgrz2 = cgirz2
 
@@ -366,12 +364,12 @@ end
 
             cgz_max[] = max(cgz_max[], abs(cgrz1), abs(cgrz2))
 
-            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
-               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
+            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin[] ||
+               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin[]
                 error("Rays travel too far in z!")
             end
 
-            # Refraction is only allowed above impact_altitude / lref.
+            # Refract.
 
             if refraction
 
@@ -461,24 +459,18 @@ end
 
                 rays.dmray[r, i, j, k] = azm / rays.dzray[r, i, j, k]
             end
+
+            #-------------------------------
+            #       Rayleigh damping
+            #-------------------------------
+
+            if !launch_layer && !blocked_layer
+                (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+                rays.dens[r, i, j, k] /=
+                    1 + alphasponge * stepfrac[rkstage] * dt
+            end
         end
-    end
-
-    #-------------------------------
-    #     Change of wave action
-    #-------------------------------
-
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        for r in 1:nray[i, j, k]
-            (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
-            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-            betasponge = 1 / (1 + alphasponge * stepfrac[rkstage] * dt)
-            rays.dens[r, i, j, k] *= betasponge
-        end
-    end
-
-    if rkstage == nstages
-        activate_orographic_source!(state)
     end
 
     nothing
@@ -492,13 +484,14 @@ end
 )::Nothing
     (; x_size, y_size, z_size) = state.namelists.domain
     (; coriolis_frequency) = state.namelists.atmosphere
-    (; branch, use_saturation, saturation_threshold) = state.namelists.wkb
+    (; blocking, branch, use_saturation, saturation_threshold) =
+        state.namelists.wkb
     (; tref) = state.constants
     (; comm, nz, nx, ny, ko, k0, k1, j0, j1, i0, i1, down, up) = state.domain
-    (; dx, dy, dz, zctilde, zc, jac) = state.grid
+    (; dx, dy, dz, zctilde, zc, jac, hb) = state.grid
     (; rhobar) = state.atmosphere
     (; u, v) = state.variables.predictands
-    (; nray, rays) = state.wkb
+    (; nray, rays, deltazb) = state.wkb
 
     if rkstage != 1
         return nothing
@@ -507,21 +500,20 @@ end
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    activate_orographic_source!(state)
-
     if ko != 0
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
-        nray[i0:i1, j0:j1, k0 - 1] .= nray_down
+        @fuse nray[i0:i1, j0:j1, k0 - 1] = nray_down
 
         local_count = maximum(nray[i0:i1, j0:j1, k0 - 1])
         if local_count > 0
-            fields = fieldcount(Rays)
-            rays_down = zeros(fields, local_count, nx, ny)
+            field_count = fieldcount(Rays)
+            rays_down = zeros(field_count, local_count, nx, ny)
             MPI.Recv!(rays_down, comm; source = down)
-            for field in 1:fields
-                getfield(rays, field)[1:local_count, i0:i1, j0:j1, k0 - 1] .=
-                    rays_down[field, :, :, :]
+            for field_index in 1:field_count
+                field = getfield(rays, field_index)
+                @fuse field[1:local_count, i0:i1, j0:j1, k0 - 1] =
+                    rays_down[field_index, :, :, :]
             end
         end
     end
@@ -595,36 +587,40 @@ end
             # Set the local vertical wavenumber.
             rays.m[r, i, j, k] = mr
 
-            # Set the local wave action density.
+            # Get the physical position and extents.
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
+            (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
 
-            apply_turbulent_damping!(
-                state,
-                r,
-                i,
-                j,
-                k,
-                zr,
-                jac[i, j, k] * dz / cgirz,
-            )
+            # Apply turbulent damping (explicit pseudo-time step) and Rayleigh
+            # damping (implicit vertical step).
+            if blocking && zr - dzr / 2 < hb[i, j] + deltazb[i, j] / 2
+                apply_turbulent_damping!(
+                    state,
+                    r,
+                    i,
+                    j,
+                    k,
+                    zr,
+                    jac[i, j, k] * dz / cgirz,
+                )
 
-            alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
-            rays.dens[r, i, j, k] =
-                1 / (
-                    1 +
-                    alphasponge / cgirz *
-                    (rays.z[r, i, j, k] - rays.z[r, i, j, kref])
-                ) *
-                cgirz0 *
-                rays.dens[r, i, j, kref] / cgirz
+                alphasponge = 2 * interpolate_sponge(xr, yr, zr, state)
+                rays.dens[r, i, j, k] =
+                    1 / (
+                        1 +
+                        alphasponge / cgirz *
+                        (rays.z[r, i, j, k] - rays.z[r, i, j, kref])
+                    ) *
+                    cgirz0 *
+                    rays.dens[r, i, j, kref] / cgirz
+            end
 
             # Cycle if the saturation scheme is turned off.
             if !use_saturation
                 continue
             end
 
-            # Get the ray volume extents.
-            (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
+            # Get the spectral extents.
             (dkr, dlr, dmr) = get_spectral_extent(rays, r, i, j, k)
 
             # Compute the phase space factor.
@@ -652,6 +648,11 @@ end
                 dz / cgirz
         end
 
+        # Continue if the saturation scheme is switched off.
+        if !saturation
+            continue
+        end
+
         # Compute the diffusion coefficient
         n2r = interpolate_stratification(zc[i, j, k], state, N2())
         if m2b2k2 == 0 || m2b2 < saturation_threshold^2 * n2r^2
@@ -660,11 +661,11 @@ end
             diffusion = (m2b2 - saturation_threshold^2 * n2r^2) / (2 * m2b2k2)
         end
 
+        # Account for blocking.
+        diffusion *= (1 - blocked_fraction(state, i, j, k))
+
         # Reduce the wave action density.
         for r in 1:nray[i, j, k]
-            if !use_saturation
-                continue
-            end
             if rays.dens[r, i, j, k] == 0
                 continue
             end
@@ -694,11 +695,12 @@ end
 
         local_count = maximum(nray[i0:i1, j0:j1, k1])
         if local_count > 0
-            fields = fieldcount(Rays)
-            rays_up = zeros(fields, local_count, nx, ny)
-            for field in 1:fields
-                rays_up[field, :, :, :] .=
-                    getfield(rays, field)[1:local_count, i0:i1, j0:j1, k1]
+            field_count = fieldcount(Rays)
+            rays_up = zeros(field_count, local_count, nx, ny)
+            for field_index in 1:field_count
+                field = getfield(rays, field_index)
+                @fuse rays_up[field_index, :, :, :] =
+                    field[1:local_count, i0:i1, j0:j1, k1]
             end
             MPI.Send(rays_up, comm; dest = up)
         end

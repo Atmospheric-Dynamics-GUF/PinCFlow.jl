@@ -20,6 +20,7 @@ module TurbulenceTypes
 using ..NamelistTypes
 using ..FoundationalTypes
 using ..VariableTypes
+using ..WKBTypes
 using ...Macros
 
 include("TurbulencePredictands.jl")
@@ -30,6 +31,7 @@ include("TurbulenceFluxes.jl")
 include("TurbulenceConstants.jl")
 include("TurbulenceWKBIntegrals.jl")
 include("TurbulenceWKBTendencies.jl")
+include("TurbulenceBackups.jl")
 include("Turbulence.jl")
 
 export TurbulencePredictands,
@@ -40,5 +42,6 @@ export TurbulencePredictands,
     TurbulenceConstants,
     TurbulenceWKBIntegrals,
     TurbulenceWKBTendencies,
+    TurbulenceBackups,
     Turbulence
 end

@@ -10,8 +10,8 @@ function test_vortex()
         wts = 0.0f0,
         x = 25787.594f0,
         y = 25787.594f0,
-        z = 10000.0f0,
-        ztilde = 20000.0f0,
+        z = 14142.136f0,
+        ztilde = 28284.271f0,
     )
     linf = (
         chi = 0.9514584f0,

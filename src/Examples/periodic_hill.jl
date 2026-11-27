@@ -54,7 +54,7 @@ function periodic_hill(;
     domain = DomainNamelist(; lx = 20000, lz, npx, npz, x_size, y_size, z_size)
 
     grid = GridNamelist(;
-        resolved_topography = (x, y) -> h0 / 2 * (1 + cos(pi / l0 * x)),
+        resolved_topography = (x, y, t) -> h0 / 2 * (1 + cos(pi / l0 * x)),
     )
 
     output =
