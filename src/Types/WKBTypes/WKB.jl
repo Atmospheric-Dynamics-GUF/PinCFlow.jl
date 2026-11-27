@@ -180,6 +180,7 @@ function WKB(
         dkr_factor,
         dlr_factor,
         dmr_factor,
+        vertical_multiplication_factor,
     ) = namelists.wkb
     (; x_size, y_size, z_size) = namelists.domain
     (; nxx, nyy, nzz) = domain
@@ -232,7 +233,7 @@ function WKB(
         end
 
         # Determine the work size of the ray-volume array.
-        nray_wrk = 2 * bins
+        nray_wrk = vertical_multiplication_factor * bins
         y_size > 1 && (nray_wrk *= 2)
         x_size > 1 && (nray_wrk *= 2)
     end

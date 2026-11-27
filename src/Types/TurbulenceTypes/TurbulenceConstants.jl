@@ -18,13 +18,13 @@ Construct a `TurbulenceConstants` instance.
 
   - `lturb::A`: Characteristic turbulence length scale ``L = 30 \\ \\mathrm{m}``.
 
-  - `ld::A`: Non-dimensional turbulent mixing length for dissipation ``l_\\mathrm{d} = \\sqrt{2} L/L_\\mathrm{ref}``.
+  - `ld::A`: Non-dimensional turbulent mixing length for dissipation ``l_\\mathrm{d} = L/L_\\mathrm{ref}``.
 
-  - `lv::A`: Non-dimensional turbulent mixing length for momentum diffusion ``l_\\mathrm{d} = L/L_\\mathrm{ref}/\\sqrt{2}``.
+  - `lv::A`: Non-dimensional turbulent mixing length for momentum diffusion ``l_\\mathrm{d} = L/L_\\mathrm{ref}``.
 
-  - `lb::A`: Non-dimensional turbulent mixing length for entropy diffusion ``l_\\mathrm{b} =  L/L_\\mathrm{ref}/\\sqrt{2}``.
+  - `lb::A`: Non-dimensional turbulent mixing length for entropy diffusion ``l_\\mathrm{b} =  L/L_\\mathrm{ref}``.
 
-  - `lt::A`: Non-dimensional turbulent mixing length for turbulence diffusion ``l_\\mathrm{t} = L/L_\\mathrm{ref}/\\sqrt{2}``.
+  - `lt::A`: Non-dimensional turbulent mixing length for turbulence diffusion ``l_\\mathrm{t} = L/L_\\mathrm{ref}``.
 
   - `tkemin::A`: Minimum turbulent kinetic energy value ``e_\\mathrm{k} = 5\\times 10^{-5} \\ \\mathrm{m^2 \\ s^{-2}}``.
 
@@ -45,8 +45,8 @@ function TurbulenceConstants(constants::Constants)::TurbulenceConstants
     (; lref, tref) = constants
 
     lturb = 30.0
-    ld = sqrt(2) * lturb / lref
-    lv = lb = lt = lturb / lref / sqrt(2)
+    ld = lturb / lref
+    lv = lb = lt = lturb / lref
     tkemin = 5.E-5 * tref^2.0 / lref^2.0
 
     TurbulenceConstants(lturb, ld, lv, lb, lt, tkemin)
