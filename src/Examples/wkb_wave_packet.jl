@@ -66,7 +66,7 @@ function wkb_wave_packet(;
 
     domain = DomainNamelist(; lx, ly, lz, npx, npy, npz, x_size, y_size, z_size)
 
-    grid = GridNamelist(; resolved_topography = (x, y) -> z0)
+    grid = GridNamelist(; resolved_topography = (x, y, t) -> z0)
 
     output = OutputNamelist(;
         output_file,

@@ -71,7 +71,7 @@ function set_vertical_boundary_rays! end
                 zr = rays.z[r, i, j, k]
                 dzr = rays.dzray[r, i, j, k]
 
-                if zr - 0.5 * dzr > lz
+                if zr - 0.5 * dzr > lz - eps()
                     continue
                 end
                 if zr + 0.5 * dzr > lz

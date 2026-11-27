@@ -9,6 +9,8 @@ MSGWaM
 
   - [`PinCFlow.MSGWaM.BoundaryRays`](@ref)
 
+  - [`PinCFlow.MSGWaM.RaySources`](@ref)
+
   - [`PinCFlow.MSGWaM.RayUpdate`](@ref)
 
   - [`PinCFlow.MSGWaM.MeanFlowEffect`](@ref)
@@ -36,10 +38,12 @@ include("RayUpdate/RayUpdate.jl")
 include("MeanFlowEffect/MeanFlowEffect.jl")
 
 using .BoundaryRays
+using .RaySources
 using .RayUpdate
 using .MeanFlowEffect
 
-export apply_saturation_scheme!,
+export activate_orographic_source!,
+    apply_saturation_scheme!,
     compute_mean_flow_effect!,
     initialize_rays!,
     merge_rays!,

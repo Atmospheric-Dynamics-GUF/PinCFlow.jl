@@ -1,0 +1,491 @@
+"""
+```julia
+compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+)::Nothing
+```
+
+Compute the background fields in `atmosphere` by dispatching to a method specific for the background and dynamic equations set in `namelists`.
+
+```julia
+compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Val{:Boussinesq},
+    background::Val{:NeutralStratification},
+)::Nothing
+```
+
+Compute a uniform (i.e. neutral) background of a Boussinesq atmosphere.
+
+The background fields are given by
+
+```math
+\\begin{align*}
+    \\bar{\\rho} & = \\rho_0, & \\bar{\\theta} & = \\theta_0, & P & = \\bar{\\rho} \\bar{\\theta}, & N^2 & = 0,
+\\end{align*}
+```
+
+where ``\\rho_0`` and ``\\theta_0`` are given by `constants.rhoref` and `namelists.atmosphere.potential_temperature`, respectively.
+
+```julia
+compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Val{:Boussinesq},
+    background::Val{:StableStratification},
+)::Nothing
+```
+
+Compute a stratified background of a Boussinesq atmosphere.
+
+The background fields are given by
+
+```math
+\\begin{align*}
+    \\bar{\\rho} & = \\rho_0, & \\bar{\\theta} & = \\theta_0, & P & = \\bar{\\rho} \\bar{\\theta}, & N^2 & = N_0^2,
+\\end{align*}
+```
+
+where ``\\rho_0``, ``\\theta_0`` and ``N_0`` are given by `constants.rhoref`, `namelists.atmosphere.potential_temperature` and `namelists.atmosphere.buoyancy_frequency`, respectively.
+
+```julia
+compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Isothermal},
+)::Nothing
+```
+
+Compute an isothermal background of a pseudo-incompressible or compressible atmosphere.
+
+The background fields are given by
+
+```math
+\\begin{align*}
+    P \\left(z\\right) & = p_0 \\exp \\left(- \\frac{\\sigma z}{\\gamma T_0}\\right),\\\\
+    \\bar{\\theta} \\left(z\\right) & = T_0 \\exp \\left(\\frac{\\kappa \\sigma z}{T_0}\\right),\\\\
+    \\bar{\\rho} \\left(z\\right) & = \\frac{P \\left(z\\right)}{\\bar{\\theta} \\left(z\\right)},\\\\
+    N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}_{k - 1}}{2 J \\Delta \\hat{z}},
+\\end{align*}
+```
+
+where ``p_0``, ``T_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.temperature`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
+
+```julia
+compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Isentropic},
+)::Nothing
+```
+
+Compute an isentropic background of a pseudo-incompressible or compressible atmosphere.
+
+The background fields are given by
+
+```math
+\\begin{align*}
+    P \\left(z\\right) & = p_0 \\left( 1 - \\frac{\\kappa\\sigma z}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} \\;, \\\\
+    \\bar{\\theta} & = \\theta_0 \\;, \\\\
+    \\bar{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\bar{\\theta} \\left(z\\right)}\\;,\\\\
+    N^2 & = 0 \\;,
+\\end{align*}
+```
+
+where ``p_0``, ``\\theta_0``, ``\\sigma``, ``\\gamma`` and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.potential_temperature`, `constants.sig`, `constants.gamma` and `constants.kappa`, respectively.
+
+```julia
+compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Realistic},
+)::Nothing
+```
+
+Compute a 'realistic' background (isentropic troposphere and isothermal stratosphere, with the tropopause located at the altitude ``z_{\\mathrm{TP}}``) of a pseudo-incompressible or compressible atmosphere.
+
+The background fields are given by
+
+```math
+\\begin{align*}
+    P \\left(z \\right) & =
+    \\begin{cases}
+        p_0 \\left( 1 - \\frac{\\kappa\\sigma z}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} & z \\leq z_{\\mathrm{TP}}\\;, \\\\
+        p_{\\mathrm{TP}} \\exp\\left[-\\frac{\\sigma(z-z_{\\mathrm{TP}})}{\\gamma T_{\\mathrm{TP}}}\\right] & z > z_{\\mathrm{TP}} \\;,
+    \\end{cases} \\\\
+    \\bar{\\theta}\\left(z\\right) & =
+    \\begin{cases}
+        \\theta_0 & z \\leq z_{\\mathrm{TP}} \\;, \\\\
+        \\theta_0 \\exp\\left[\\frac{\\kappa\\sigma(z-z_{\\mathrm{TP}})}{T_{\\mathrm{TP}}}\\right] & z > z_{\\mathrm{TP}} \\;,
+    \\end{cases} \\\\
+    \\bar{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\bar{\\theta} \\left(z\\right)}\\;,\\\\
+    N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}_{k - 1}}{2 J \\Delta \\hat{z}}\\;,
+\\end{align*}
+```
+where
+
+```math
+\\begin{align*}
+    p_{\\mathrm{TP}} & = p_0 \\left(1 - \\frac{\\kappa\\sigma z_{\\mathrm{TP}}}{\\theta_0}\\right)^{\\frac{1}{\\gamma - 1}} \\;, \\\\
+    T_{\\mathrm{TP}} & = \\theta_0 \\left(\\frac{p_{\\mathrm{TP}}}{p_0}\\right)^{\\kappa}\\;,
+\\end{align*}
+```
+
+and ``p_0``, ``\\theta_0``, ``z_{\\mathrm{TP}}``, ``\\sigma``, ``\\gamma``, and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.potential_temperature`, `namelists.atmosphere.tropopause_height`, `constants.sig`, `constants.gamma`, and `constants.kappa`, respectively.
+
+```julia
+compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:LapseRates},
+)::Nothing
+```
+
+Compute a background with two different lapse rates (``\\Gamma_{\\mathrm{TS}}`` in the troposphere and ``\\Gamma_{\\mathrm{SS}}`` in the stratosphere, with the tropopause located at the altitude ``z_{\\mathrm{TP}}``) in a pseudo-incompressible or compressible atmosphere.
+
+The background fields are given by
+```math
+\\begin{align*}
+    T\\left(z\\right) & =
+    \\begin{cases}
+        T_0 - \\Gamma_{\\mathrm{TS}} z & z \\leq z_{\\mathrm{TP}} \\;, \\\\
+        T_0 - \\Gamma_{\\mathrm{TS}} z_{\\mathrm{TP}} - \\Gamma_{\\mathrm{SS}} \\left(z - z_{\\mathrm{TP}}\\right) & z > z_{\\mathrm{TP}} \\;,
+    \\end{cases} \\\\
+    P\\left(z\\right) & =
+    \\begin{cases}
+        p_0 \\left[\\frac{T(z)}{T_0} \\right]^{\\frac{g}{R\\Gamma_{\\mathrm{TS}}\\gamma}} & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
+        p_0 \\exp\\left(- \\frac{z \\sigma}{\\gamma T_0} \\right) & z \\leq z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{TS}} = 0 \\;, \\\\
+        p_{\\mathrm{TP}} \\left[\\frac{T(z)}{T\\left(z_{\\mathrm{TP}}\\right)} \\right]^{\\frac{g}{R\\Gamma_{\\mathrm{SS}}\\gamma}} & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} \\neq 0 \\;, \\\\
+        p_{\\mathrm{TP}}\\exp\\left[- \\frac{\\left(z - z_{\\mathrm{TP}} \\right)\\sigma}{\\gamma T\\left(z_{\\mathrm{TP}}\\right)} \\right] & z > z_{\\mathrm{TP}} \\; \\& \\; \\Gamma_{\\mathrm{SS}} = 0 \\;,
+    \\end{cases} \\\\
+    \\bar{\\theta}\\left(z\\right) & = T(z)\\left[\\frac{p_0}{P(z)}\\right]^{\\kappa\\gamma} \\\\
+    \\bar{\\rho}\\left(z\\right) & = \\frac{P \\left(z\\right)}{\\bar{\\theta} \\left(z\\right)}\\;,\\\\
+    N^2 & = \\frac{g}{\\bar{\\theta}} \\frac{\\bar{\\theta}_{k + 1} - \\bar{\\theta}_{k - 1}}{2 J \\Delta \\hat{z}}\\;,
+\\end{align*}
+```
+where
+
+```math
+\\begin{align*}
+    p_{\\mathrm{TP}} & =
+    \\begin{cases}
+        p_0 \\left(\\frac{T\\left(z_{\\mathrm{TP}}\\right)}{T_0} \\right)^{\\frac{g}{R\\Gamma_{\\mathrm{TS}}\\gamma}} & \\Gamma_{\\mathrm{TS}} \\neq 0 \\;, \\\\
+        p_0 \\exp\\left(- \\frac{z_{\\mathrm{TP}} \\sigma}{\\gamma T_0} \\right) & \\Gamma_{\\mathrm{TS}} = 0 \\;,
+    \\end{cases}
+\\end{align*}
+```
+
+and ``p_0``, ``T_0``, ``z_{\\mathrm{TP}}``, ``\\Gamma_{\\mathrm{TS}}``, ``\\Gamma_{\\mathrm{SS}}``, ``\\sigma``, ``\\gamma``, and ``\\kappa`` are given by `namelists.atmosphere.ground_pressure`, `namelists.atmosphere.temperature`, `namelists.atmosphere.tropopause_height`, `namelists.atmosphere.troposphere_lapse_rate`, `namelists.atmosphere.stratosphere_lapse_rate`, `constants.sig`, `constants.gamma`, and `constants.kappa`, respectively.
+
+# Fields
+
+  - `pbar::A`: Mass-weighted potential temperature ``P \\left(z\\right)`` (``P \\left(x, y, z, t\\right)`` in compressible mode).
+
+  - `thetabar::A`: Background potential temperature ``\\bar{\\theta} \\left(z\\right)``.
+
+  - `rhobar::A`: Background density ``\\bar{\\rho} \\left(z\\right)``.
+
+  - `n2::A`: Squared buoyancy frequency ``N^2 \\left(z\\right)``.
+
+# Arguments
+
+  - `namelists`: Namelists with all model parameters.
+
+  - `constants`: Physical constants and reference values.
+
+  - `domain`: Collection of domain-decomposition and MPI-communication parameters.
+
+  - `grid`: Collection of parameters and fields that describe the grid.
+
+  - `model`: Dynamic equations.
+
+  - `background`: Atmospheric background.
+
+# See also
+
+  - [`PinCFlow.Types.FoundationalTypes.compute_n2!`](@ref)
+"""
+function compute_background_fields! end
+
+function compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+)::Nothing
+    (; model, background) = namelists.atmosphere
+
+    @dispatch_model @dispatch_background return compute_background_fields!(
+        namelists,
+        constants,
+        domain,
+        grid,
+        atmosphere,
+        Val(model),
+        Val(background),
+    )
+
+    nothing
+end
+
+function compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Val{:Boussinesq},
+    background::Val{:NeutralStratification},
+)::Nothing
+    (; potential_temperature) = namelists.atmosphere
+    (; thetaref) = constants
+    (; nxx, nyy, nzz) = domain
+    (; rhobar, thetabar, pbar, n2) = atmosphere
+
+    rhobar .= 1.0
+    thetabar .= potential_temperature ./ thetaref
+    pbar .= rhobar .* thetabar
+    n2 .= 0.0
+
+    nothing
+end
+
+function compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Val{:Boussinesq},
+    background::Val{:StableStratification},
+)::Nothing
+    (; buoyancy_frequency, potential_temperature) = namelists.atmosphere
+    (; tref, thetaref) = constants
+    (; nxx, nyy, nzz) = domain
+    (; rhobar, thetabar, pbar, n2) = atmosphere
+
+    rhobar .= 1.0
+    thetabar .= potential_temperature ./ thetaref
+    pbar .= rhobar .* thetabar
+    n2 .= (buoyancy_frequency .* tref) .^ 2
+
+    nothing
+end
+
+function compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Isothermal},
+)::Nothing
+    (; temperature, ground_pressure) = namelists.atmosphere
+    (; thetaref, pref, kappa, sig, gamma) = constants
+    (; nxx, nyy, nzz) = domain
+    (; zc) = grid
+    (; rhobar, thetabar, pbar, n2) = atmosphere
+
+    t0 = temperature / thetaref
+    p0 = ground_pressure / pref
+
+    pbar .= p0 .* exp.(.-sig .* zc ./ gamma ./ t0)
+    thetabar .= t0 .* exp.(kappa .* sig ./ t0 .* zc)
+    rhobar .= pbar ./ thetabar
+
+    compute_n2!(namelists, constants, domain, grid, thetabar, n2)
+
+    nothing
+end
+
+function compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Isentropic},
+)::Nothing
+    (; lz) = namelists.domain
+    (; potential_temperature, ground_pressure) = namelists.atmosphere
+    (; thetaref, pref, kappa, sig, rsp, gamma, g) = constants
+    (; nxx, nyy, nzz) = domain
+    (; zc) = grid
+    (; rhobar, thetabar, pbar, n2) = atmosphere
+
+    min_potential_temperature = kappa * g / rsp * lz
+    if potential_temperature < min_potential_temperature
+        error(
+            "Potential temperature too low for given configuration: potential_temperature = ",
+            potential_temperature,
+            "K",
+            " < minimum potential_temperature = ",
+            min_potential_temperature,
+            "K",
+        )
+    end
+
+    theta0 = potential_temperature / thetaref
+    p0 = ground_pressure / pref
+
+    n2 .= 0.0
+    thetabar .= theta0
+    pbar .=
+        p0 .* (1.0 .- kappa .* sig ./ theta0 .* zc) .^ (1.0 ./ (gamma .- 1.0))
+    rhobar .= pbar ./ thetabar
+
+    nothing
+end
+
+@ivy function compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:Realistic},
+)::Nothing
+    (; potential_temperature, ground_pressure, tropopause_height) =
+        namelists.atmosphere
+    (; thetaref, lref, pref, kappa, sig, rsp, gamma, gammainv, g) = constants
+    (; nxx, nyy, nzz) = domain
+    (; zc) = grid
+    (; rhobar, thetabar, pbar, n2) = atmosphere
+
+    p0 = ground_pressure / pref
+    ztrop = tropopause_height / lref
+    theta0 = potential_temperature / thetaref
+    ptrop = p0 * (1.0 - kappa * sig / theta0 * ztrop)^(1.0 / (gamma - 1.0))
+    ttrop = theta0 * (ptrop / p0)^kappa
+
+    min_potential_temperature = kappa * g / rsp * tropopause_height
+    if potential_temperature < min_potential_temperature
+        error(
+            "Potential temperature in isentropic troposphere too low for given configuration: potential_temperature = ",
+            potenential_temperature,
+            "K",
+            " < minimum potenential_temperature = ",
+            min_potential_temperature,
+            "K",
+        )
+    end
+
+    for k in 1:nzz, j in 1:nyy, i in 1:nxx
+        if zc[i, j, k] <= ztrop
+            thetabar[i, j, k] = theta0
+            pbar[i, j, k] =
+                p0 *
+                (1.0 - kappa * sig / theta0 * zc[i, j, k])^(1.0 / (gamma - 1.0))
+        else
+            thetabar[i, j, k] =
+                theta0 * exp(kappa * sig / ttrop * (zc[i, j, k] - ztrop))
+            pbar[i, j, k] =
+                ptrop * exp(-sig * gammainv / ttrop * (zc[i, j, k] - ztrop))
+        end
+    end
+    rhobar .= pbar ./ thetabar
+
+    compute_n2!(namelists, constants, domain, grid, thetabar, n2)
+
+    nothing
+end
+
+@ivy function compute_background_fields!(
+    namelists::Namelists,
+    constants::Constants,
+    domain::Domain,
+    grid::Grid,
+    atmosphere::Atmosphere,
+    model::Union{Val{:PseudoIncompressible}, Val{:Compressible}},
+    background::Val{:LapseRates},
+)::Nothing
+    (;
+        ground_pressure,
+        troposphere_lapse_rate,
+        stratosphere_lapse_rate,
+        tropopause_height,
+        temperature,
+    ) = namelists.atmosphere
+    (; thetaref, lref, pref, kappa, sig, rsp, g, gamma) = constants
+    (; nxx, nyy, nzz) = domain
+    (; zc) = grid
+    (; rhobar, thetabar, pbar, n2) = atmosphere
+
+    gamma_t = troposphere_lapse_rate / thetaref * lref
+    gamma_s = stratosphere_lapse_rate / thetaref * lref
+
+    p0 = ground_pressure / pref
+    t0 = temperature / thetaref
+    ztrop = tropopause_height / lref
+
+    ttrop = t0 - gamma_t * ztrop
+
+    if gamma_t != 0.0
+        power_t = g / rsp / troposphere_lapse_rate / gamma
+        ptrop = p0 * (ttrop / t0)^power_t
+    else
+        ptrop = p0 * exp(-ztrop * sig / gamma / t0)
+    end
+    if gamma_s != 0.0
+        power_s = g / rsp / stratosphere_lapse_rate / gamma
+    end
+
+    for k in 1:nzz, j in 1:nyy, i in 1:nxx
+        if zc[i, j, k] <= ztrop
+            tbar = t0 - gamma_t * zc[i, j, k]
+
+            if gamma_t != 0.0
+                pbar[i, j, k] = p0 * (tbar / t0)^power_t
+            else
+                pbar[i, j, k] = p0 * exp(-zc[i, j, k] * sig / gamma / t0)
+            end
+        else
+            tbar = ttrop - gamma_s * (zc[i, j, k] - ztrop)
+
+            if gamma_s != 0.0
+                pbar[i, j, k] = ptrop * (tbar / ttrop)^power_s
+            else
+                pbar[i, j, k] =
+                    ptrop * exp(-(zc[i, j, k] - ztrop) * sig / gamma / ttrop)
+            end
+        end
+        thetabar[i, j, k] = tbar * (p0 / pbar[i, j, k])^(kappa * gamma)
+    end
+
+    rhobar .= pbar ./ thetabar
+
+    compute_n2!(namelists, constants, domain, grid, thetabar, n2)
+
+    nothing
+end

@@ -80,14 +80,14 @@ function compute_time_step end
         #   von Neumann condition
         #----------------------------
 
-        dtvisc = 0.5 * min(dx^2, dy^2, dzcmin^2) * re
+        dtvisc = 0.5 * min(dx^2, dy^2, dzcmin[]^2) * re
 
         #----------------------------------
         #         WKB-CFL criterion
         #----------------------------------
 
         if wkb_mode in (:SingleColumn, :MultiColumn)
-            dtwkb = dzcmin / (cgz_max[] + eps())
+            dtwkb = dzcmin[] / (cgz_max[] + eps())
 
             if x_size > 1
                 dtwkb = min(dtwkb, dx / (cgx_max[] + eps()))

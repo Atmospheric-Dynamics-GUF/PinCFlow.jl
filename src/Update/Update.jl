@@ -103,7 +103,7 @@ include("thomas_algorithm!.jl")
 include("reset_thomas!.jl")
 include("turbulent_diffusion!.jl")
 
-export LHS, RHS, KM, KH, KEK
+export Transformed, LHS, RHS, KM, KH, KEK
 
 export apply_lhs_sponge!,
     compute_buoyancy_factor,
@@ -120,6 +120,7 @@ export apply_lhs_sponge!,
     turbulent_diffusion!,
     turbulence_diffusion_coefficient,
     check_tke!,
-    update!
+    update!,
+    transform
 
 end
