@@ -31,7 +31,7 @@ function compute_sponges! end
     (; namelists, domain) = state
     (; z_size) = namelists.domain
     (; lhs_sponge, rhs_sponge) = namelists.sponge
-    (; nz, ko, i0, i1, j0, j1, k0, k1) = domain
+    (; nxx, nyy, nz, ko, i0, i1, j0, j1, k0, k1) = domain
     (; lref, tref) = state.constants
     (; x, y, zc) = state.grid
     (; alphar, betar) = state.sponge
@@ -39,7 +39,7 @@ function compute_sponges! end
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
+    @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1
         xdim = x[i] * lref
         ydim = y[j] * lref
         zcdim = zc[i, j, k] * lref
@@ -57,12 +57,12 @@ function compute_sponges! end
     set_meridional_boundaries_of_field!(betar, namelists, domain)
 
     if ko == 0
-        alphar[:, :, k0 - 1] .= alphar[:, :, k0]
-        betar[:, :, k0 - 1] .= betar[:, :, k0]
+        @fuse alphar[:, :, k0 - 1] = alphar[:, :, k0]
+        @fuse betar[:, :, k0 - 1] = betar[:, :, k0]
     end
     if ko + nz == z_size
-        alphar[:, :, k1 + 1] .= alphar[:, :, k1]
-        betar[:, :, k1 + 1] .= betar[:, :, k1]
+        @fuse alphar[:, :, k1 + 1] = alphar[:, :, k1]
+        @fuse betar[:, :, k1 + 1] = betar[:, :, k1]
     end
 
     nothing

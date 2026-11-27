@@ -111,7 +111,7 @@ end
         end
 
         # Reduce the wave-action density.
-        for r in 1:nray[i, j, k]
+        @fuse for r in 1:nray[i, j, k]
             wnrk = rays.k[r, i, j, k]
             wnrl = rays.l[r, i, j, k]
             wnrm = rays.m[r, i, j, k]

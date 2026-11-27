@@ -55,12 +55,14 @@ function set_turbulence_fields_zero!(
 )::Nothing
     (; turbulencewkbtendencies, turbulencewkbintegrals) = state.turbulence
 
-    for field in fieldnames(TurbulenceWKBIntegrals)
-        getfield(turbulencewkbintegrals, field) .= 0.0
+    for field_name in fieldnames(TurbulenceWKBIntegrals)
+        field = getfield(turbulencewkbintegrals, field_name)
+        @fuse field = 0.0
     end
 
-    for field in fieldnames(TurbulenceWKBTendencies)
-        getfield(turbulencewkbtendencies, field) .= 0.0
+    for field_name in fieldnames(TurbulenceWKBTendencies)
+        field = getfield(turbulencewkbtendencies, field_name)
+        @fuse field = 0.0
     end
 
     nothing

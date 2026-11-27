@@ -61,14 +61,14 @@ function set_meridional_boundaries_of_field! end
     domain::Domain,
 )::Nothing
     (; y_size, nby) = namelists.domain
-    (; j0, j1) = domain
+    (; j0, j1, nxx) = domain
 
     if y_size > 1
         set_meridional_halos_of_field!(field, namelists, domain)
     else
         for j in 1:nby
-            field[:, j0 - j] .= field[:, j1 - j + 1]
-            field[:, j1 + j] .= field[:, j0 + j - 1]
+            @fuse field[:, j0 - j] = field[:, j1 - j + 1]
+            @fuse field[:, j1 + j] = field[:, j0 + j - 1]
         end
     end
 
@@ -92,11 +92,9 @@ end
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
         ii = (i0 - nbx):(i1 + nbx)
-        kk = (k0 - nbz):(k1 + nbz)
-
-        for j in 1:nby
-            field[ii, j0 - j, kk] .= field[ii, j1 - j + 1, kk]
-            field[ii, j1 + j, kk] .= field[ii, j0 + j - 1, kk]
+        for k in (k0 - nbz):(k1 + nbz), j in 1:nby
+            @fuse field[ii, j0 - j, k] = field[ii, j1 - j + 1, k]
+            @fuse field[ii, j1 + j, k] = field[ii, j0 + j - 1, k]
         end
     end
 
@@ -120,11 +118,9 @@ end
         set_meridional_halos_of_field!(field, namelists, domain; layers)
     else
         ii = (i0 - nbx):(i1 + nbx)
-        kk = (k0 - nbz):(k1 + nbz)
-
-        for j in 1:nby
-            field[ii, j0 - j, kk, :, :] .= field[ii, j1 - j + 1, kk, :, :]
-            field[ii, j1 + j, kk, :, :] .= field[ii, j0 + j - 1, kk, :, :]
+        for m in 1:2, l in 1:3, k in (k0 - nbz):(k1 + nbz), j in 1:nby
+            @fuse field[ii, j0 - j, k, l, m] = field[ii, j1 - j + 1, k, l, m]
+            @fuse field[ii, j1 + j, k, l, m] = field[ii, j0 + j - 1, k, l, m]
         end
     end
 

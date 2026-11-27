@@ -46,11 +46,13 @@ function set_tracer_fields_zero!(
 )::Nothing
     (; tracerwkbtendencies, tracerwkbintegrals) = state.tracer
 
-    for field in fieldnames(TracerWKBTendencies)
-        getfield(tracerwkbtendencies, field) .= 0.0
+    for field_name in fieldnames(TracerWKBTendencies)
+        field = getfield(tracerwkbtendencies, field_name)
+        @fuse field = 0.0
     end
-    for field in fieldnames(TracerWKBIntegrals)
-        getfield(tracerwkbintegrals, field) .= 0.0
+    for field_name in fieldnames(TracerWKBIntegrals)
+        field = getfield(tracerwkbintegrals, field_name)
+        @fuse field = 0.0
     end
 
     nothing

@@ -423,12 +423,12 @@ end
     end
 
     input = copy(output)
-    @dispatch_filter_order for j in 1:nyy, i in 1:nxx
+    @dispatch_filter_order @fuse for k in k0:k1, j in 1:nyy, i in 1:nxx
         apply_shapiro_filter!(
             output[i, j, :],
             input[i, j, :],
-            k0:k1,
             Val(filter_order),
+            k,
         )
     end
 
@@ -450,12 +450,12 @@ end
     end
 
     input = copy(output)
-    @dispatch_filter_order for k in 1:nzz, i in 1:nxx
+    @dispatch_filter_order @fuse for k in 1:nzz, j in j0:j1, i in 1:nxx
         apply_shapiro_filter!(
             output[i, :, k],
             input[i, :, k],
-            j0:j1,
             Val(filter_order),
+            j,
         )
     end
 
@@ -477,12 +477,12 @@ end
     end
 
     input = copy(output)
-    @dispatch_filter_order for k in 1:nzz, j in 1:nyy
+    @dispatch_filter_order @fuse for k in 1:nzz, j in 1:nyy, i in i0:i1
         apply_shapiro_filter!(
             output[:, j, k],
             input[:, j, k],
-            i0:i1,
             Val(filter_order),
+            i,
         )
     end
 

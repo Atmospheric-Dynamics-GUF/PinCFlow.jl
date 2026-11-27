@@ -49,26 +49,31 @@ function include_blocked_flow_drag! end
                 min(hb[i, j] + deltazb[i, j] / 2, zctilde[i, j, k]) -
                 zctilde[i, j, k - 1]
             ) / jac[i, j, k] / dz
-        if fraction <= 0
-            continue
-        else
-            kh = compute_slope(state, i, j)
 
-            up =
-                (
-                    (u[i, j, k] .+ u[i - 1, j, k]) .* kh[1] .+
-                    (v[i, j, k] .+ v[i, j - 1, k]) .* kh[2]
-                ) ./ 2 .* kh ./ (kh[1] .^ 2 .+ kh[2] .^ 2)
+        fraction <= 0 && continue
 
-            drag =
-                .-drag_coefficient .* (rho[i, j, k] .+ rhobar[i, j, k]) .*
-                sqrt.(kh[1] .^ 2 .+ kh[2] .^ 2) ./ (2 .* pi) .*
-                sqrt.(up[1] .^ 2 .+ up[2] .^ 2) .* up
+        (kh, lh) = compute_slope(state, i, j)
 
-            dudt[i, j, k] = fraction * drag[1] + (1 - fraction) * dudt[i, j, k]
-            dvdt[i, j, k] = fraction * drag[2] + (1 - fraction) * dvdt[i, j, k]
-            dthetadt[i, j, k] = (1 - fraction) * dthetadt[i, j, k]
-        end
+        projection =
+            (
+                (u[i, j, k] + u[i - 1, j, k]) * kh +
+                (v[i, j, k] + v[i, j - 1, k]) * lh
+            ) / 2
+
+        up = projection * kh / (kh^2 + lh^2)
+        vp = projection * lh / (kh^2 + lh^2)
+
+        drag_factor =
+            -drag_coefficient *
+            (rho[i, j, k] + rhobar[i, j, k]) *
+            sqrt(kh^2 + lh^2) / (2 * pi) * sqrt(up^2 + vp^2)
+
+        dudtb = drag_factor * up
+        dvdtb = drag_factor * vp
+
+        dudt[i, j, k] = fraction * dudtb + (1 - fraction) * dudt[i, j, k]
+        dvdt[i, j, k] = fraction * dvdtb + (1 - fraction) * dvdt[i, j, k]
+        dthetadt[i, j, k] = (1 - fraction) * dthetadt[i, j, k]
     end
 
     nothing

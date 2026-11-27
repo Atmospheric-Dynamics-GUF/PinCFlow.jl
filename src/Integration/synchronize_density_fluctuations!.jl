@@ -74,7 +74,7 @@ function synchronize_density_fluctuations!(
 )::Nothing
     (; rho, rhop) = state.variables.predictands
 
-    rhop .= rho
+    @fuse rhop = rho
 
     nothing
 end
@@ -86,7 +86,7 @@ function synchronize_density_fluctuations!(
     (; rhobar, thetabar, pbar) = state.atmosphere
     (; rho, rhop) = state.variables.predictands
 
-    rhop .= rho .+ rhobar .- pbar ./ thetabar
+    @fuse rhop = rho + rhobar - pbar / thetabar
 
     nothing
 end

@@ -21,7 +21,7 @@ Calculates the tendencies that are to be added to the equations for momentum and
 \\end{align*}
 ```
 
-where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\hat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. In the case of turbulence parameterization, the tendencies to be added to the turbulence equation are computed by `compute_gw_turbulence_tendencies!`. The tendencies to be added to the equation for the resolved tracers are computed by `compute_gw_tracer_tendencies!`. For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref). 
+where ``\\left(u_\\mathrm{b}, v_\\mathrm{b}, \\hat{w}_\\mathrm{b}\\right)`` are the components of the transformed (i.e. terrain-following) resolved wind, ``\\rho_\\mathrm{b}`` is the resolved density (including the reference part ``\\bar{\\rho}``) and ``P_\\mathrm{b}`` is the resolved mass-weighted potential temperature. In the case of turbulence parameterization, the tendencies to be added to the turbulence equation are computed by `compute_gw_turbulence_tendencies!`. The tendencies to be added to the equation for the resolved tracers are computed by `compute_gw_tracer_tendencies!`. For a documentation of the fluxes, see [`PinCFlow.MSGWaM.MeanFlowEffect.compute_gw_integrals!`](@ref).
 
 Below `state.namelists.wkb.impact_altitude`, all tendencies are set to zero.
 
@@ -51,114 +51,127 @@ function compute_gw_tendencies! end
     # Set the Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    for field in fieldnames(WKBTendencies)
-        getfield(tendencies, field) .= 0.0
+    for field_name in fieldnames(WKBTendencies)
+        field = getfield(tendencies, field_name)
+        @fuse field = 0.0
     end
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
-        if zc[i, j, k] < impact_altitude / lref
-            continue
-        end
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
+        if zc[i, j, k] >= impact_altitude / lref
+            rhotot = rho[i, j, k] + rhobar[i, j, k]
 
-        rhotot = rho[i, j, k] + rhobar[i, j, k]
+            # Compute the drag on the zonal wind.
 
-        # Compute the drag on the zonal wind.
+            tendencies.dudt[i, j, k] =
+                -rhotot / rhobar[i, j, k] / jac[i, j, k] *
+                (integrals.uw[i, j, k + 1] - integrals.uw[i, j, k - 1]) /
+                (2.0 * dz)
 
-        tendencies.dudt[i, j, k] =
-            -rhotot / rhobar[i, j, k] / jac[i, j, k] *
-            (integrals.uw[i, j, k + 1] - integrals.uw[i, j, k - 1]) / (2.0 * dz)
-
-        if x_size > 1
-            tendencies.dudt[i, j, k] -=
-                rhotot / rhobar[i, j, k] * (
-                    (integrals.uu[i + 1, j, k] - integrals.uu[i - 1, j, k]) /
-                    (2.0 * dx) +
-                    met13[i, j, k] *
-                    (integrals.uu[i, j, k + 1] - integrals.uu[i, j, k - 1]) /
-                    (2.0 * dz)
-                )
-        end
-
-        if y_size > 1
-            tendencies.dudt[i, j, k] -=
-                rhotot / rhobar[i, j, k] * (
-                    (integrals.uv[i, j + 1, k] - integrals.uv[i, j - 1, k]) /
-                    (2.0 * dy) +
-                    met23[i, j, k] *
-                    (integrals.uv[i, j, k + 1] - integrals.uv[i, j, k - 1]) /
-                    (2.0 * dz)
-                )
-        end
-
-        tendencies.dudt[i, j, k] -=
-            rhotot * fc / thetabar[i, j, k] * integrals.vtheta[i, j, k]
-
-        # Compute the drag on the meridional wind.
-
-        tendencies.dvdt[i, j, k] =
-            -rhotot / rhobar[i, j, k] / jac[i, j, k] *
-            (integrals.vw[i, j, k + 1] - integrals.vw[i, j, k - 1]) / (2.0 * dz)
-
-        if x_size > 1
-            tendencies.dvdt[i, j, k] -=
-                rhotot / rhobar[i, j, k] * (
-                    (integrals.uv[i + 1, j, k] - integrals.uv[i - 1, j, k]) /
-                    (2.0 * dx) +
-                    met13[i, j, k] *
-                    (integrals.uv[i, j, k + 1] - integrals.uv[i, j, k - 1]) /
-                    (2.0 * dz)
-                )
-        end
-
-        if y_size > 1
-            tendencies.dvdt[i, j, k] -=
-                rhotot / rhobar[i, j, k] * (
-                    (integrals.vv[i, j + 1, k] - integrals.vv[i, j - 1, k]) /
-                    (2.0 * dy) +
-                    met23[i, j, k] *
-                    (integrals.vv[i, j, k + 1] - integrals.vv[i, j, k - 1]) /
-                    (2.0 * dz)
-                )
-        end
-
-        tendencies.dvdt[i, j, k] +=
-            rhotot * fc / thetabar[i, j, k] * integrals.utheta[i, j, k]
-
-        # Compute the heating.
-
-        if fc != 0.0 && (x_size > 1 || y_size > 1)
             if x_size > 1
-                tendencies.dthetadt[i, j, k] -=
-                    rhotot * (
+                tendencies.dudt[i, j, k] -=
+                    rhotot / rhobar[i, j, k] * (
                         (
-                            integrals.utheta[i + 1, j, k] -
-                            integrals.utheta[i - 1, j, k]
+                            integrals.uu[i + 1, j, k] -
+                            integrals.uu[i - 1, j, k]
                         ) / (2.0 * dx) +
                         met13[i, j, k] * (
-                            integrals.utheta[i, j, k + 1] -
-                            integrals.utheta[i, j, k - 1]
+                            integrals.uu[i, j, k + 1] -
+                            integrals.uu[i, j, k - 1]
                         ) / (2.0 * dz)
                     )
             end
 
             if y_size > 1
-                tendencies.dthetadt[i, j, k] -=
-                    rhotot * (
+                tendencies.dudt[i, j, k] -=
+                    rhotot / rhobar[i, j, k] * (
                         (
-                            integrals.vtheta[i, j + 1, k] -
-                            integrals.vtheta[i, j - 1, k]
+                            integrals.uv[i, j + 1, k] -
+                            integrals.uv[i, j - 1, k]
                         ) / (2.0 * dy) +
                         met23[i, j, k] * (
-                            integrals.vtheta[i, j, k + 1] -
-                            integrals.vtheta[i, j, k - 1]
+                            integrals.uv[i, j, k + 1] -
+                            integrals.uv[i, j, k - 1]
                         ) / (2.0 * dz)
                     )
             end
+
+            tendencies.dudt[i, j, k] -=
+                rhotot * fc / thetabar[i, j, k] * integrals.vtheta[i, j, k]
+
+            # Compute the drag on the meridional wind.
+
+            tendencies.dvdt[i, j, k] =
+                -rhotot / rhobar[i, j, k] / jac[i, j, k] *
+                (integrals.vw[i, j, k + 1] - integrals.vw[i, j, k - 1]) /
+                (2.0 * dz)
+
+            if x_size > 1
+                tendencies.dvdt[i, j, k] -=
+                    rhotot / rhobar[i, j, k] * (
+                        (
+                            integrals.uv[i + 1, j, k] -
+                            integrals.uv[i - 1, j, k]
+                        ) / (2.0 * dx) +
+                        met13[i, j, k] * (
+                            integrals.uv[i, j, k + 1] -
+                            integrals.uv[i, j, k - 1]
+                        ) / (2.0 * dz)
+                    )
+            end
+
+            if y_size > 1
+                tendencies.dvdt[i, j, k] -=
+                    rhotot / rhobar[i, j, k] * (
+                        (
+                            integrals.vv[i, j + 1, k] -
+                            integrals.vv[i, j - 1, k]
+                        ) / (2.0 * dy) +
+                        met23[i, j, k] * (
+                            integrals.vv[i, j, k + 1] -
+                            integrals.vv[i, j, k - 1]
+                        ) / (2.0 * dz)
+                    )
+            end
+
+            tendencies.dvdt[i, j, k] +=
+                rhotot * fc / thetabar[i, j, k] * integrals.utheta[i, j, k]
+
+            # Compute the heating.
+
+            if fc != 0.0 && (x_size > 1 || y_size > 1)
+                if x_size > 1
+                    tendencies.dthetadt[i, j, k] -=
+                        rhotot * (
+                            (
+                                integrals.utheta[i + 1, j, k] -
+                                integrals.utheta[i - 1, j, k]
+                            ) / (2.0 * dx) +
+                            met13[i, j, k] * (
+                                integrals.utheta[i, j, k + 1] -
+                                integrals.utheta[i, j, k - 1]
+                            ) / (2.0 * dz)
+                        )
+                end
+
+                if y_size > 1
+                    tendencies.dthetadt[i, j, k] -=
+                        rhotot * (
+                            (
+                                integrals.vtheta[i, j + 1, k] -
+                                integrals.vtheta[i, j - 1, k]
+                            ) / (2.0 * dy) +
+                            met23[i, j, k] * (
+                                integrals.vtheta[i, j, k + 1] -
+                                integrals.vtheta[i, j, k - 1]
+                            ) / (2.0 * dz)
+                        )
+                end
+            end
+
+            compute_gw_tracer_tendencies!(state, i, j, k)
+
+            compute_gw_turbulence_tendencies!(state, i, j, k)
         end
-
-        compute_gw_tracer_tendencies!(state, i, j, k)
-
-        compute_gw_turbulence_tendencies!(state, i, j, k)
     end
 
     nothing

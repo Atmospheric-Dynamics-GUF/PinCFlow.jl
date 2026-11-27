@@ -195,7 +195,7 @@ end
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
+    @fuse for k in kmin:kmax, j in j0:j1, i in (i0 - 1):i1
         factor = 1.0
 
         if damp_horizontal_wind_on_rhs
@@ -235,7 +235,7 @@ end
     kmin = k0
     kmax = ko + nz == z_size ? k1 : k1 + 1
 
-    for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
+    @fuse for k in kmin:kmax, j in (j0 - 1):j1, i in i0:i1
         factor = 1.0
 
         if damp_horizontal_wind_on_rhs
@@ -276,7 +276,7 @@ end
     kmin = ko == 0 ? k0 : k0 - 1
     kmax = ko + nz == z_size ? k1 - 1 : k1
 
-    for k in kmin:kmax, j in j0:j1, i in i0:i1
+    @fuse for k in kmin:kmax, j in j0:j1, i in i0:i1
         factor = 1.0
 
         factor +=
@@ -335,7 +335,7 @@ end
     (; dpip) = state.variables.increments
     (; rho, rhop) = state.variables.predictands
 
-    for k in k0:k1, j in j0:j1, i in i0:i1
+    @fuse for k in k0:k1, j in j0:j1, i in i0:i1
         factor = 1.0
 
         factor += dt * betar[i, j, k] * rayleigh_factor
@@ -383,7 +383,7 @@ end
     jj = (j0 - 1):(j1 + 1)
     kk = (k0 - 1):(k1 + 1)
 
-    pip[ii, jj, kk] .+= dpip[ii, jj, kk]
+    @fuse pip[ii, jj, kk] += dpip[ii, jj, kk]
 
     nothing
 end

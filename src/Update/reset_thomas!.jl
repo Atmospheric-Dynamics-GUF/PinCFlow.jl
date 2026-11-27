@@ -14,8 +14,9 @@ function reset_thomas! end
 function reset_thomas!(state::State)::Nothing
     (; auxiliaries) = state.variables
 
-    for field in (:ath, :bth, :cth, :fth, :qth, :pth, :qth_bc, :fth_bc)
-        getfield(auxiliaries, field) .= 0.0
+    for field_name in (:ath, :bth, :cth, :fth, :qth, :qth_bc, :fth_bc)
+        field = getfield(auxiliaries, field_name)
+        @fuse field = 0.0
     end
 
     nothing

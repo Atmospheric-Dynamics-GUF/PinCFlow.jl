@@ -44,7 +44,7 @@ function set_vertical_boundary_rays! end
         kmin = k0
         kmax = npz > 1 ? k0 + 1 : k1
         for k in kmin:kmax, j in (j0 - 1):(j1 + 1), i in (i0 - 1):(i1 + 1)
-            for r in 1:nray[i, j, k]
+            @fuse for r in 1:nray[i, j, k]
                 xr = rays.x[r, i, j, k]
                 yr = rays.y[r, i, j, k]
                 zr = rays.z[r, i, j, k]
@@ -71,7 +71,7 @@ function set_vertical_boundary_rays! end
                 zr = rays.z[r, i, j, k]
                 dzr = rays.dzray[r, i, j, k]
 
-                if zr - 0.5 * dzr > lz
+                if zr - 0.5 * dzr > lz - eps()
                     continue
                 end
                 if zr + 0.5 * dzr > lz

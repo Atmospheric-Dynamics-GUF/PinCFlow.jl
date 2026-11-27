@@ -27,7 +27,7 @@ function compute_global_dot_product(
     (; comm) = state.domain
 
     # Compute local dot product.
-    local_dot_product = mapreduce((a, b) -> a * b, +, a, b)
+    local_dot_product = mapreduce(*, +, a, b)
 
     # Sum over all processes.
     global_dot_product = MPI.Allreduce(local_dot_product, +, comm)

@@ -78,7 +78,7 @@ function plot_snapshot! end
     # Determine the data slices.
     (variable, n) = (field[1], field[end])
     if length(field) == 5
-        (i, j, k) = ceil.(Int64, field[2:4] .* (nx, ny, nz))
+        (i, j, k) = @fuse ceil(Int64, field[2:4] * (nx, ny, nz))
     else
         i = j = k = 1
     end
@@ -93,12 +93,12 @@ function plot_snapshot! end
 
     if variable in ray_volume_properties
         # Get the ray-volume data.
-        xr = data["xr"][:, :, :, :, n] ./ space_unit_factor
-        yr = data["yr"][:, :, :, :, n] ./ space_unit_factor
-        zr = data["zr"][:, :, :, :, n] ./ space_unit_factor
-        dxr = data["dxr"][:, :, :, :, n] ./ space_unit_factor
-        dyr = data["dyr"][:, :, :, :, n] ./ space_unit_factor
-        dzr = data["dzr"][:, :, :, :, n] ./ space_unit_factor
+        xr = @fuse data["xr"][:, :, :, :, n] / space_unit_factor
+        yr = @fuse data["yr"][:, :, :, :, n] / space_unit_factor
+        zr = @fuse data["zr"][:, :, :, :, n] / space_unit_factor
+        dxr = @fuse data["dxr"][:, :, :, :, n] / space_unit_factor
+        dyr = @fuse data["dyr"][:, :, :, :, n] / space_unit_factor
+        dzr = @fuse data["dzr"][:, :, :, :, n] / space_unit_factor
         nr = data["nr"][:, :, :, :, n]
         phi = data[string(variable)][:, :, :, :, n]
 
@@ -106,7 +106,7 @@ function plot_snapshot! end
         if nx > 1 && ny > 1
             column += 2
             if plane_in_title
-                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits)
+                zk = round(sum(z[:, :, k, n]) / length(z[:, :, k, n]); digits)
                 title =
                     L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}"
             else
@@ -121,7 +121,7 @@ function plot_snapshot! end
                     dx = dxr[:, :, :, k],
                     dy = dyr[:, :, :, k],
                     label,
-                    mask = nr[:, :, :, k] .!= 0,
+                    mask = @fuse(nr[:, :, :, k] != 0),
                     number,
                     phi = phi[:, :, :, k],
                     row,
@@ -159,7 +159,7 @@ function plot_snapshot! end
                     dx = dxr[:, :, j, :],
                     dy = dzr[:, :, j, :],
                     label,
-                    mask = nr[:, :, j, :] .!= 0,
+                    mask = @fuse(nr[:, :, j, :] != 0),
                     number,
                     phi = phi[:, :, j, :],
                     row,
@@ -171,8 +171,8 @@ function plot_snapshot! end
                     x_tick_format,
                     y = zr[:, :, j, :],
                     y_label = L"z_r\ [\mathrm{%$space_unit}]",
-                    ymax = maximum(z),
-                    ymin = minimum(z),
+                    ymax = maximum(z[:, :, :, n]),
+                    ymin = minimum(z[:, :, :, n]),
                     y_tick_format = z_tick_format,
                 ),
             )
@@ -197,7 +197,7 @@ function plot_snapshot! end
                     dx = dyr[:, i, :, :],
                     dy = dzr[:, i, :, :],
                     label,
-                    mask = nr[:, i, :, :] .!= 0,
+                    mask = @fuse(nr[:, i, :, :] != 0),
                     number,
                     phi = phi[:, i, :, :],
                     row,
@@ -209,8 +209,8 @@ function plot_snapshot! end
                     x_tick_format = y_tick_format,
                     y = zr[:, i, :, :],
                     y_label = L"z_r\ [\mathrm{%$space_unit}]",
-                    ymax = maximum(z),
-                    ymin = minimum(z),
+                    ymax = maximum(z[:, :, :, n]),
+                    ymin = minimum(z[:, :, :, n]),
                     y_tick_format = z_tick_format,
                 ),
             )
@@ -223,7 +223,7 @@ function plot_snapshot! end
         if nx > 1 && ny > 1
             column += 2
             if plane_in_title
-                zk = round(sum(z[:, :, k]) / length(z[:, :, k]); digits)
+                zk = round(sum(z[:, :, k, n]) / length(z[:, :, k, n]); digits)
                 title =
                     L"t\approx%$tn\ \mathrm{%$time_unit},\quad z\approx%$zk\ \mathrm{%$space_unit}"
             else
@@ -276,7 +276,7 @@ function plot_snapshot! end
                     x = x[:, j, :],
                     x_label = L"x\ [\mathrm{%$space_unit}]",
                     x_tick_format,
-                    y = z[:, j, :],
+                    y = z[:, j, :, n],
                     y_label = L"z\ [\mathrm{%$space_unit}]",
                     y_tick_format = z_tick_format,
                 ),
@@ -308,7 +308,7 @@ function plot_snapshot! end
                     x = y[i, :, :],
                     x_label = L"y\ [\mathrm{%$space_unit}]",
                     x_tick_format = y_tick_format,
-                    y = z[i, :, :],
+                    y = z[i, :, :, n],
                     y_label = L"z\ [\mathrm{%$space_unit}]",
                     y_tick_format = z_tick_format,
                 ),

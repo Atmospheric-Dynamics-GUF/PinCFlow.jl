@@ -90,7 +90,7 @@ end
     # Compute initial wavenumbers, intrinsic frequencies and wave-action
     # densities with initial_wave_field.
     if wkb_mode !== Val(:SteadyState)
-        for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
+        @fuse for k in k0:k1, j in j0:j1, i in i0:i1, alpha in 1:wave_modes
             (kdim, ldim, mdim, omegadim, adim) = initial_wave_field(
                 alpha,
                 x[i] * lref,
@@ -169,7 +169,7 @@ end
             rays.x[r, i, j, k] = (x[i] - 0.5 * dx + (ix - 0.5) * dx / nrx)
             rays.y[r, i, j, k] = (y[j] - 0.5 * dy + (jy - 0.5) * dy / nry)
             rays.z[r, i, j, k] = (
-                zc[i, j, k] - 0.5 * jac[i, j, k] * dz +
+                zc[i, j, k] - jac[i, j, k] * dz / 2 +
                 (kz - 0.5) * jac[i, j, k] * dz / nrz
             )
 

@@ -87,8 +87,6 @@ The group velocities that are calculated for the propagation in physical space a
 
 The damping of wave-action density due to turbulence is applied via `apply_turbulent_damping!`.
 
-If `rkstage == nstages`, `activate_orographic_source!` is called to launch new mountain-wave ray volumes.
-
 ```julia
 propagate_rays!(
     state::State,
@@ -100,7 +98,7 @@ propagate_rays!(
 
 Update the vertical wavenumber and wave-action density, using steady-state WKB theory.
 
-In steady-state mode, the ray volumes are stationary in physical space. In mountain-wave simulations, this method first updates the ray volumes in the launch layer by calling `activate_orographic_source!`. Subsequently, it performs a vertical sweep to update all other ray volumes. Therein, the vertical wavenumber is set to
+In steady-state mode, the ray volumes are stationary in physical space. In mountain-wave simulations, this method performs a vertical sweep to update all other ray volumes. Therein, the vertical wavenumber is set to
 
 ```math
 m_r = - \\sigma \\sqrt{\\frac{\\left(k_r^2 + l_r^2\\right) \\left(N_r^2 - \\hat{\\omega}_r^2\\right)}{\\hat{\\omega}_r^2 - f^2}},
@@ -158,8 +156,6 @@ If `rkstage != 1`, this method returns immediately.
 
   - [`PinCFlow.MSGWaM.Interpolation.interpolate_sponge`](@ref)
 
-  - [`PinCFlow.MSGWaM.RaySources.activate_orographic_source!`](@ref)
-
   - [`PinCFlow.MSGWaM.RayOperations.copy_rays!`](@ref)
 
   - [`PinCFlow.MSGWaM.RayUpdate.apply_turbulent_damping!`](@ref)
@@ -212,7 +208,7 @@ end
     # RK stage.
     if rkstage == 1
         for k in kmin:kmax, j in j0:j1, i in i0:i1
-            for r in 1:nray[i, j, k]
+            @fuse for r in 1:nray[i, j, k]
                 dxray[r, i, j, k] = 0.0
                 dyray[r, i, j, k] = 0.0
                 dzray[r, i, j, k] = 0.0
@@ -232,6 +228,10 @@ end
 
     for k in kmin:kmax, j in j0:j1, i in i0:i1
         for r in 1:nray[i, j, k]
+            if rays.dens[r, i, j, k] == 0
+                continue
+            end
+
             (xr, yr, zr) = get_physical_position(rays, r, i, j, k)
             (kr, lr, mr) = get_spectral_position(rays, r, i, j, k)
             (dxr, dyr, dzr) = get_physical_extent(rays, r, i, j, k)
@@ -366,8 +366,8 @@ end
 
             cgz_max[] = max(cgz_max[], abs(cgrz1), abs(cgrz2))
 
-            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin ||
-               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin
+            if abs(rays.z[r, i, j, k] - zr) > stepfrac[rkstage] * dzcmin[] ||
+               abs(rays.dzray[r, i, j, k] - dzr) > stepfrac[rkstage] * dzcmin[]
                 error("Rays travel too far in z!")
             end
 
@@ -477,10 +477,6 @@ end
         end
     end
 
-    if rkstage == nstages
-        activate_orographic_source!(state)
-    end
-
     nothing
 end
 
@@ -507,21 +503,20 @@ end
     # Set Coriolis parameter.
     fc = coriolis_frequency * tref
 
-    activate_orographic_source!(state)
-
     if ko != 0
         nray_down = zeros(Int, nx, ny)
         MPI.Recv!(nray_down, comm; source = down)
-        nray[i0:i1, j0:j1, k0 - 1] .= nray_down
+        @fuse nray[i0:i1, j0:j1, k0 - 1] = nray_down
 
         local_count = maximum(nray[i0:i1, j0:j1, k0 - 1])
         if local_count > 0
-            fields = fieldcount(Rays)
-            rays_down = zeros(fields, local_count, nx, ny)
+            field_count = fieldcount(Rays)
+            rays_down = zeros(field_count, local_count, nx, ny)
             MPI.Recv!(rays_down, comm; source = down)
-            for field in 1:fields
-                getfield(rays, field)[1:local_count, i0:i1, j0:j1, k0 - 1] .=
-                    rays_down[field, :, :, :]
+            for field_index in 1:field_count
+                field = getfield(rays, field_index)
+                @fuse field[1:local_count, i0:i1, j0:j1, k0 - 1] =
+                    rays_down[field_index, :, :, :]
             end
         end
     end
@@ -660,11 +655,13 @@ end
             diffusion = (m2b2 - saturation_threshold^2 * n2r^2) / (2 * m2b2k2)
         end
 
+        # Continue if the saturation scheme is switched off.
+        if !saturation
+            continue
+        end
+
         # Reduce the wave action density.
         for r in 1:nray[i, j, k]
-            if !use_saturation
-                continue
-            end
             if rays.dens[r, i, j, k] == 0
                 continue
             end
@@ -694,11 +691,12 @@ end
 
         local_count = maximum(nray[i0:i1, j0:j1, k1])
         if local_count > 0
-            fields = fieldcount(Rays)
-            rays_up = zeros(fields, local_count, nx, ny)
-            for field in 1:fields
-                rays_up[field, :, :, :] .=
-                    getfield(rays, field)[1:local_count, i0:i1, j0:j1, k1]
+            field_count = fieldcount(Rays)
+            rays_up = zeros(field_count, local_count, nx, ny)
+            for field_index in 1:field_count
+                field = getfield(rays, field_index)
+                @fuse rays_up[field_index, :, :, :] =
+                    field[1:local_count, i0:i1, j0:j1, k1]
             end
             MPI.Send(rays_up, comm; dest = up)
         end

@@ -24,8 +24,9 @@ include("Grid.jl")
 include("Atmosphere.jl")
 include("Sponge.jl")
 
-include("compute_topography.jl")
+include("compute_grid!.jl")
 include("compute_n2!.jl")
+include("compute_background_fields!.jl")
 
 include("../../Boundaries/set_zonal_boundaries_of_field!.jl")
 include("../../Boundaries/set_meridional_boundaries_of_field!.jl")
@@ -36,7 +37,9 @@ include("../../MPIOperations/set_vertical_halos_of_field!.jl")
 
 export Time, Constants, Domain, Grid, Atmosphere, Sponge
 
-export set_zonal_boundaries_of_field!,
+export compute_grid!,
+    compute_background_fields!,
+    set_zonal_boundaries_of_field!,
     set_meridional_boundaries_of_field!,
     set_vertical_boundaries_of_field!,
     set_zonal_halos_of_field!,

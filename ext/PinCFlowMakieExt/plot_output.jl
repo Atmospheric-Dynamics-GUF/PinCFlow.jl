@@ -121,10 +121,10 @@ plot_output
     h5open(data_file) do data
 
         # Set the grid.
-        x = data["x"][:] ./ space_unit_factor
-        y = data["y"][:] ./ space_unit_factor
-        z = data["z"][:, :, :] ./ space_unit_factor
-        (nx, ny, nz) = size(z)
+        x = @fuse data["x"][:] / space_unit_factor
+        y = @fuse data["y"][:] / space_unit_factor
+        z = @fuse data["z"][:, :, :, :] / space_unit_factor
+        (nx, ny, nz, nt) = size(z)
         x = [xi for xi in x, j in 1:ny, k in 1:nz]
         y = [yj for i in 1:nx, yj in y, k in 1:nz]
 
@@ -132,7 +132,7 @@ plot_output
         plane_in_title = (nx > 1 && ny > 1 && nz > 1)
 
         # Get the time.
-        t = data["t"][:] ./ time_unit_factor
+        t = @fuse data["t"][:] / time_unit_factor
 
         figure = Figure()
 
